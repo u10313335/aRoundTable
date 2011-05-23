@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:stretchColumns="*"
+	
+	>
+
+
+
+	<TextView android:id="@+id/projname_display"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:layout_marginTop="10px" 
+		android:text="" 
+
+		/>
+
+
+
+
+
+
+	
+	<TextView android:id="@+id/invite" 
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:layout_marginTop="15px"
+		android:text="invite other members:" 
+
+		/>
+
+
+
+
+<TableRow>
+
+	<EditText android:id="@+id/member_name" 
+		android:layout_height="wrap_content" 
+		android:padding="1dip"
+		android:layout_marginTop="20px"
+		android:layout_span="3"
+		android:singleLine="true" 
+	
+		/>
+
+
+	<ImageButton android:id="@+id/add_member" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		
+		android:src="@drawable/add"
+		
+		/>
+		
+</TableRow>
+
+
+
+
+
+	<ListView android:id="@+id/memberlist" 
+		android:orientation="vertical"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:scrollbars="vertical"
+		
+		/>
+		
+
+
+
+<TableRow>
+	
+	<Button android:id="@+id/back" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:text="Back"
+		android:layout_span="2"
+		
+		/>
+
+	<Button android:id="@+id/confirm" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:text="Confirm"
+		
+		
+		
+		/>
+
+
+	<Button android:id="@+id/cancel" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:text="Cancel"
+		
+		/>
+		
+</TableRow>
+
+
+
+</TableLayout>

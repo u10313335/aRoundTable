@@ -2,4 +2,5 @@
 <resources>
     <string name="hello">Hello World, aRoundTable!</string>
     <string name="app_name">aRoundTable</string>
+    <string name="title">Deadline/Event</string>
 </resources>
