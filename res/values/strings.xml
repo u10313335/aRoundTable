@@ -3,4 +3,8 @@
     <string name="hello">Hello World, aRoundTable!</string>
     <string name="app_name">aRoundTable</string>
     <string name="title">Deadline/Event</string>
+    <string name="welcome_message_title">歡迎使用aRoundTable！</string>
+    <string name="welcome_message">第一次啟動本程式，請先完成帳號認證</string>
+    <string name="confirm">確認</string>
+    <string name="register_finished">認證完成</string>
 </resources>

@@ -1,9 +1,5 @@
 package tw.jouou.aRoundTable;
 
-
-
-
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,14 +14,10 @@ public class ProjNameActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.projname);
-        
-        
+           
         findViews();
         setListeners();
-        
-        
-        
-        
+  
     }
 	
 	private TextView projname_input;
