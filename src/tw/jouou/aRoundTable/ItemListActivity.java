@@ -156,15 +156,22 @@ public class ItemListActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 			case MENU_Add_item:
-				Intent intent= new Intent();
-				intent.setClass(ItemListActivity.this,ProjNameActivity.class);
-		        startActivity(intent);  //remember to add Activity in AndroidManifest
-                break;
-                
+				
+				Intent additem_intent= new Intent();
+				additem_intent.setClass(ItemListActivity.this,AddItemActivity.class);
+		        startActivity(additem_intent);  //remember to add Activity in AndroidManifest
+		        
+		        break;
 			case MENU_Update:
+				
 				break;
 				
 			case MENU_Add_group:
+				
+				Intent addgroup_intent= new Intent();
+				addgroup_intent.setClass(ItemListActivity.this,ProjNameActivity.class);
+		        startActivity(addgroup_intent);  //remember to add Activity in AndroidManifest
+		        
 				break;
 		}
 		return super.onOptionsItemSelected(item);
