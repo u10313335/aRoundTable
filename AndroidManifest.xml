@@ -37,6 +37,7 @@
         <activity android:name="tw.jouou.aRoundTable.util.AccManagerActivity"
         			android:launchMode="singleInstance">
         </activity>
+        <activity android:name="AddItemActivity"></activity>
 
     </application>
 </manifest>
