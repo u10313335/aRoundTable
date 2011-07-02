@@ -7,4 +7,7 @@
     <string name="welcome_message">第一次啟動本程式，請先完成帳號認證</string>
     <string name="confirm">確認</string>
     <string name="register_finished">認證完成</string>
+    <string name="settings">設定</string>
+    <string name="feedbacks">回報</string>
+    <string name="about">關於</string>
 </resources>

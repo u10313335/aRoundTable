@@ -27,8 +27,8 @@ public class ProjNameActivity extends Activity {
 	
 	private void findViews()
 	{
-		projname_input = (TextView)findViewById(R.id.projname_input);
-		projname = (EditText)findViewById(R.id.projname);
+		projname_input = (TextView)findViewById(R.id.projname_input_prompt);
+		projname = (EditText)findViewById(R.id.projname_input);
 		next = (Button)findViewById(R.id.next);
 		
 	}

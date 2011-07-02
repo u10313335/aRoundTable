@@ -2,6 +2,7 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.*;
 import tw.jouou.aRoundTable.util.*;
+import tw.jouou.aRoundTable.view.WorkspaceView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,50 +16,69 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class ItemListActivity extends Activity {
     /** Called when the activity is first created. */
 	
-    private ListView mainList;
-    private SimpleAdapter imageItems;
-    private String[] project = new String[]{"project1","project2","project3","project4","project5","event1","event2","event3","project6","event4","project7","project8","project9"};
+    
+	private ArrayList<HashMap<String, Object>> items;
+	private String token;
+	private String projName = "SA Project";
+	private String itemNames[] = { "Introduction", "Class Diagram", "SA ppt", "Demo", "Introduction", "Class Diagram", "SA ppt", "Demo" };
+	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
+	private String dueRelateDays[] = { "今天", "二天後", "十天後", "十七天後", "今天", "二天後", "十天後", "十七天後" };
+	private String dueDates[] = { "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21", "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21" };
+	
 	private DBUtils dbUtils;
 	private List<User> users;
 	private User user;
-	private String token;
+
+	private CheckBox itemDone;
+	private TextView projNameView;
+	private ListView itemListView;
+	private Button issueTracker, docs, addItem, contacts, chart;
 	
-    protected static final int MENU_Add_item = Menu.FIRST;
-    protected static final int MENU_Update = Menu.FIRST+1;
-    protected static final int MENU_Add_group = Menu.FIRST+2;
-	
+    protected static final int MENU_Settings = Menu.FIRST;
+    protected static final int MENU_Feedbacks = Menu.FIRST+1;
+    protected static final int MENU_About = Menu.FIRST+2;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        LayoutInflater inflater = (LayoutInflater) getSystemService (Context.LAYOUT_INFLATER_SERVICE);
 
-    	if (dbUtils == null) {
+		WorkspaceView work = new WorkspaceView(this, null);
+		work.setTouchSlop(32);
+
+		// server down, temporary comment out
+/*    	if (dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
     	
     	users = dbUtils.userDelegate.get();
-//    	System.out.println(users.isEmpty());
-    	
+ 	
     	if(!users.isEmpty()){
     		token = users.get(0).getToken();
         	dbUtils.close();
@@ -75,7 +95,9 @@ public class ItemListActivity extends Activity {
         	);
     	    dialog.show();
     	}
-    	
+*/
+
+			// TODO:implement get list API below
 /*			HttpGet request = new HttpGet("http://api.hime.loli.tw/projects");
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			
@@ -94,29 +116,103 @@ public class ItemListActivity extends Activity {
 				e.printStackTrace();
 			}
 */
-  	  	ArrayList<HashMap<String,Object>> projects = new ArrayList<HashMap<String, Object>>();
-  	  
-  	  	for (int i = 0; i < project.length; i++) {
-            HashMap<String, Object> projectname = new HashMap<String, Object>();
-            projectname.put("img", R.drawable.project);
-            projectname.put("projectname", project[i]);
-            projects.add(projectname);
-        }
-        
-        imageItems = new SimpleAdapter(this,projects,R.layout.project,
-        	new String[] {"img", "projectname"},new int[] {R.id.img, R.id.name});
-        
-        mainList = (ListView)findViewById(R.id.mainlist);
-        mainList.setAdapter(imageItems); 
-        mainList.setOnItemClickListener(
-        	new OnItemClickListener(){  
-        		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,long arg3){
-        			setTitle(getResources().getString(R.string.title) + ": " + project[arg2]);
-        		}
-        	}
-        );
-
+  	  	
+    			// Put items for specific project to an array list
+    			items = new ArrayList<HashMap <String, Object>> ();
+    	    
+    			for (int i = 0; i < itemNames.length; i++) {
+    				HashMap< String, Object > item = new HashMap< String, Object >();
+    				item.put("checkDone", itemDone);
+    				item.put("itemName", itemNames[i]);
+    				item.put("itemOwner", itemOwners[i]);
+    				item.put("dueRelateDay", dueRelateDays[i]);
+    				item.put("dueDate", dueDates[i]);
+    				items.add(item);
+    			}
+    	  
+    			// Find all views
+    			// v1:each project
+    			// TODO:v2:other views
+    			View v1= inflater.inflate(R.layout.project_list, null, false);
+    			View v2= inflater.inflate(R.layout.main, null, false);
+    	    
+    			// Add views to the workspace view
+    			work.addView(v1);
+    			work.addView(v2);
+    	    
+    			// Add workspace to current content view
+    			setContentView(work);
+    	    
+    			// Find Widgets
+    			findViews();
+    	    
+    			// Put items for specific project to list
+    			itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.project_list_item,
+    					new String[] { "checkDone", "itemName", "itemOwner", "dueRelateDay", "dueDate" },
+    					new int[] { R.id.itemDone, R.id.item_name, R.id.item_owner, R.id.item_dueRelateDay, R.id.item_duedate }));
+    	  
+    			// Long click. You can add item operations here
+    			itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+    				public boolean onItemLongClick(AdapterView<?> arg0P, View arg1P, int arg2P, long arg3P) {
+    					Toast toast = Toast.makeText(ItemListActivity.this, "Long Click......", Toast.LENGTH_SHORT);
+    					toast.show();
+    					return true;
+    				}
+    			});
+    	    
+    			// Set project name on top
+    			projNameView.setText(projName);
+    			
+    			// Set bottom menu functions
+    			issueTracker.setOnClickListener(new OnClickListener(){
+    	    		@Override
+    	    		public void onClick(View arg0) {
+    	    			// TODO:insert issue tracker activity here
+    	    			// add project activity, temporarily placed here
+    	    			Intent addgroup_intent= new Intent();
+    					addgroup_intent.setClass(ItemListActivity.this,ProjNameActivity.class);
+    			        startActivity(addgroup_intent);
+    	    		}
+    	        });
+    			docs.setOnClickListener(new OnClickListener(){
+    	    		@Override
+    	    		public void onClick(View arg0) {
+    	    			// TODO:insert group docs activity here
+    	    		}
+    	        });
+    			addItem.setOnClickListener(new OnClickListener(){
+    	    		@Override
+    	    		public void onClick(View arg0) {
+    					Intent additem_intent= new Intent();
+    					additem_intent.setClass(ItemListActivity.this,AddItemActivity.class);
+    			        startActivity(additem_intent);
+    	    		}
+    	        });
+    			contacts.setOnClickListener(new OnClickListener(){
+    	    		@Override
+    	    		public void onClick(View arg0) {
+    	    			// TODO:insert contacts activity here
+    	    		}
+    	        });
+    			chart.setOnClickListener(new OnClickListener(){
+    	    		@Override
+    	    		public void onClick(View arg0) {
+    	    			// TODO:insert chart activity here
+    	    		}
+    	        });
+    	    
     }
+    
+	private void findViews()
+	{
+		itemListView = (ListView) findViewById(R.id.proj_item_list);
+		projNameView = (TextView) findViewById(R.id.proj_name);
+		issueTracker = (Button) findViewById(R.id.proj_issue_tracker);
+		docs = (Button) findViewById(R.id.proj_docs);
+		addItem = (Button) findViewById(R.id.proj_additem);
+		contacts = (Button) findViewById(R.id.proj_contact);
+		chart = (Button) findViewById(R.id.proj_chart);
+	}
 
     
     protected void onNewIntent(Intent intent) {
@@ -142,9 +238,9 @@ public class ItemListActivity extends Activity {
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		menu.add(0,MENU_Add_item,0,"").setIcon(R.drawable.add);
-		menu.add(0,MENU_Update,0,"").setIcon(R.drawable.update);
-		menu.add(0,MENU_Add_group,0,"").setIcon(R.drawable.group);
+		menu.add(0,MENU_Settings, 0, R.string.settings).setIcon(android.R.drawable.ic_menu_preferences);
+		menu.add(0,MENU_Feedbacks, 0, R.string.feedbacks).setIcon(android.R.drawable.ic_menu_send);
+		menu.add(0,MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
 		
 		this.openOptionsMenu();
 		
@@ -154,28 +250,17 @@ public class ItemListActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch(item.getItemId()){
-			case MENU_Add_item:
-				
-				Intent additem_intent= new Intent();
-				additem_intent.setClass(ItemListActivity.this,AddItemActivity.class);
-		        startActivity(additem_intent);  //remember to add Activity in AndroidManifest
-		        
+		switch(item.getItemId()) {
+			case MENU_Settings:
+				// TODO:insert settings activity here
 		        break;
-			case MENU_Update:
-				
+			case MENU_Feedbacks:
+				// TODO:insert feedbacks activity here
 				break;
-				
-			case MENU_Add_group:
-				
-				Intent addgroup_intent= new Intent();
-				addgroup_intent.setClass(ItemListActivity.this,ProjNameActivity.class);
-		        startActivity(addgroup_intent);  //remember to add Activity in AndroidManifest
-		        
+			case MENU_About:
+				// TODO:insert about activity here	        
 				break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-	
 }
