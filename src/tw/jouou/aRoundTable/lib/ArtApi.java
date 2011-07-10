@@ -10,7 +10,9 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -18,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
@@ -30,7 +33,7 @@ import android.content.Context;
 public class ArtApi {
 	private static ArtApi instance;
 	private static final String baseURL = "http://api.hime.loli.tw";
-	private static final String createProjectPath = "/projects";
+	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
 	
 	private String token;
@@ -50,6 +53,28 @@ public class ArtApi {
         return instance = new ArtApi(users.get(0).getToken());
 	}
 	
+	public Project[] getProjectList() throws ServerException, IOException{
+		HashMap<String, String> params = makeTokenHash();
+		Project r[];
+		try {
+			HttpResponse response = performGet(projectsPath, params);
+			if(response.getStatusLine().getStatusCode() == 200){
+				
+				JSONArray projects = new JSONArray(EntityUtils.toString(response.getEntity()));			
+				JSONObject project = null;
+				
+				r = new Project[projects.length()];
+				for(int i=0; i < projects.length(); project = projects.getJSONObject(i)){			
+					r[i] = new Project(project.getInt("id"), project.getString("name")); 
+				}
+				return r;
+			}else
+				throw new ServerException("Server respond with: "+response.getStatusLine());		
+		} catch (JSONException e) {
+			throw new ServerException("Server respond with invalid json");
+		}
+	}
+	
 	/**
 	 * Create a new project with current user
 	 * @param name Name of new project
@@ -60,7 +85,7 @@ public class ArtApi {
 		HashMap<String, String> params = makeTokenHash();
 		params.put("project[name]", name);
 		
-		HttpResponse response =  performPost(createProjectPath, params);
+		HttpResponse response =  performPost(projectsPath, params);
 		if(response.getStatusLine().getStatusCode() == 200){
 			try{
 				String post_json = EntityUtils.toString(response.getEntity());
@@ -72,7 +97,6 @@ public class ArtApi {
 			}
 		}else{
 			throw new ServerException("Response code:"+response.getStatusLine());
-			
 		}
 	}
 	
@@ -127,9 +151,7 @@ public class ArtApi {
 	}
 	
 	/**
-	 * Server has a new 
-	 * 
-	 *
+	 * Server fault
 	 */
 	public class ServerException extends Exception{
 		private static final long serialVersionUID = 9019747876485278413L;
@@ -159,18 +181,27 @@ public class ArtApi {
 	 */
 	private HttpResponse performPost(String path, HashMap<String, String> params) throws ClientProtocolException, IOException{
 		HttpPost post = new HttpPost(baseURL + path);
+				
+		// Perform request
+		post.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
 		
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		return httpClient.execute(post);
+	}
+	
+	private HttpResponse performGet(String path, HashMap<String, String> params) throws ClientProtocolException, IOException{
+		HttpGet get = new HttpGet(baseURL + path + "?" + URLEncodedUtils.format(prepareParams(params), "UTF-8"));
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		return httpClient.execute(get);
+	}
+	
+	private List<NameValuePair> prepareParams(HashMap<String, String> params){		
 		// Prepare parameters
 		List<NameValuePair> httpParams = new ArrayList<NameValuePair>();
 		for(String key: params.keySet()){
 			httpParams.add(new BasicNameValuePair(key, params.get(key)));
 		}
 		
-		// Perform request
-		post.setEntity(new UrlEncodedFormEntity(httpParams, "UTF-8"));
-
-		
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		return httpClient.execute(post);
+		return httpParams;
 	}
 }
