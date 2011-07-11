@@ -1,7 +1,7 @@
 package tw.jouou.aRoundTable;
 
-import tw.jouou.aRoundTable.bean.*;
-import tw.jouou.aRoundTable.util.*;
+import tw.jouou.aRoundTable.bean.User;
+import tw.jouou.aRoundTable.util.DBUtils;
 import tw.jouou.aRoundTable.view.WorkspaceView;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +16,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
@@ -23,6 +24,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,26 +41,36 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ItemListActivity extends Activity {
-    /** Called when the activity is first created. */
+
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
+
+/**
+ * Main Activity of aRound Table
+ * 
+ * Shows all tasks and can switch to different views
+ */
+public class MainActivity extends Activity {
 	
-    
 	private ArrayList<HashMap<String, Object>> items;
-	private String token;
 	private String projName = "SA Project";
 	private String itemNames[] = { "Introduction", "Class Diagram", "SA ppt", "Demo", "Introduction", "Class Diagram", "SA ppt", "Demo" };
 	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
 	private String dueRelateDays[] = { "今天", "二天後", "十天後", "十七天後", "今天", "二天後", "十天後", "十七天後" };
 	private String dueDates[] = { "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21", "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21" };
 	
-	private DBUtils dbUtils;
-	private List<User> users;
-	private User user;
-
 	private CheckBox itemDone;
 	private TextView projNameView;
 	private ListView itemListView;
 	private Button issueTracker, docs, addItem, contacts, chart;
+	
+	private DBUtils dbUtils;
+	private List<User> users;
+	private User user;
+	private String token;
+	private static String TAG = "MainActivity";
+
 	
     protected static final int MENU_Settings = Menu.FIRST;
     protected static final int MENU_Feedbacks = Menu.FIRST+1;
@@ -72,18 +84,18 @@ public class ItemListActivity extends Activity {
 		WorkspaceView work = new WorkspaceView(this, null);
 		work.setTouchSlop(32);
 
-		// server down, temporary comment out
-/*    	if (dbUtils == null) {
+
+    	if (dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
     	
     	users = dbUtils.userDelegate.get();
- 	
+
     	if(!users.isEmpty()){
     		token = users.get(0).getToken();
         	dbUtils.close();
     	}else{
-    		Builder dialog = new Builder(ItemListActivity.this);
+    		Builder dialog = new Builder(MainActivity.this);
     	    dialog.setTitle(R.string.welcome_message_title);
     	    dialog.setMessage(R.string.welcome_message);
         	dialog.setPositiveButton(R.string.confirm,
@@ -95,7 +107,7 @@ public class ItemListActivity extends Activity {
         	);
     	    dialog.show();
     	}
-*/
+
 
 			// TODO:implement get list API below
 /*			HttpGet request = new HttpGet("http://api.hime.loli.tw/projects");
@@ -116,7 +128,8 @@ public class ItemListActivity extends Activity {
 				e.printStackTrace();
 			}
 */
-  	  	
+    	
+ 	  	 		// TODO: Dummy code for a fake list, should be removed ASAP.
     			// Put items for specific project to an array list
     			items = new ArrayList<HashMap <String, Object>> ();
     	    
@@ -154,7 +167,7 @@ public class ItemListActivity extends Activity {
     			// Long click. You can add item operations here
     			itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
     				public boolean onItemLongClick(AdapterView<?> arg0P, View arg1P, int arg2P, long arg3P) {
-    					Toast toast = Toast.makeText(ItemListActivity.this, "Long Click......", Toast.LENGTH_SHORT);
+    					Toast toast = Toast.makeText(MainActivity.this, "Long Click......", Toast.LENGTH_SHORT);
     					toast.show();
     					return true;
     				}
@@ -170,7 +183,7 @@ public class ItemListActivity extends Activity {
     	    			// TODO:insert issue tracker activity here
     	    			// add project activity, temporarily placed here
     	    			Intent addgroup_intent= new Intent();
-    					addgroup_intent.setClass(ItemListActivity.this,ProjNameActivity.class);
+    					addgroup_intent.setClass(MainActivity.this,CreateProjectActivity.class);
     			        startActivity(addgroup_intent);
     	    		}
     	        });
@@ -184,7 +197,7 @@ public class ItemListActivity extends Activity {
     	    		@Override
     	    		public void onClick(View arg0) {
     					Intent additem_intent= new Intent();
-    					additem_intent.setClass(ItemListActivity.this,AddItemActivity.class);
+    					additem_intent.setClass(MainActivity.this,AddItemActivity.class);
     			        startActivity(additem_intent);
     	    		}
     	        });
@@ -200,7 +213,7 @@ public class ItemListActivity extends Activity {
     	    			// TODO:insert chart activity here
     	    		}
     	        });
-    	    
+
     }
     
 	private void findViews()
@@ -223,9 +236,8 @@ public class ItemListActivity extends Activity {
 	    user.setToken(token);
 		dbUtils.userDelegate.insert(user);
 		dbUtils.close();
-		Toast popup =  Toast.makeText(this,R.string.register_finished, Toast.LENGTH_SHORT);
-	    popup.show();
-		//Log.i("Sol","it's about to finish");
+		Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
+	    Log.v(TAG, "[onNewIntent] Token back: "+token);
 	}
  
     
@@ -246,21 +258,5 @@ public class ItemListActivity extends Activity {
 		
 		return super.onCreateOptionsMenu(menu);
 	}
-	
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch(item.getItemId()) {
-			case MENU_Settings:
-				// TODO:insert settings activity here
-		        break;
-			case MENU_Feedbacks:
-				// TODO:insert feedbacks activity here
-				break;
-			case MENU_About:
-				// TODO:insert about activity here	        
-				break;
-		}
-		return super.onOptionsItemSelected(item);
-	}
 }

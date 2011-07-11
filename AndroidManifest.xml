@@ -9,7 +9,7 @@
 
     <application android:icon="@drawable/icon" android:label="@string/app_name"
     			 android:theme="@style/windowNoTitle">
-        <activity android:name=".ItemListActivity"
+        <activity android:name="MainActivity"
                   android:label="@string/app_name"
                   android:launchMode="singleInstance">
                   
@@ -30,7 +30,7 @@
             </intent-filter>
         </activity>
         
-        <activity android:name="ProjNameActivity">
+        <activity android:name="CreateProjectActivity">
         </activity>
         
         <activity android:name="InviteMemberActivity">

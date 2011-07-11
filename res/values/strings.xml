@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, aRoundTable!</string>
     <string name="app_name">aRoundTable</string>
@@ -10,4 +10,5 @@
     <string name="settings">設定</string>
     <string name="feedbacks">回報</string>
     <string name="about">關於</string>
+    <string name="processing">正在處理中</string>
 </resources>
