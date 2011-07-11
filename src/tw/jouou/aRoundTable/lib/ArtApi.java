@@ -67,7 +67,12 @@ public class ArtApi {
 				JSONObject project = null;
 				
 				r = new Project[projects.length()];
-				for(int i=0; i < projects.length(); project = projects.getJSONObject(i)){			
+				for(int i=0; i < projects.length(); i++){
+					project = projects.getJSONObject(i);
+					if(r == null)
+						System.out.println("1");
+					if(project == null)
+						System.out.println("2");
 					r[i] = new Project(project.getInt("id"), project.getString("name")); 
 				}
 				return r;
