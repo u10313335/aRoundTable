@@ -1,13 +1,14 @@
 package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -21,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Project;
+import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
@@ -53,6 +55,7 @@ public class ArtApi {
         return instance = new ArtApi(users.get(0).getToken());
 	}
 	
+	/* XXX: NOT tested yet. */
 	public Project[] getProjectList() throws ServerException, IOException{
 		HashMap<String, String> params = makeTokenHash();
 		Project r[];
@@ -75,6 +78,71 @@ public class ArtApi {
 		}
 	}
 	
+	/* XXX: NOT tested yet. */
+	public Project getProject(int projectId) throws IOException, ServerException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(projectsPath + "/" + projectId, params);
+		if(response.getStatusLine().getStatusCode() == 200){
+			try {
+				JSONObject projectJson = new JSONObject(EntityUtils.toString(response.getEntity()));
+				return new Project(projectJson);
+			} catch (ParseException e) {
+				throw new ServerException("Server returned unexpected data");
+			} catch (JSONException e) {
+				throw new ServerException("Server returned unexpected data");
+			}
+		}else{
+			throw new ServerException("Response code:"+response.getStatusLine());
+		}
+	}
+	
+	/* XXX: not tested yet. */
+	public TaskEvent[] getTaskeventList(int projectId) throws IOException, ServerException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(projectsPath + "/" + projectId + "/taskevents", params);
+		TaskEvent[] taskEvents;
+		JSONObject taskEventJson = null;
+		if(response.getStatusLine().getStatusCode() == 200){
+			try {
+				JSONArray taskEventsJson = new JSONArray(EntityUtils.toString(response.getEntity()));
+
+				taskEvents = new TaskEvent[taskEventsJson.length()];
+				for(int i=0; i < taskEventsJson.length(); taskEventJson = taskEventsJson.getJSONObject(i)){			
+					taskEvents[i] = new TaskEvent(taskEventJson); 
+				}
+				return taskEvents;
+			} catch (JSONException e) {
+				throw new ServerException("Server returned unexpected data");
+			} catch (ParseException e) {
+				throw new ServerException("Server returned unexpected data");
+			}	
+		}else{
+			throw new ServerException("Response code:"+response.getStatusLine());
+		}
+	} 
+	
+	/* XXX: Not tested yet. */
+	public int createTaskevent(int projectId, String name, Date due, String note) throws IOException, ServerException{
+		HashMap<String, String> params = makeTokenHash();
+
+		params.put("taskevent[name]", name);
+		params.put("taskevent[due]", due.toString());
+		params.put("taskevent[note]", note);
+		
+		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/taskevents", params);
+		if(response.getStatusLine().getStatusCode() == 200){
+			try{
+				String taskeventJson = EntityUtils.toString(response.getEntity());
+				JSONObject projectJson = new JSONObject(taskeventJson);
+				return projectJson.getInt("id");
+			}catch(JSONException je){
+				throw new ServerException("Server returned unexpected data");
+			}
+		}else{
+			throw new ServerException("Response code:"+response.getStatusLine());
+		}
+	}
+	
 	/**
 	 * Create a new project with current user
 	 * @param name Name of new project
@@ -89,9 +157,8 @@ public class ArtApi {
 		if(response.getStatusLine().getStatusCode() == 200){
 			try{
 				String post_json = EntityUtils.toString(response.getEntity());
-				JSONObject json1 = new JSONObject(post_json);
-				JSONObject json2 = new JSONObject(json1.getString("project"));
-				return json2.getInt("id");
+				JSONObject projectJson = new JSONObject(post_json);
+				return projectJson.getInt("id");
 			}catch(JSONException je){
 				throw new ServerException("Server returned unexpected data");
 			}
@@ -139,9 +206,6 @@ public class ArtApi {
 			
 			return result;
 			
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
