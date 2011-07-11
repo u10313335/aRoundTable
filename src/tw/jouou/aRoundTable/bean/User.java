@@ -7,16 +7,20 @@ import android.content.ContentValues;
 public class User implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
 	private long id;
 	private String token;
 
+	public User(long id, String token){
+		this.id = id;
+		this.token = token;
+	}
+	
+	public User(String token){
+		this.token = token;
+	}
+	
 	public long getId() {
 		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
 	}
 
 	public String getToken() {
@@ -27,12 +31,9 @@ public class User implements Serializable {
 		this.token = token;
 	}
 
-	
 	public ContentValues getValues() {
 		ContentValues values = new ContentValues();
-
 		values.put(DBUtils.FIELD_USERS_TOKEN, token);
-		
 		return values;
 	}
 

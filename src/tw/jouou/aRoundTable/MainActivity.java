@@ -18,6 +18,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -101,11 +102,12 @@ public class MainActivity extends Activity {
         	dialog.setPositiveButton(R.string.confirm,
         		new DialogInterface.OnClickListener(){
         	    	public void onClick(DialogInterface dialoginterface, int i){
+        	    		dialoginterface.dismiss();
         	    		initAcc();
         	    	}
         	    }
         	);
-    	    dialog.show();
+        	dialog.show();
     	}
 
 
@@ -232,8 +234,7 @@ public class MainActivity extends Activity {
     	super.onNewIntent(intent);
 	 	Uri uri = intent.getData();
 	 	token = uri.getQueryParameter("");
-	    user = new User();
-	    user.setToken(token);
+	    user = new User(token);
 		dbUtils.userDelegate.insert(user);
 		dbUtils.close();
 		Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();

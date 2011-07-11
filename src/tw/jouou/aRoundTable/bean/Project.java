@@ -7,12 +7,15 @@ import java.util.Date;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tw.jouou.aRoundTable.util.DBUtils;
+import android.content.ContentValues;
+
 public class Project {
 	private String name;
-	private int id;
+	private long id;
 	private Date updateAt;
 	
-	public Project(int id, String name){
+	public Project(long id, String name){
 		this.id = id;
 		this.name = name;
 	}
@@ -28,11 +31,17 @@ public class Project {
 		return name;
 	}
 	
-	public int getId(){
+	public long getId(){
 		return id;	
 	}
 	
 	public Date getUpdateAt(){
 		return updateAt;
+	}
+	
+	public ContentValues getValues() {
+		ContentValues values = new ContentValues();
+		values.put(DBUtils.FIELD_PROJECTS_NAME, name);
+		return values;
 	}
 }
