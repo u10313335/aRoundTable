@@ -122,10 +122,11 @@ public class ArtApi {
 	} 
 	
 	/* XXX: Not tested yet. */
-	public int createTaskevent(int projectId, String name, Date due, String note) throws IOException, ServerException{
+	public int createTaskevent(int projectId, int type, String name, Date due, String note) throws IOException, ServerException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("taskevent[name]", name);
+		params.put("taskevent[type]", String.valueOf(type));
 		params.put("taskevent[due]", due.toString());
 		params.put("taskevent[note]", note);
 		
