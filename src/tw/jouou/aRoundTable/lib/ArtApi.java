@@ -149,6 +149,7 @@ public class ArtApi {
 	 * @return new project's id, -1 if failed
 	 * @throws ServerException 
 	 */
+	// FIXME: Internal Server Error 500
 	public int createProject(String name) throws IOException, ServerException{
 		HashMap<String, String> params = makeTokenHash();
 		params.put("project[name]", name);
