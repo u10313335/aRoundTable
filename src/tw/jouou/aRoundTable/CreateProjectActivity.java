@@ -25,7 +25,7 @@ public class CreateProjectActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.projname);
            
-        edTxtProjname = (EditText)findViewById(R.id.projname);
+        edTxtProjname = (EditText)findViewById(R.id.projname_input);
         
         btnNext = (Button)findViewById(R.id.next);
         btnNext.setOnClickListener(new OnClickListener(){

@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import tw.jouou.aRoundTable.bean.User;
@@ -9,7 +10,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.Contacts;
+import android.provider.ContactsContract;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -26,7 +27,16 @@ public class InviteMemberActivity extends Activity {
 	private Bundle bunde;
 	private String projname;
 	private static String TAG = "InviteMemberActivity";
+	private String[] member_names = new String[]{"jack","michruo","albb","sol","bearRu"};
 	
+	private AutoCompleteTextView member_email;
+	private TextView projname_display;
+	private TextView invite;
+	private ListView memberlist;
+	private ImageButton add_member;
+	private Button confirm;
+	private Button cancel;
+
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.invitemember);
@@ -37,16 +47,17 @@ public class InviteMemberActivity extends Activity {
         projname = bunde.getString("projname");
         projname_display.setText("Project name:"+projname);
         
-
-        ArrayAdapter<String> ad = new ArrayAdapter<String> (this,android.R.layout.simple_list_item_1,member_names);
+        ArrayAdapter<String> contactsname = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,member_names);
         
-        ArrayAdapter<String> contactsname = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,getContactsEmail());
+    	memberlist.setAdapter(contactsname);
         
-    	member_name.setAdapter(contactsname);
-
-
-    	memberlist.setAdapter(ad);
-        
+    	// email auto-complete
+    	// TODO:make it much more faster
+    	ArrayAdapter<String> member_email_adapter = new ArrayAdapter<String> (
+    				this, android.R.layout.simple_spinner_item, getContactsName());
+    	member_email_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+	    member_email.setAdapter(member_email_adapter);
+    	
     	cancel.setOnClickListener(new OnClickListener(){
     		@Override
     		public void onClick(View arg0) {
@@ -57,52 +68,45 @@ public class InviteMemberActivity extends Activity {
     	confirm.setOnClickListener(new OnClickListener(){
     		@Override
     		public void onClick(View arg0) {
-
+    			// TODO:insert invite memeber here
     		}
         });
-        
 
-        
     }
-	
-	private TextView projname_display;
-	private TextView invite;
-	private AutoCompleteTextView member_name;
-	private ListView memberlist;
-	private ImageButton add_member;
-	private Button confirm;
-	private Button cancel;
-	private String[] member_names = new String[]{"jack","michruo","albb","sol","bearRu"};
-	
-	private void findViews()
-	{
+
+	private void findViews() {
 		projname_display = (TextView)findViewById(R.id.projname_display);
 		invite = (TextView)findViewById(R.id.invite);
-		member_name = (AutoCompleteTextView)findViewById(R.id.member_name);
+		member_email = (AutoCompleteTextView)findViewById(R.id.member_email);
 		add_member = (ImageButton)findViewById(R.id.add_member);
 		memberlist = (ListView)findViewById(R.id.memberlist);
 		confirm = (Button)findViewById(R.id.confirm);
 		cancel = (Button)findViewById(R.id.cancel);
 	}
 	
-	public String[] getContactsEmail() {
-		
-		  ContentResolver contentResolver = this.getContentResolver();
-		
-		  String[] projection = new String[]{Contacts.People.NAME,Contacts.People.NUMBER};
-		
-		  Cursor cursor = contentResolver.query(Contacts.People.CONTENT_URI, projection, null, null, Contacts.People.DEFAULT_SORT_ORDER);
-		  
-		  String[] contactsName = new String[cursor.getCount()];
-		  
-		  for (int i = 0; i < cursor.getCount(); i++) {
-		
-		       cursor.moveToPosition(i);
-		
-		       contactsName[i] = cursor.getString(0);
-		     }
-		        return contactsName;
-		  }
-
-	
+	// get user's phone contacts
+	public List<String> getContactsName() {
+        int i = 0;
+        List<String> contactsName = new ArrayList<String>();
+        ContentResolver cr = getContentResolver();
+        Cursor cur = cr.query (ContactsContract.Contacts.CONTENT_URI,
+        		null, null, null, null);
+    
+        if (cur.getCount() > 0) {
+        	while (cur.moveToNext()) {
+        		String id = cur.getString (
+        				cur.getColumnIndex(ContactsContract.Contacts._ID));
+        		Cursor emailCur = cr.query (
+        				ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+        				ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", 
+        				new String[]{id}, null);
+        		while (emailCur.moveToNext()) { 
+        			contactsName.add(emailCur.getString(
+        				emailCur.getColumnIndex( ContactsContract.CommonDataKinds.Email.DATA ) ) );
+        				i++;
+        		}
+        	}
+        }   
+    	return contactsName;  
+    }
 }

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent" 
+	android:orientation="horizontal">
+	
+	<LinearLayout android:id="@+id/itemDoneLayout"
+				  android:layout_height="wrap_content" 
+				  android:layout_width="wrap_content">
+				  
+  		<CheckBox android:id="@+id/itemDone"
+			  	  android:layout_width="wrap_content"
+			  	  android:layout_height="wrap_content"
+			  	  android:focusable="false"/>
+  	</LinearLayout>
+  	
+  	<LinearLayout android:layout_height="wrap_content"
+                  android:layout_width="wrap_content" 
+                  android:layout_toRightOf="@id/itemDoneLayout"
+                  android:orientation="vertical">
+                  
+    	<TextView android:id="@+id/item_name"
+              	  android:layout_width="wrap_content" 
+              	  android:layout_height="wrap_content"
+              	  android:gravity="left" 
+              	  android:layout_marginLeft="6dip"
+              	  android:layout_marginTop="6dip" 
+              	  android:textAppearance="?android:attr/textAppearanceLarge"/>
+              	  
+     	<TextView android:id="@+id/item_owner" 
+                  android:layout_height="wrap_content" 
+                  android:layout_width="wrap_content" 
+                  android:textAppearance="?android:attr/textAppearanceSmall"/>
+                  
+    </LinearLayout>
+    
+    <LinearLayout android:layout_height="wrap_content" 
+                  android:layout_width="wrap_content"
+                  android:gravity="right"
+                  android:layout_alignParentRight="true"
+                  android:orientation="vertical">
+                  
+    	<TextView android:id="@+id/item_dueRelateDay" 
+              	  android:layout_width="wrap_content" 
+              	  android:layout_height="wrap_content" 
+              	  android:layout_marginLeft="6dip"
+              	  android:layout_marginTop="6dip" 
+              	  android:textAppearance="?android:attr/textAppearanceLarge"/>
+              	  
+     	<TextView android:id="@+id/item_duedate" 
+                  android:layout_height="wrap_content" 
+                  android:layout_width="wrap_content" 
+                  android:textAppearance="?android:attr/textAppearanceSmall"/>
+                  
+     </LinearLayout>
+     
+</RelativeLayout>
