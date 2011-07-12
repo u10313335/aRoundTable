@@ -74,6 +74,34 @@ public class MainActivity extends Activity {
     	users = dbUtils.userDelegate.get();
     	projs = dbUtils.projectsDelegate.get();
 
+    	// Form each project lists
+    	if(!projs.isEmpty()) {
+    		projLists = new View[projs.size()];
+    		for (int i=0; i < projs.size(); i++){
+    			projLists[i] = inflater.inflate(R.layout.project_list, null);
+    			work.addView(projLists[i]);
+    			formLists(projLists[i], projs.get(i));
+    		}
+        	// Add workspace to current content view
+    		setContentView(work);
+    	}else {
+    		setContentView(R.layout.main);
+    		Builder dialog = new Builder(MainActivity.this);
+    	    dialog.setTitle(R.string.create_project_message_title);
+    	    dialog.setMessage(R.string.create_project_message);
+        	dialog.setPositiveButton(R.string.confirm,
+        		new DialogInterface.OnClickListener() {
+        	    	public void onClick(DialogInterface dialoginterface, int i){
+        	    		dialoginterface.dismiss();
+            	    	Intent addgroup_intent= new Intent();
+            			addgroup_intent.setClass(MainActivity.this,CreateProjectActivity.class);
+            			startActivity(addgroup_intent);
+        	    	}
+        	    }
+        	);
+        	dialog.show();
+    	}
+	
     	if(!users.isEmpty()){
     		token = users.get(0).getToken();
         	dbUtils.close();
@@ -91,18 +119,6 @@ public class MainActivity extends Activity {
         	);
         	dialog.show();
     	}
-
-    	// Form each project lists
-    	projLists = new View[projs.size()];
-    	for (int i=0; i < projs.size(); i++){
-    		projLists[i] = inflater.inflate(R.layout.project_list, null);
-    		work.addView(projLists[i]);
-    		formLists(projLists[i], projs.get(i));
-    	}
-    	      	    
-    	// Add workspace to current content view
-    	setContentView(work);
-    	
     	// TODO:get project list from server, used when sync
     	//new GetProjectListTask().execute();
 }
