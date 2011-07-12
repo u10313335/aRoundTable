@@ -11,4 +11,5 @@
     <string name="feedbacks">回報</string>
     <string name="about">關於</string>
     <string name="processing">正在處理中</string>
+    <string name="internet_connection_problem">伺服器連線異常，稍後重試上傳</string>
 </resources>

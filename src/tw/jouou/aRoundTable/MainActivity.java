@@ -45,41 +45,34 @@ import android.widget.Toast;
  */
 public class MainActivity extends Activity {
 	
-	private ArrayList<HashMap<String, Object>> items;
-	private String projName[];
 	private String itemNames[] = { "Introduction", "Class Diagram", "SA ppt", "Demo", "Introduction", "Class Diagram", "SA ppt", "Demo" };
 	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
 	private String dueRelateDays[] = { "今天", "二天後", "十天後", "十七天後", "今天", "二天後", "十天後", "十七天後" };
 	private String dueDates[] = { "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21", "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21" };
-	
-	private CheckBox itemDone;
-	private TextView projNameView;
-	private ListView itemListView;
-	private Button issueTracker, docs, addItem, contacts, chart;
-	
+	private String token;
 	private DBUtils dbUtils;
 	private List<User> users;
-	private User user;
-	private String token;
-	private static String TAG = "MainActivity";
-
+	private List<Project> projs;
+	private View projLists[];
     protected static final int MENU_Settings = Menu.FIRST;
     protected static final int MENU_Feedbacks = Menu.FIRST+1;
     protected static final int MENU_About = Menu.FIRST+2;
-	
+	private static String TAG = "MainActivity";
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LayoutInflater inflater = (LayoutInflater) getSystemService (Context.LAYOUT_INFLATER_SERVICE);
 
-		WorkspaceView work = new WorkspaceView(this, null);
-		work.setTouchSlop(32);
-
-    	if (dbUtils == null) {
+        WorkspaceView work = new WorkspaceView(this, null);
+      	work.setTouchSlop(32);
+        
+    	if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
     	
     	users = dbUtils.userDelegate.get();
+    	projs = dbUtils.projectsDelegate.get();
 
     	if(!users.isEmpty()){
     		token = users.get(0).getToken();
@@ -89,7 +82,7 @@ public class MainActivity extends Activity {
     	    dialog.setTitle(R.string.welcome_message_title);
     	    dialog.setMessage(R.string.welcome_message);
         	dialog.setPositiveButton(R.string.confirm,
-        		new DialogInterface.OnClickListener(){
+        		new DialogInterface.OnClickListener() {
         	    	public void onClick(DialogInterface dialoginterface, int i){
         	    		dialoginterface.dismiss();
         	    		initAcc();
@@ -98,12 +91,39 @@ public class MainActivity extends Activity {
         	);
         	dialog.show();
     	}
-   	
- 	  	// TODO: Dummy code for a fake list, should be removed ASAP.
+
+    	// Form each project lists
+    	projLists = new View[projs.size()];
+    	for (int i=0; i < projs.size(); i++){
+    		projLists[i] = inflater.inflate(R.layout.project_list, null);
+    		work.addView(projLists[i]);
+    		formLists(projLists[i], projs.get(i));
+    	}
+    	      	    
+    	// Add workspace to current content view
+    	setContentView(work);
+    	
+    	// TODO:get project list from server, used when sync
+    	//new GetProjectListTask().execute();
+}
+    
+	private void formLists(View v, Project proj) {
+		final String projname = proj.getName();
+		final long projId = proj.getServerId();
+		CheckBox itemDone = (CheckBox) v.findViewById(R.id.itemDone);
+		ListView itemListView = (ListView) v.findViewById(R.id.proj_item_list);
+		TextView projNameView = (TextView) v.findViewById(R.id.proj_name);
+		Button issueTracker = (Button) v.findViewById(R.id.proj_issue_tracker);
+		Button docs = (Button) v.findViewById(R.id.proj_docs);
+		Button addItem = (Button) v.findViewById(R.id.proj_additem);
+		Button contacts = (Button) v.findViewById(R.id.proj_contact);
+		Button chart = (Button) v.findViewById(R.id.proj_chart);
+		
+		projNameView.setText(projname);
+		
     	// Put items for specific project to an array list
-    	items = new ArrayList<HashMap <String, Object>> ();
-    	    
-    	for (int i = 0; i < itemNames.length; i++) {
+		ArrayList<HashMap<String, Object>> items = new ArrayList<HashMap <String, Object>> ();
+    	for (int i=0; i < itemNames.length; i++) {
     		HashMap< String, Object > item = new HashMap< String, Object >();
     		item.put("checkDone", itemDone);
     		item.put("itemName", itemNames[i]);
@@ -112,23 +132,7 @@ public class MainActivity extends Activity {
     		item.put("dueDate", dueDates[i]);
     		items.add(item);
     	}
-    	  
-    	// Find all views
-    	// v1:each project
-    	// TODO:v2:other views
-    	View v1= inflater.inflate(R.layout.project_list, null, false);
-    	View v2= inflater.inflate(R.layout.main, null, false);
-    	    
-    	// Add views to the workspace view
-    	work.addView(v1);
-    	work.addView(v2);
-    	    
-    	// Add workspace to current content view
-    	setContentView(work);
-    	    
-    	// Find Widgets
-    	findViews();
-    	    
+		
     	// Put items for specific project to list
     	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.project_list_item,
     			new String[] { "checkDone", "itemName", "itemOwner", "dueRelateDay", "dueDate" },
@@ -142,8 +146,6 @@ public class MainActivity extends Activity {
     			return true;
     		}
     	});
-    			
-    	new GetProjectListTask().execute();
     			
     	// Set bottom menu functions
     	issueTracker.setOnClickListener(new OnClickListener(){
@@ -166,6 +168,8 @@ public class MainActivity extends Activity {
     	    @Override
     	    public void onClick(View arg0) {
     	    	Intent additem_intent= new Intent();
+    	    	additem_intent.putExtra("projname", projname);
+    	    	additem_intent.putExtra("projid", projId);
     	    	additem_intent.setClass(MainActivity.this,AddItemActivity.class);
     			startActivity(additem_intent);
     	    }
@@ -182,17 +186,6 @@ public class MainActivity extends Activity {
     	    	// TODO:insert chart activity here
     	    }
     	});
-    }
-    
-	private void findViews()
-	{
-		itemListView = (ListView) findViewById(R.id.proj_item_list);
-		projNameView = (TextView) findViewById(R.id.proj_name);
-		issueTracker = (Button) findViewById(R.id.proj_issue_tracker);
-		docs = (Button) findViewById(R.id.proj_docs);
-		addItem = (Button) findViewById(R.id.proj_additem);
-		contacts = (Button) findViewById(R.id.proj_contact);
-		chart = (Button) findViewById(R.id.proj_chart);
 	}
 
     // FIXME: duplicate notification after registration 
@@ -200,7 +193,7 @@ public class MainActivity extends Activity {
     	super.onNewIntent(intent);
 	 	Uri uri = intent.getData();
 	 	token = uri.getQueryParameter("");
-	    user = new User(token);
+	    User user = new User(token);
 		dbUtils.userDelegate.insert(user);
 		dbUtils.close();
 		Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
@@ -218,14 +211,12 @@ public class MainActivity extends Activity {
 		menu.add(0,MENU_Settings, 0, R.string.settings).setIcon(android.R.drawable.ic_menu_preferences);
 		menu.add(0,MENU_Feedbacks, 0, R.string.feedbacks).setIcon(android.R.drawable.ic_menu_send);
 		menu.add(0,MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
-		
 		this.openOptionsMenu();
-		
 		return super.onCreateOptionsMenu(menu);
 	}
 
-
-	private class GetProjectListTask extends AsyncTask<Void, Void, Project[]>{
+	// TODO:get project list from server, used when sync
+	/*private class GetProjectListTask extends AsyncTask<Void, Void, Project[]> {
 		private Dialog dialog;
 		private Exception exception;
 		
@@ -253,7 +244,7 @@ public class MainActivity extends Activity {
         protected void onPostExecute(Project[] projects) {
 			dialog.dismiss();
 			
-			if(exception instanceof ServerException){
+			if(exception instanceof ServerException) {
 				Toast.makeText(MainActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
@@ -263,11 +254,12 @@ public class MainActivity extends Activity {
 			
 			projName = new String[projects.length];
 			
-			for(int i=0; i < projects.length; i++){
+			for(int i=0; i < projects.length; i++) {
 				projName[i] = projects[i].getName();
 			}
 			// Set project name on top
 			projNameView.setText(projName[0]);
 		}
-	}
+	}*/
+	
 }

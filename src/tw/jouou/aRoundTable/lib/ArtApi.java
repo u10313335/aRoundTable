@@ -55,7 +55,6 @@ public class ArtApi {
         return instance = new ArtApi(users.get(0).getToken());
 	}
 	
-	/* XXX: NOT tested yet. */
 	public Project[] getProjectList() throws ServerException, IOException{
 		HashMap<String, String> params = makeTokenHash();
 		Project r[];
@@ -127,7 +126,7 @@ public class ArtApi {
 	} 
 	
 	/* XXX: Not tested yet. */
-	public int createTaskevent(int projectId, int type, String name, Date due, String note) throws IOException, ServerException{
+	public int createTaskevent(long projectId, int type, String name, Date due, String note) throws IOException, ServerException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("taskevent[name]", name);
@@ -155,7 +154,6 @@ public class ArtApi {
 	 * @return new project's id, -1 if failed
 	 * @throws ServerException 
 	 */
-	// FIXME: Internal Server Error 500
 	public int createProject(String name) throws IOException, ServerException{
 		HashMap<String, String> params = makeTokenHash();
 		params.put("project[name]", name);

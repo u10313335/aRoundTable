@@ -13,10 +13,21 @@ import android.content.ContentValues;
 public class Project {
 	private String name;
 	private long id;
+	private long serverId = 0;
 	private Date updateAt;
 	
 	public Project(long id, String name){
 		this.id = id;
+		this.name = name;
+	}
+	
+	public Project(long id, String name, long serverId){
+		this.id = id;
+		this.name = name;
+		this.serverId = serverId;
+	}
+	
+	public Project(String name){
 		this.name = name;
 	}
 	
@@ -31,8 +42,20 @@ public class Project {
 		return name;
 	}
 	
+	public void setId(long id){
+		this.id = id;
+	}
+	
 	public long getId(){
 		return id;	
+	}
+	
+	public long getServerId(){
+		return serverId;
+	}
+	
+	public void setServerId(long serverId){
+		this.serverId = serverId;
 	}
 	
 	public Date getUpdateAt(){
@@ -42,6 +65,7 @@ public class Project {
 	public ContentValues getValues() {
 		ContentValues values = new ContentValues();
 		values.put(DBUtils.FIELD_PROJECTS_NAME, name);
+		values.put(DBUtils.FIELD_PROJECTS_SERVERID, serverId);
 		return values;
 	}
 }
