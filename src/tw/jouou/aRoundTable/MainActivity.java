@@ -12,11 +12,14 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
@@ -29,10 +32,13 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -55,7 +61,7 @@ public class MainActivity extends Activity {
 	
 	// TODO:dummy test data
 	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
-	
+	private String projNames[];
 	private String token;
 	private DBUtils dbUtils;
 	private List<User> users;
@@ -66,6 +72,8 @@ public class MainActivity extends Activity {
     protected static final int MENU_Settings = Menu.FIRST;
     protected static final int MENU_Feedbacks = Menu.FIRST+1;
     protected static final int MENU_About = Menu.FIRST+2;
+    protected static final int MENU_EditItem = Menu.FIRST;
+    protected static final int MENU_DeleteItem = Menu.FIRST+1;
 	private static String TAG = "MainActivity";
 	//private int[] lights = new int[3];
     private View addView;
@@ -74,7 +82,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     	
-        if(dbUtils == null) {
+/*        if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
         
@@ -96,7 +104,7 @@ public class MainActivity extends Activity {
         	    }
         	);
         	dialog.show();
-    	}
+    	}*/
      	update();
      	
     	// TODO:get project list from server, used when sync
@@ -116,6 +124,7 @@ public class MainActivity extends Activity {
     	if(!projs.isEmpty()) {
     		lists = new View[(projs.size())+1];
     		lists[0] = inflater.inflate(R.layout.all_item_list, null);
+    		projNames = new String[projs.size()];
     		work.addView(lists[0]);
     		try {
         		formAllItemList(lists[0]);
@@ -130,9 +139,10 @@ public class MainActivity extends Activity {
     		for (int i=1; i < (projs.size())+1; i++) {
     			lists[i] = inflater.inflate(R.layout.project_list, null);
     			work.addView(lists[i]);
-    			Log.v(TAG, Integer.toString(work.getScreenForView(lists[i])));
+//    			Log.v(TAG, Integer.toString(work.getScreenForView(lists[i])));
     			try {
 					formProjLists(lists[i], projs.get(i-1));
+					projNames[i-1] = projs.get(i-1).getName();
 				} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -188,23 +198,19 @@ public class MainActivity extends Activity {
 		ListView itemListView = (ListView) v.findViewById(R.id.all_item_list);
 		Button refresh = (Button) v.findViewById(R.id.all_item_refresh);
 		Button addItem = (Button) v.findViewById(R.id.all_item_add);
-		Button addGroup = (Button) v.findViewById(R.id.all_item_add_group);
+		Button addProject = (Button) v.findViewById(R.id.all_item_add_project);
 		
 		if(taskevents != null) {
 			items = new ArrayList<HashMap <String, Object>> ();
 	    	for (int i=0; i < taskevents.size(); i++) {
-	    		try {
 	    			Date due = taskevents.get(i).getDue();
 	    			HashMap< String, Object > item = new HashMap< String, Object >();
 	    			item.put("checkDone", itemDone);
 	    			item.put("itemName", taskevents.get(i).getName());
-	    			item.put("itemProj", projs.get((int)taskevents.get(i).getProjId()).getName());
-	    			item.put("dueRelateDay", dayDistance(today, due)+getString(R.string.dayafter));
+	    			item.put("itemProj", projs.get((int)taskevents.get(i).getProjId()-1).getName());
+	    			item.put("dueRelateDay", dayDistance(today, due));
 	    			item.put("dueDate", formatter.format(due));
 	    			items.add(item);
-	    		} catch (IndexOutOfBoundsException e) {
-	    			continue;
-	    		}
 	    	}
 		}else {
 			setContentView(R.layout.main);
@@ -215,38 +221,57 @@ public class MainActivity extends Activity {
     	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.all_item_list_item,
     			new String[] { "checkDone", "itemName", "itemProj", "dueRelateDay", "dueDate" },
     			new int[] { R.id.all_item_done, R.id.all_item_name, R.id.all_item_project, R.id.all_item_due_relate_day, R.id.all_item_duedate }));
-    	  
-    	// Long click. You can add item operations here
-    	itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-    		public boolean onItemLongClick(AdapterView<?> arg0P, View arg1P, int arg2P, long arg3P) {
-    			Toast toast = Toast.makeText(MainActivity.this, "Long Click......", Toast.LENGTH_SHORT);
-    			toast.show();
-    			return true;
-    		}
-    	});	
+
+    	itemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
+			@Override
+			public void onCreateContextMenu(ContextMenu menu, View v,
+					ContextMenuInfo menuInfo) {
+				menu.add(Menu.NONE,MENU_EditItem,0,getString(R.string.edit));
+				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
+			}
+    	});
+    	
     	// Set bottom menu functions
     	refresh.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View arg0) {
-    	    	// TODO
+    			update();
     	    }
     	});
+    	
     	addItem.setOnClickListener(new OnClickListener() {
-    	    @Override
-    	    public void onClick(View arg0) {
-    	    	// TODO
+    		@Override
+    		public void onClick(View arg0) {
+    			Builder dialog = new Builder(MainActivity.this);
+    			dialog.setTitle(getString(R.string.select_proj));
+    			dialog.setSingleChoiceItems(projNames, -1, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+						Intent additem_intent= new Intent();
+		    	    	additem_intent.putExtra("projname", projNames[which]);
+		    	    	additem_intent.putExtra("projid", projs.get(which).getId());
+		    	    	additem_intent.putExtra("projserverid", projs.get(which).getServerId());
+		    	    	additem_intent.setClass(MainActivity.this, AddItemActivity.class);
+		    			startActivity(additem_intent);
+					}
+    			});
+    			dialog.show();
     	    }
     	});
-    	addGroup.setOnClickListener(new OnClickListener() {
+    	
+    	addProject.setOnClickListener(new OnClickListener() {
     	    @Override
     	    public void onClick(View arg0) {
-    	    	// TODO
+    	    	Intent addgroup_intent= new Intent();
+    			addgroup_intent.setClass(MainActivity.this, CreateProjectActivity.class);
+    			startActivity(addgroup_intent);
     	    }
     	});
     }
     
 	private void formProjLists(View v, Project proj) throws IllegalArgumentException, ParseException {
-		final String projname = proj.getName();
+		final String projName = proj.getName();
 		final long projId = proj.getId();
 		//Log.v(TAG, Long.toString(projId));
 		final long projServerId = proj.getServerId();
@@ -285,7 +310,7 @@ public class MainActivity extends Activity {
         
 		light.setBackgroundDrawable(drawable);*/
 		
-		projNameView.setText(projname);
+		projNameView.setText(projName);
 		
 		// Put items for specific project to an array list
 		if(taskevents != null) {
@@ -296,7 +321,7 @@ public class MainActivity extends Activity {
 	    		item.put("checkDone", itemDone);
 	    		item.put("itemName", taskevents.get(i).getName());
 	    		item.put("itemOwner", itemOwners[0]);
-	    		item.put("dueRelateDay", dayDistance(today, due)+getString(R.string.dayafter));
+	    		item.put("dueRelateDay", dayDistance(today, due));
 	    		item.put("dueDate", formatter.format(due));
 	    		items.add(item);
 	    	}
@@ -309,24 +334,21 @@ public class MainActivity extends Activity {
     	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.project_list_item,
     			new String[] { "checkDone", "itemName", "itemOwner", "dueRelateDay", "dueDate" },
     			new int[] { R.id.itemDone, R.id.item_name, R.id.item_owner, R.id.item_dueRelateDay, R.id.item_duedate }));
-    	  
-    	// Long click. You can add item operations here
-    	itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-    		public boolean onItemLongClick(AdapterView<?> arg0P, View arg1P, int arg2P, long arg3P) {
-    			Toast toast = Toast.makeText(MainActivity.this, "Long Click......", Toast.LENGTH_SHORT);
-    			toast.show();
-    			return true;
-    		}
-    	});	
+
+    	itemListView.setOnCreateContextMenuListener( new ListView.OnCreateContextMenuListener() {
+			@Override
+			public void onCreateContextMenu(ContextMenu menu, View v,
+					ContextMenuInfo menuInfo) {
+				menu.add(Menu.NONE,MENU_EditItem,0,getString(R.string.edit));
+				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
+			}
+    	});
+    	
     	// Set bottom menu functions
     	issueTracker.setOnClickListener(new OnClickListener() {
     		@Override
     	    public void onClick(View arg0) {
     	    	// TODO:insert issue tracker activity here
-    	    	// add project activity, temporarily placed here
-    	    	Intent addgroup_intent= new Intent();
-    			addgroup_intent.setClass(MainActivity.this, CreateProjectActivity.class);
-    			startActivity(addgroup_intent);
     	    }
     	});
     	docs.setOnClickListener(new OnClickListener() {
@@ -339,7 +361,7 @@ public class MainActivity extends Activity {
     	    @Override
     	    public void onClick(View arg0) {
     	    	Intent additem_intent= new Intent();
-    	    	additem_intent.putExtra("projname", projname);
+    	    	additem_intent.putExtra("projname", projName);
     	    	additem_intent.putExtra("projid", projId);
     	    	additem_intent.putExtra("projserverid", projServerId);
     	    	additem_intent.setClass(MainActivity.this, AddItemActivity.class);
@@ -360,11 +382,26 @@ public class MainActivity extends Activity {
     	});
 	}
 	
-	private long dayDistance(Date date1, Date date2) {
-		long day = (date1.getTime()-date2.getTime())/(24*60*60*1000)>0 ?
-				(date1.getTime()-date2.getTime())/(24*60*60*1000):
-				(date2.getTime()-date1.getTime())/(24*60*60*1000);
-		return day;
+    public boolean onContextItemSelected(MenuItem item){
+        AdapterView.AdapterContextMenuInfo menuInfo;
+        menuInfo =(AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+    	Toast.makeText(MainActivity.this,String.valueOf(menuInfo.position), Toast.LENGTH_LONG).show();
+    	return super.onContextItemSelected(item); 
+    }
+	
+	private String dayDistance(Date today, Date due) {
+		Calendar c1 = new GregorianCalendar();
+		Calendar c2 = new GregorianCalendar();
+		c1.setTime(due);
+		c2.setTime(today);
+		long day = c1.get(Calendar.DAY_OF_MONTH)-c2.get(Calendar.DAY_OF_MONTH);
+		if(day>0) {
+			return day+getString(R.string.dayafter);
+		} else if(day<0) {
+			return getString(R.string.overdue);
+		} else {
+			return getString(R.string.due_today);
+		}
 	}
 
     // FIXME: duplicate notification after registration 
@@ -411,7 +448,7 @@ public class MainActivity extends Activity {
 		this.openOptionsMenu();
 		return super.onCreateOptionsMenu(menu);
 	}
-
+	
 	// TODO:get project list from server, used when sync
 	/*private class GetProjectListTask extends AsyncTask<Void, Void, Project[]> {
 		private Dialog dialog;

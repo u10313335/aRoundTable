@@ -107,6 +107,14 @@
 				  	  	  android:layout_height="wrap_content"
 				  	  	  android:text="建立於"
 				  	  	  android:textStyle="bold"/>
+				  	  	  
+				<!--<Spinner  android:id="@+id/item_create_under_context"
+						  android:layout_width="wrap_content"
+						  android:layout_height="wrap_content"
+        				  android:drawSelectorOnTop="true"
+        				  android:layout_span="3"
+        				  android:textStyle="bold"
+        				  android:textAppearance="?android:attr/textAppearanceMedium"/>-->
 
 				<TextView android:id="@+id/item_create_under_context" 
 				 	 	  android:layout_width="wrap_content"

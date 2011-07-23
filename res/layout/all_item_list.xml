@@ -36,10 +36,10 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
 					android:text="AddItem"/>
-			<Button android:id="@+id/all_item_add_group" 
+			<Button android:id="@+id/all_item_add_project" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="AddGroup"/>
+					android:text="AddProject"/>
 		</TableRow>
 		
 	</TableLayout>

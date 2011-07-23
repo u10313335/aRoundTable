@@ -9,11 +9,5 @@
 			  android:text=""
     		  android:background="@android:color/darker_gray"
 			  android:gravity="center"/>
-			  
-	<Button  android:id="@+id/light"
-			 android:layout_width="wrap_content"
-    		 android:layout_height="wrap_content"
-    		 android:background="@drawable/add"
-    		 android:layout_alignParentRight="true"/>
     
 </RelativeLayout>

@@ -22,10 +22,12 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,12 +81,46 @@ public class AddItemActivity extends Activity {
         mYear = c.get(Calendar.YEAR);
         mMonth = c.get(Calendar.MONTH);
         mDay = c.get(Calendar.DAY_OF_MONTH);
-    	bundle = this.getIntent().getExtras();
+        bundle = this.getIntent().getExtras();
         projName = bundle.getString("projname");
         projId = bundle.getLong("projid");
         projServerId = bundle.getLong("projserverid");
         item_create_under_context.setText(projName);
-        updateDisplay();
+        updateDisplay(mYear, mMonth, mDay);
+        
+        one_day.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		updateDisplay(mYear, mMonth, mDay+1);
+      	  	}
+    	});
+        
+        seven_day.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		updateDisplay(mYear, mMonth, mDay+7);
+      	  	}
+    	});
+        
+        n_day.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		
+      	  	}
+    	});
+        
+        dependent.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		//TODO:add dependency here
+      	  	}
+    	});
+        
+        customize.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+      	  	}
+    	});
         
         date.setOnClickListener(new OnClickListener() {
         	@Override
@@ -129,13 +165,9 @@ public class AddItemActivity extends Activity {
             new DatePickerDialog.OnDateSetListener() {
                 public void onDateSet(DatePicker view, int year,
                 		int monthOfYear, int dayOfMonth) {
-                    mYear = year;
-                    mMonth = monthOfYear;
-                    mDay = dayOfMonth;
-                    updateDisplay();
+                    updateDisplay(year, monthOfYear, dayOfMonth);
                 }
             };
-	
             
     @Override
     protected Dialog onCreateDialog(int id) {
@@ -148,10 +180,10 @@ public class AddItemActivity extends Activity {
     	return null;
     }
             
-	private void updateDisplay(){
+	private void updateDisplay(int year, int month, int day){
 
 		// Month is 0 based so add 1
-		String fromStr = mYear+" "+(mMonth+1)+" "+mDay;
+		String fromStr = year+" "+(month+1)+" "+day;
 		SimpleDateFormat from = new SimpleDateFormat("yyyy MM dd");
 		Date date;
 		
@@ -215,13 +247,13 @@ public class AddItemActivity extends Activity {
 				taskEvent = new TaskEvent(projId, 0, params[0], params[1], params[2], 0);
 				taskEvent.setId(dbUtils.taskeventsDelegate.insert(taskEvent));
 				dbUtils.close();
-				return ArtApi.getInstance(AddItemActivity.this).createTaskevent(projServerId, 0, params[0], sdf.parse(params[1]), params[2]);
+/*				return ArtApi.getInstance(AddItemActivity.this).createTaskevent(projServerId, 0, params[0], sdf.parse(params[1]), params[2]);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ServerException e) {
 				exception = e;				
-				e.printStackTrace();
+				e.printStackTrace();*/
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

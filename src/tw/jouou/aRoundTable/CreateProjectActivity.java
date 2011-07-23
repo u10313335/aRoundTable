@@ -54,22 +54,23 @@ public class CreateProjectActivity extends Activity {
 		
 		@Override
 		protected Integer doInBackground(String... params) {
-			try {	
+//			try {	
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(CreateProjectActivity.this);
 		    	}
 				proj = new Project(params[0]);
 				proj.setId(dbUtils.projectsDelegate.insert(proj));
 				dbUtils.close();
-				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0]);
-			} catch (IOException e) {
+//				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0]);
+				return null;
+/*			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ServerException e) {
 				exception = e;				
 				e.printStackTrace();
 			}
-			return null;
+			return null;*/
 		}
 		
 		@Override
