@@ -23,24 +23,24 @@ public class TaskEvent {
 	public static int TYPE_EVENT = 1;
 	
 	public TaskEvent(long id, long projId, long serverId, int type, String name, String due,
-			String note, int done) throws ParseException{
+			String note, int done) throws ParseException {
 		this.id = id;
 		this.projId = projId;
 		this.serverId = serverId;
 		this.type = type;
 		this.name = name;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		this.due = sdf.parse(due);
 		this.note = note;
 		this.done = done;
 	}
 	
 	public TaskEvent(long projId, int type, String name, String due,
-			String note, int done) throws ParseException{
+			String note, int done) throws ParseException {
 		this.projId = projId;
 		this.type = type;
 		this.name = name;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
 		this.due = sdf.parse(due);
 		this.note = note;
 		this.done = done;
@@ -50,23 +50,35 @@ public class TaskEvent {
 		return id;	
 	}
 	
-	public void setId(long id){
+	public void setId(long id) {
 		this.id = id;
 	}
-	
-	public long getServerId(){
+		
+	public long getServerId() {
 		return serverId;
 	}
 	
-	public void setServerId(long serverId){
+	public void setServerId(long serverId) {
 		this.serverId = serverId;
 	}
 	
-	public TaskEvent(JSONObject json) throws JSONException, ParseException{
+	public long getProjId() {
+		return projId;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public Date getDue() {
+		return due;
+	}
+	
+	public TaskEvent(JSONObject json) throws JSONException, ParseException {
 		this.type = json.getInt("type");
 		this.name = json.getString("name");
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		this.due = sdf.parse(json.getString("due"));
 		
 		this.note = json.getString("note");
@@ -77,7 +89,7 @@ public class TaskEvent {
 		values.put(DBUtils.FIELD_TASKEVENT_NAME, name);
 		values.put(DBUtils.FIELD_TASKEVENT_PROJECTID, projId);
 		values.put(DBUtils.FIELD_TASKEVENT_SERVERID, serverId);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, sdf.format(due));
 		values.put(DBUtils.FIELD_TASKEVENT_NOTE, note);
 		values.put(DBUtils.FIELD_TASKEVENT_TYPE, type);

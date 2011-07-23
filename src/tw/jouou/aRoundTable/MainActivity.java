@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Project;
+import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
@@ -8,7 +9,10 @@ import tw.jouou.aRoundTable.util.DBUtils;
 import tw.jouou.aRoundTable.view.WorkspaceView;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,6 +23,8 @@ import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,11 +33,13 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -45,45 +53,98 @@ import android.widget.Toast;
  */
 public class MainActivity extends Activity {
 	
-	private String itemNames[] = { "Introduction", "Class Diagram", "SA ppt", "Demo", "Introduction", "Class Diagram", "SA ppt", "Demo" };
+	// TODO:dummy test data
 	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
-	private String dueRelateDays[] = { "今天", "二天後", "十天後", "十七天後", "今天", "二天後", "十天後", "十七天後" };
-	private String dueDates[] = { "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21", "2011/03/05", "2011/03/07", "2011/03/14", "2011/03/21" };
+	
 	private String token;
 	private DBUtils dbUtils;
 	private List<User> users;
 	private List<Project> projs;
-	private View projLists[];
+	private View lists[];
+	private Date today = new Date();  //today
+	private WorkspaceView work;
     protected static final int MENU_Settings = Menu.FIRST;
     protected static final int MENU_Feedbacks = Menu.FIRST+1;
     protected static final int MENU_About = Menu.FIRST+2;
 	private static String TAG = "MainActivity";
-    
+	//private int[] lights = new int[3];
+    private View addView;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LayoutInflater inflater = (LayoutInflater) getSystemService (Context.LAYOUT_INFLATER_SERVICE);
-
-        WorkspaceView work = new WorkspaceView(this, null);
-      	work.setTouchSlop(32);
+    	
+        if(dbUtils == null) {
+    		dbUtils = new DBUtils(this);
+    	}
         
+    	users = dbUtils.userDelegate.get();
+
+    	if(!users.isEmpty()){
+    		token = users.get(0).getToken();
+        	dbUtils.close();
+    	}else{
+    		Builder dialog = new Builder(MainActivity.this);
+    	    dialog.setTitle(R.string.welcome_message_title);
+    	    dialog.setMessage(R.string.welcome_message);
+        	dialog.setPositiveButton(R.string.confirm,
+        		new DialogInterface.OnClickListener() {
+        	    	public void onClick(DialogInterface dialoginterface, int i) {
+        	    		dialoginterface.dismiss();
+        	    		initAcc();
+        	    	}
+        	    }
+        	);
+        	dialog.show();
+    	}
+     	update();
+     	
+    	// TODO:get project list from server, used when sync
+    	//new GetProjectListTask().execute();
+    }
+    
+    protected void update() {
+    	// Form each project lists
     	if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
-    	
-    	users = dbUtils.userDelegate.get();
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        addView = inflater.inflate(R.layout.main, null); 
+        work = new WorkspaceView(this, null);
+      	work.setTouchSlop(32);
     	projs = dbUtils.projectsDelegate.get();
-
-    	// Form each project lists
     	if(!projs.isEmpty()) {
-    		projLists = new View[projs.size()];
-    		for (int i=0; i < projs.size(); i++){
-    			projLists[i] = inflater.inflate(R.layout.project_list, null);
-    			work.addView(projLists[i]);
-    			formLists(projLists[i], projs.get(i));
+    		lists = new View[(projs.size())+1];
+    		lists[0] = inflater.inflate(R.layout.all_item_list, null);
+    		work.addView(lists[0]);
+    		try {
+        		formAllItemList(lists[0]);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		
+    		//lights[0] = R.drawable.add;
+    		//lights[1] = R.drawable.date;
+    		//lights[2] = R.drawable.group;
+    		for (int i=1; i < (projs.size())+1; i++) {
+    			lists[i] = inflater.inflate(R.layout.project_list, null);
+    			work.addView(lists[i]);
+    			Log.v(TAG, Integer.toString(work.getScreenForView(lists[i])));
+    			try {
+					formProjLists(lists[i], projs.get(i-1));
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
     		}
         	// Add workspace to current content view
-    		setContentView(work);
+    		//setContentView(work);
+    		setContentView(addView);
+    		addContentView(work, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
     	}else {
     		setContentView(R.layout.main);
     		Builder dialog = new Builder(MainActivity.this);
@@ -101,31 +162,113 @@ public class MainActivity extends Activity {
         	);
         	dialog.show();
     	}
-	
-    	if(!users.isEmpty()){
-    		token = users.get(0).getToken();
-        	dbUtils.close();
-    	}else{
-    		Builder dialog = new Builder(MainActivity.this);
-    	    dialog.setTitle(R.string.welcome_message_title);
-    	    dialog.setMessage(R.string.welcome_message);
-        	dialog.setPositiveButton(R.string.confirm,
-        		new DialogInterface.OnClickListener() {
-        	    	public void onClick(DialogInterface dialoginterface, int i){
-        	    		dialoginterface.dismiss();
-        	    		initAcc();
-        	    	}
-        	    }
-        	);
-        	dialog.show();
-    	}
-    	// TODO:get project list from server, used when sync
-    	//new GetProjectListTask().execute();
-}
+    }
     
-	private void formLists(View v, Project proj) {
+    private void formAllItemList(View v) throws ParseException {
+    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+    	ArrayList<HashMap <String, Object>> items = null;
+    	List<TaskEvent> taskevents = null;
+    	
+    	if(dbUtils == null) {
+    		dbUtils = new DBUtils(this);
+    	}
+    	
+    	try {
+    		taskevents = dbUtils.taskeventsDelegate.get();
+			//Log.v(TAG, "projId= "+proj.getId());
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			Log.v(TAG, "IllegalArgument");
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			Log.v(TAG, "Parse error");
+		}
+    	
+    	CheckBox itemDone = (CheckBox) v.findViewById(R.id.all_item_done);
+		ListView itemListView = (ListView) v.findViewById(R.id.all_item_list);
+		Button refresh = (Button) v.findViewById(R.id.all_item_refresh);
+		Button addItem = (Button) v.findViewById(R.id.all_item_add);
+		Button addGroup = (Button) v.findViewById(R.id.all_item_add_group);
+		
+		if(taskevents != null) {
+			items = new ArrayList<HashMap <String, Object>> ();
+	    	for (int i=0; i < taskevents.size(); i++) {
+	    		try {
+	    			Date due = taskevents.get(i).getDue();
+	    			HashMap< String, Object > item = new HashMap< String, Object >();
+	    			item.put("checkDone", itemDone);
+	    			item.put("itemName", taskevents.get(i).getName());
+	    			item.put("itemProj", projs.get((int)taskevents.get(i).getProjId()).getName());
+	    			item.put("dueRelateDay", dayDistance(today, due)+getString(R.string.dayafter));
+	    			item.put("dueDate", formatter.format(due));
+	    			items.add(item);
+	    		} catch (IndexOutOfBoundsException e) {
+	    			continue;
+	    		}
+	    	}
+		}else {
+			setContentView(R.layout.main);
+			return;
+		}
+		
+		// Put items for specific project to list
+    	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.all_item_list_item,
+    			new String[] { "checkDone", "itemName", "itemProj", "dueRelateDay", "dueDate" },
+    			new int[] { R.id.all_item_done, R.id.all_item_name, R.id.all_item_project, R.id.all_item_due_relate_day, R.id.all_item_duedate }));
+    	  
+    	// Long click. You can add item operations here
+    	itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+    		public boolean onItemLongClick(AdapterView<?> arg0P, View arg1P, int arg2P, long arg3P) {
+    			Toast toast = Toast.makeText(MainActivity.this, "Long Click......", Toast.LENGTH_SHORT);
+    			toast.show();
+    			return true;
+    		}
+    	});	
+    	// Set bottom menu functions
+    	refresh.setOnClickListener(new OnClickListener() {
+    		@Override
+    		public void onClick(View arg0) {
+    	    	// TODO
+    	    }
+    	});
+    	addItem.setOnClickListener(new OnClickListener() {
+    	    @Override
+    	    public void onClick(View arg0) {
+    	    	// TODO
+    	    }
+    	});
+    	addGroup.setOnClickListener(new OnClickListener() {
+    	    @Override
+    	    public void onClick(View arg0) {
+    	    	// TODO
+    	    }
+    	});
+    }
+    
+	private void formProjLists(View v, Project proj) throws IllegalArgumentException, ParseException {
 		final String projname = proj.getName();
-		final long projId = proj.getServerId();
+		final long projId = proj.getId();
+		//Log.v(TAG, Long.toString(projId));
+		final long projServerId = proj.getServerId();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+		ArrayList<HashMap <String, Object>> items = null;
+		List<TaskEvent> taskevents = null;
+		
+    	if(dbUtils == null) {
+    		dbUtils = new DBUtils(this);
+    	}
+    	
+    	try {
+    		taskevents = dbUtils.taskeventsDelegate.get(proj.getId());
+			//Log.v(TAG, "projId= "+proj.getId());
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			Log.v(TAG, "IllegalArgument");
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			Log.v(TAG, "Parse error");
+		}
+    	
 		CheckBox itemDone = (CheckBox) v.findViewById(R.id.itemDone);
 		ListView itemListView = (ListView) v.findViewById(R.id.proj_item_list);
 		TextView projNameView = (TextView) v.findViewById(R.id.proj_name);
@@ -135,19 +278,32 @@ public class MainActivity extends Activity {
 		Button contacts = (Button) v.findViewById(R.id.proj_contact);
 		Button chart = (Button) v.findViewById(R.id.proj_chart);
 		
+		/*Button light = (Button) addView.findViewById(R.id.light);
+		
+		Resources resources = MainActivity.this.getResources();
+        Drawable drawable = resources.getDrawable(lights[((int)projId)-1]); 
+        
+		light.setBackgroundDrawable(drawable);*/
+		
 		projNameView.setText(projname);
 		
-    	// Put items for specific project to an array list
-		ArrayList<HashMap<String, Object>> items = new ArrayList<HashMap <String, Object>> ();
-    	for (int i=0; i < itemNames.length; i++) {
-    		HashMap< String, Object > item = new HashMap< String, Object >();
-    		item.put("checkDone", itemDone);
-    		item.put("itemName", itemNames[i]);
-    		item.put("itemOwner", itemOwners[i]);
-    		item.put("dueRelateDay", dueRelateDays[i]);
-    		item.put("dueDate", dueDates[i]);
-    		items.add(item);
-    	}
+		// Put items for specific project to an array list
+		if(taskevents != null) {
+			items = new ArrayList<HashMap <String, Object>> ();
+	    	for (int i=0; i < taskevents.size(); i++) {
+	    		Date due = taskevents.get(i).getDue();
+	    		HashMap< String, Object > item = new HashMap< String, Object >();
+	    		item.put("checkDone", itemDone);
+	    		item.put("itemName", taskevents.get(i).getName());
+	    		item.put("itemOwner", itemOwners[0]);
+	    		item.put("dueRelateDay", dayDistance(today, due)+getString(R.string.dayafter));
+	    		item.put("dueDate", formatter.format(due));
+	    		items.add(item);
+	    	}
+		}else {
+			setContentView(R.layout.main);
+			return;
+		}
 		
     	// Put items for specific project to list
     	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.project_list_item,
@@ -161,47 +317,54 @@ public class MainActivity extends Activity {
     			toast.show();
     			return true;
     		}
-    	});
-    			
+    	});	
     	// Set bottom menu functions
-    	issueTracker.setOnClickListener(new OnClickListener(){
+    	issueTracker.setOnClickListener(new OnClickListener() {
     		@Override
     	    public void onClick(View arg0) {
     	    	// TODO:insert issue tracker activity here
     	    	// add project activity, temporarily placed here
     	    	Intent addgroup_intent= new Intent();
-    			addgroup_intent.setClass(MainActivity.this,CreateProjectActivity.class);
+    			addgroup_intent.setClass(MainActivity.this, CreateProjectActivity.class);
     			startActivity(addgroup_intent);
     	    }
     	});
-    	docs.setOnClickListener(new OnClickListener(){
+    	docs.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View arg0) {
     	    	// TODO:insert group docs activity here
     	    }
     	});
-    	addItem.setOnClickListener(new OnClickListener(){
+    	addItem.setOnClickListener(new OnClickListener() {
     	    @Override
     	    public void onClick(View arg0) {
     	    	Intent additem_intent= new Intent();
     	    	additem_intent.putExtra("projname", projname);
     	    	additem_intent.putExtra("projid", projId);
-    	    	additem_intent.setClass(MainActivity.this,AddItemActivity.class);
+    	    	additem_intent.putExtra("projserverid", projServerId);
+    	    	additem_intent.setClass(MainActivity.this, AddItemActivity.class);
     			startActivity(additem_intent);
     	    }
     	});
-    	contacts.setOnClickListener(new OnClickListener(){
+    	contacts.setOnClickListener(new OnClickListener() {
     	    @Override
     	    public void onClick(View arg0) {
     	    	// TODO:insert contacts activity here
     	    }
     	});
-    	chart.setOnClickListener(new OnClickListener(){
+    	chart.setOnClickListener(new OnClickListener() {
     	    @Override
     	    public void onClick(View arg0) {
     	    	// TODO:insert chart activity here
     	    }
     	});
+	}
+	
+	private long dayDistance(Date date1, Date date2) {
+		long day = (date1.getTime()-date2.getTime())/(24*60*60*1000)>0 ?
+				(date1.getTime()-date2.getTime())/(24*60*60*1000):
+				(date2.getTime()-date1.getTime())/(24*60*60*1000);
+		return day;
 	}
 
     // FIXME: duplicate notification after registration 
@@ -214,6 +377,24 @@ public class MainActivity extends Activity {
 		dbUtils.close();
 		Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
 	    Log.v(TAG, "[onNewIntent] Token back: "+token);
+	}
+    
+    @Override
+	public void onResume() {
+		super.onResume();
+		if (dbUtils == null) {
+			dbUtils = new DBUtils(this);
+		}
+		update();
+    }
+    
+	@Override
+	public void onStop() {
+		super.onStop();
+		if (dbUtils != null) {
+			dbUtils.close();
+			dbUtils = null;
+		}
 	}
  
     public void initAcc(){

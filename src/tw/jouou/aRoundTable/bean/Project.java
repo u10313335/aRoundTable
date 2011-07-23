@@ -34,7 +34,7 @@ public class Project {
 	public Project(JSONObject projectJson) throws JSONException, ParseException{
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		this.name = projectJson.getString("name");
-		this.id = projectJson.getInt("id");		
+		this.id = projectJson.getInt("id");
 		this.updateAt = sdf.parse(projectJson.getString("updated_at"));
 	}
 	

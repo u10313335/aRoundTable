@@ -83,7 +83,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	
 	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
-	public TaskEventDelegate taskeventDelegate = new TaskEventDelegate();
+	public TaskEventDelegate taskeventsDelegate = new TaskEventDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -199,12 +199,37 @@ public class DBUtils extends SQLiteOpenHelper {
 			return id;
 		}
 	
-		public List<TaskEvent> get() throws IllegalArgumentException, ParseException {
+		public List<TaskEvent> get(long projId) throws ParseException {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASKEVENT, null, "project_id=?", null, null, null,
-					FIELD_TASKEVENT_ID + " ASC");
+			Cursor c = db.query(TABLE_TASKEVENT, null, "project_id=" + projId, null, null, null,
+					"due DESC", null);
+
+			while (c.moveToNext()) {
+				TaskEvent taskevent = new TaskEvent(c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_ID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_PROJECTID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_SERVERID)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_TASKEVENT_TYPE)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASKEVENT_NAME)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASKEVENT_DUEDATE)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASKEVENT_NOTE)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_TASKEVENT_FINISHED)));
+				taskevents.add(taskevent);
+			}
+
+			c.close();
+			db.close();
+
+			return taskevents;
+		}
+		
+		public List<TaskEvent> get() throws ParseException {
+			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASKEVENT, null, null, null, null, null,
+					"due DESC", null);
 
 			while (c.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_ID)),

@@ -302,6 +302,8 @@ public class WorkspaceView extends ViewGroup {
 
 private int lastEvHashCode;
 
+private int whichScreen;
+
     private void updateTabIndicator(){
         int width = getMeasuredWidth();
         int height = getMeasuredHeight();
@@ -588,7 +590,7 @@ private int lastEvHashCode;
      */
     private void snapToDestination() {
         final int screenWidth = getWidth();
-        final int whichScreen = (getScrollX() + (screenWidth / 2)) / screenWidth;
+        whichScreen = (getScrollX() + (screenWidth / 2)) / screenWidth;
         Log.d("workspace", "snapToDestination");
         scrollToScreen(whichScreen);
     }
@@ -598,6 +600,11 @@ private int lastEvHashCode;
      * 
      * @param whichScreen
      */
+    
+    public int getWhichScreen() {
+    	return whichScreen;
+    }
+    
     public void scrollToScreen(int whichScreen) {
         scrollToScreen(whichScreen, false);
     }

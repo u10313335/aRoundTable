@@ -5,22 +5,22 @@
 	android:layout_width="fill_parent" 
 	android:orientation="horizontal">
 	
-	<LinearLayout android:id="@+id/itemDoneLayout"
+	<LinearLayout android:id="@+id/all_item_done_layout"
 				  android:layout_height="wrap_content" 
 				  android:layout_width="wrap_content">
 				  
-  		<CheckBox android:id="@+id/itemDone"
-			  	  android:layout_width="wrap_content"
+  		<CheckBox android:id="@+id/all_item_done"
+  				  android:layout_width="wrap_content"
 			  	  android:layout_height="wrap_content"
 			  	  android:focusable="false"/>
   	</LinearLayout>
   	
   	<LinearLayout android:layout_height="wrap_content"
                   android:layout_width="wrap_content"
-                  android:layout_toRightOf="@id/itemDoneLayout"
+                  android:layout_toRightOf="@id/all_item_done_layout"
                   android:orientation="vertical">
                   
-    	<TextView android:id="@+id/item_name"
+    	<TextView android:id="@+id/all_item_name"
               	  android:layout_width="wrap_content" 
               	  android:layout_height="wrap_content"
               	  android:gravity="left"
@@ -28,7 +28,7 @@
               	  android:layout_marginTop="6dip" 
               	  android:textAppearance="?android:attr/textAppearanceLarge"/>
               	  
-     	<TextView android:id="@+id/item_owner" 
+     	<TextView android:id="@+id/all_item_project" 
                   android:layout_height="wrap_content"
                   android:layout_width="wrap_content"
                   android:layout_marginLeft="6dip"
@@ -42,14 +42,14 @@
                   android:layout_alignParentRight="true"
                   android:orientation="vertical">
                   
-    	<TextView android:id="@+id/item_dueRelateDay" 
+    	<TextView android:id="@+id/all_item_due_relate_day" 
               	  android:layout_width="wrap_content" 
               	  android:layout_height="wrap_content" 
               	  android:layout_marginRight="6dip"
               	  android:layout_marginTop="6dip" 
               	  android:textAppearance="?android:attr/textAppearanceLarge"/>
               	  
-     	<TextView android:id="@+id/item_duedate" 
+     	<TextView android:id="@+id/all_item_duedate" 
                   android:layout_height="wrap_content" 
                   android:layout_width="wrap_content"
                   android:layout_marginRight="6dip" 

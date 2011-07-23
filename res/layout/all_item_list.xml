@@ -7,47 +7,39 @@
 	<LinearLayout android:layout_width="fill_parent"
 		 	  	  android:layout_height="wrap_content">
 
-			<TextView android:id="@+id/proj_name"
+			<TextView android:id="@+id/all_item_title"
 					  android:layout_width="fill_parent"
 					  android:layout_height="wrap_content"
 					  android:textAppearance="?android:attr/textAppearanceMedium"
-					  android:text=""
+					  android:text="所有時限"
 					  android:gravity="center"/>	
 	</LinearLayout>
 		 	  	
-    <ListView android:id="@+id/proj_item_list"
+    <ListView android:id="@+id/all_item_list"
 			  android:layout_width="fill_parent"
 			  android:layout_height="wrap_content"
 			  android:scrollbars="vertical"
 			  android:layout_weight="1"
 			  android:layout_span="4"/>
 			  
-	<TableLayout android:id="@+id/project_menu"
+	<TableLayout android:id="@+id/all_item_menu"
 				 android:layout_width="wrap_content"
 				 android:layout_height="wrap_content"
 				 android:stretchColumns="*">
 				 
 		<TableRow>	
-			<Button android:id="@+id/proj_issue_tracker" 
+			<Button android:id="@+id/all_item_refresh" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="Issue"/>
-			<Button android:id="@+id/proj_docs" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Docs"/>
-			<Button android:id="@+id/proj_additem" 
+					android:text="Refresh"/>
+			<Button android:id="@+id/all_item_add" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
 					android:text="AddItem"/>
-			<Button android:id="@+id/proj_contact" 
+			<Button android:id="@+id/all_item_add_group" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="Contacts"/>
-			<Button android:id="@+id/proj_chart" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Chart"/>				
+					android:text="AddGroup"/>
 		</TableRow>
 		
 	</TableLayout>
