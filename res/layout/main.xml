@@ -2,12 +2,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="fill_parent">
     
     <TextView android:layout_width="fill_parent"
 			  android:layout_height="25dp"
-			  android:text=""
+			  android:paddingLeft="20dp"
+			  android:text="aRound table"
+			  android:textColor="#008000"
+			  android:textStyle="bold"
     		  android:background="@android:color/darker_gray"
-			  android:gravity="center"/>
-    
+			  android:gravity="center_vertical"/>
 </RelativeLayout>

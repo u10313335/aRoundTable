@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -38,14 +39,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnCreateContextMenuListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -106,7 +105,7 @@ public class MainActivity extends Activity {
         	dialog.show();
     	}*/
      	update();
-     	
+
     	// TODO:get project list from server, used when sync
     	//new GetProjectListTask().execute();
     }
@@ -200,15 +199,25 @@ public class MainActivity extends Activity {
 		Button addItem = (Button) v.findViewById(R.id.all_item_add);
 		Button addProject = (Button) v.findViewById(R.id.all_item_add_project);
 		
+		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View all_item_list = inflater.inflate(R.layout.all_item_list_item, null); 
+		//TextView itemDueRelateDay = (TextView) itemListView.findViewById(R.id.all_item_due_relate_day);
+		
 		if(taskevents != null) {
 			items = new ArrayList<HashMap <String, Object>> ();
 	    	for (int i=0; i < taskevents.size(); i++) {
 	    			Date due = taskevents.get(i).getDue();
+	    			String dayDistance = dayDistance(today, due);
 	    			HashMap< String, Object > item = new HashMap< String, Object >();
 	    			item.put("checkDone", itemDone);
 	    			item.put("itemName", taskevents.get(i).getName());
 	    			item.put("itemProj", projs.get((int)taskevents.get(i).getProjId()-1).getName());
-	    			item.put("dueRelateDay", dayDistance(today, due));
+	    			item.put("dueRelateDay", dayDistance);
+	    			if (dayDistance == getString(R.string.due_today)) {
+	    				item.put("overDue", true);
+	    			} else {
+	    				item.put("overDue", false);
+	    			}
 	    			item.put("dueDate", formatter.format(due));
 	    			items.add(item);
 	    	}
@@ -218,7 +227,7 @@ public class MainActivity extends Activity {
 		}
 		
 		// Put items for specific project to list
-    	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.all_item_list_item,
+    	itemListView.setAdapter (new SpecialAdapter(this,items,R.layout.all_item_list_item,
     			new String[] { "checkDone", "itemName", "itemProj", "dueRelateDay", "dueDate" },
     			new int[] { R.id.all_item_done, R.id.all_item_name, R.id.all_item_project, R.id.all_item_due_relate_day, R.id.all_item_duedate }));
 
@@ -317,11 +326,17 @@ public class MainActivity extends Activity {
 			items = new ArrayList<HashMap <String, Object>> ();
 	    	for (int i=0; i < taskevents.size(); i++) {
 	    		Date due = taskevents.get(i).getDue();
+	    		String dayDistance = dayDistance(today, due);
 	    		HashMap< String, Object > item = new HashMap< String, Object >();
 	    		item.put("checkDone", itemDone);
 	    		item.put("itemName", taskevents.get(i).getName());
 	    		item.put("itemOwner", itemOwners[0]);
-	    		item.put("dueRelateDay", dayDistance(today, due));
+	    		item.put("dueRelateDay", dayDistance);
+    			if (dayDistance == getString(R.string.due_today)) {
+    				item.put("overDue", true);
+    			} else {
+    				item.put("overDue", false);
+    			}
 	    		item.put("dueDate", formatter.format(due));
 	    		items.add(item);
 	    	}
@@ -331,7 +346,7 @@ public class MainActivity extends Activity {
 		}
 		
     	// Put items for specific project to list
-    	itemListView.setAdapter (new SimpleAdapter(this,items,R.layout.project_list_item,
+    	itemListView.setAdapter (new SpecialAdapter(this,items,R.layout.project_list_item,
     			new String[] { "checkDone", "itemName", "itemOwner", "dueRelateDay", "dueDate" },
     			new int[] { R.id.itemDone, R.id.item_name, R.id.item_owner, R.id.item_dueRelateDay, R.id.item_duedate }));
 
@@ -447,6 +462,38 @@ public class MainActivity extends Activity {
 		menu.add(0,MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
 		this.openOptionsMenu();
 		return super.onCreateOptionsMenu(menu);
+	}
+	
+	private class SpecialAdapter extends SimpleAdapter {
+		ArrayList<HashMap<String, Object>> items;
+		int resource;
+		public SpecialAdapter(Context context, ArrayList<HashMap<String, Object>> items, int resource, /*boolean[] overdue,*/ String[] from, int[] to) {
+			super(context, items, resource, from, to);
+			this.items = items;
+			this.resource = resource;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+		  View view = super.getView(position, convertView, parent);
+		  TextView relateDay = null;
+		  
+		  switch(resource) {
+		  	case R.layout.all_item_list_item:
+		  		relateDay = (TextView) view.findViewById(R.id.all_item_due_relate_day);
+		  		break;
+		  		
+		  	case R.layout.project_list_item:
+		  		relateDay = (TextView) view.findViewById(R.id.item_dueRelateDay);		  
+		  }
+		  
+		  if((Boolean)items.get(position).get("overDue") == true) {
+			  relateDay.setTextColor(Color.RED);
+		  } else {
+			  relateDay.setTextColor(Color.WHITE);
+		  }
+		  return view;
+		}
 	}
 	
 	// TODO:get project list from server, used when sync

@@ -12,7 +12,7 @@
 					  android:layout_height="wrap_content"
 					  android:textAppearance="?android:attr/textAppearanceMedium"
 					  android:text="所有時限"
-					  android:gravity="center"/>	
+					  android:gravity="center"/>
 	</LinearLayout>
 		 	  	
     <ListView android:id="@+id/all_item_list"
@@ -27,7 +27,7 @@
 				 android:layout_height="wrap_content"
 				 android:stretchColumns="*">
 				 
-		<TableRow>	
+		<TableRow android:background="@android:color/darker_gray">	
 			<Button android:id="@+id/all_item_refresh" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 

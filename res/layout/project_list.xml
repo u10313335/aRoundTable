@@ -27,7 +27,7 @@
 				 android:layout_height="wrap_content"
 				 android:stretchColumns="*">
 				 
-		<TableRow>	
+		<TableRow android:background="@android:color/darker_gray">	
 			<Button android:id="@+id/proj_issue_tracker" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
