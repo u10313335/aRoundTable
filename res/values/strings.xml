@@ -21,5 +21,7 @@
     <string name="due_today">今日</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
-    <string name="select_proj">您要建立於何專案下？</string>
+    <string name="select_project">您要建立於何專案下？</string>
+    <string name="enter_project_name_here">在此輸入專案名稱</string>
+    <string name="create_project">建立專案</string>
 </resources>

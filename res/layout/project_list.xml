@@ -27,27 +27,27 @@
 				 android:layout_height="wrap_content"
 				 android:stretchColumns="*">
 				 
-		<TableRow android:background="@android:color/darker_gray">	
+		<TableRow>	
 			<Button android:id="@+id/proj_issue_tracker" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="Issue"/>
+					android:background="@drawable/issue"/>
 			<Button android:id="@+id/proj_docs" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="Docs"/>
+					android:background="@drawable/doc"/>
 			<Button android:id="@+id/proj_additem" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="AddItem"/>
+					android:background="@drawable/additem_under_project"/>
 			<Button android:id="@+id/proj_contact" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="Contacts"/>
+					android:background="@drawable/contacts"/>
 			<Button android:id="@+id/proj_chart" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="Chart"/>				
+					android:background="@drawable/chart"/>				
 		</TableRow>
 		
 	</TableLayout>

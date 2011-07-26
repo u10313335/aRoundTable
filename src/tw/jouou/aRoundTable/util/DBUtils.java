@@ -159,7 +159,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_PROJECTS, null, null, null, null, null,
-					FIELD_PROJECTS_ID + " ASC");
+					FIELD_PROJECTS_ID + " DESC");
 
 			while (c.moveToNext()) {
 				Project proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
@@ -171,6 +171,21 @@ public class DBUtils extends SQLiteOpenHelper {
 			c.close();
 			db.close();
 			return projs;
+		}
+		
+		public Project get(long projId) {
+			Project proj = null;
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_PROJECTS, null, "_id=" + projId, null, null, null, null);
+			while (c.moveToNext()) {
+				proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECTS_NAME)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)));
+			}
+			c.close();
+			db.close();
+			return proj;
 		}
 	}
 	

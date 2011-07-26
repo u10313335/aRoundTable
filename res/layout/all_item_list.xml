@@ -30,16 +30,16 @@
 		<TableRow android:background="@android:color/darker_gray">	
 			<Button android:id="@+id/all_item_refresh" 
 					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Refresh"/>
+					android:layout_height="wrap_content"
+					android:background="@drawable/refresh"/>
 			<Button android:id="@+id/all_item_add" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="AddItem"/>
+					android:background="@drawable/additem"/>
 			<Button android:id="@+id/all_item_add_project" 
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" 
-					android:text="AddProject"/>
+					android:background="@drawable/addproject"/>
 		</TableRow>
 		
 	</TableLayout>

@@ -44,10 +44,6 @@ public class AddSingleActivity extends Activity {
 	private String projName;
 	private long projId;
 	private long projServerId;
-// TODO:wait to be changed to tab layout
-//	private Button single;
-//  private Button assignment;
-//  private Button event;
     private TextView single_title;
     private EditText single_title_context;
     private TextView single_item_create_under;
@@ -76,7 +72,7 @@ public class AddSingleActivity extends Activity {
     private int mMonth;
     private int mDay;
     
-    private static String TAG = "AddItemActivity";
+    private static String TAG = "AddSingleActivity";
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

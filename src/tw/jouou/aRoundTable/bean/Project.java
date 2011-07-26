@@ -1,5 +1,6 @@
 package tw.jouou.aRoundTable.bean;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,7 +11,9 @@ import org.json.JSONObject;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.ContentValues;
 
-public class Project {
+public class Project implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	private String name;
 	private long id;
 	private long serverId = 0;
