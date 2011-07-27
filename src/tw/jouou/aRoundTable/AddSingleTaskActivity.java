@@ -8,6 +8,7 @@ import java.util.Date;
 
 
 
+import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
@@ -36,12 +37,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.TabHost.TabSpec;
 
-public class AddSingleActivity extends Activity {
+public class AddSingleTaskActivity extends Activity {
 	
 	private DBUtils dbUtils;
 	private TaskEvent taskEvent;
 	private Bundle bundle;
 	private String projName;
+	private Project proj;
 	private long projId;
 	private long projServerId;
     private TextView single_title;
@@ -59,15 +61,13 @@ public class AddSingleActivity extends Activity {
     private TextView single_owner;
     private TextView single_owner_context;
     private EditText single_owneradd_context;
-    private Editable single_owner_name;
-    private String single_owner_name_temp = "";
     private ImageButton single_owner_add;
     private TextView single_remarks;
     private EditText single_remarks_context;
     private Button single_additem_finish;
     private Button single_additem_cancel;
     
-    static final int DATE_DIALOG_ID = 0;
+    private static final int DATE_DIALOG_ID = 0;
     private int mYear;
     private int mMonth;
     private int mDay;
@@ -76,7 +76,19 @@ public class AddSingleActivity extends Activity {
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.single);
+        setContentView(R.layout.add_single_task_tab);
+        
+        bundle = this.getIntent().getExtras();
+        if (bundle.getInt("type") == 0) {
+            proj = (Project)bundle.get("proj");
+            projName = proj.getName();
+            projId = proj.getId();
+            Log.v(TAG,Long.toString(projId));
+            projServerId = proj.getServerId();
+        } else {
+        	
+        }
+
         findViews();
         final Calendar c = Calendar.getInstance();
         mYear = c.get(Calendar.YEAR);
@@ -138,7 +150,7 @@ public class AddSingleActivity extends Activity {
         single_additem_cancel.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		AddSingleActivity.this.finish();
+        		AddSingleTaskActivity.this.finish();
       	  	}
     	});
         
@@ -197,10 +209,6 @@ public class AddSingleActivity extends Activity {
     }
 	
     private void findViews() {
-    	//TODO:wait to be changed to tab layout
-    	//single = (Button)findViewById(R.id.single);
-    	//assignment = (Button)findViewById(R.id.assignment);
-    	//event = (Button)findViewById(R.id.event);
     	single_title = (TextView)findViewById(R.id.single_title);
     	single_title_context = (EditText)findViewById(R.id.single_title_context);
     	single_item_create_under = (TextView)findViewById(R.id.single_item_create_under);
@@ -230,7 +238,7 @@ public class AddSingleActivity extends Activity {
 		
 		@Override
 		protected void onPreExecute() {
-			dialog = new ProgressDialog(AddSingleActivity.this);
+			dialog = new ProgressDialog(AddSingleTaskActivity.this);
 			dialog.setMessage(getString(R.string.processing));
 			dialog.show();
 		}
@@ -239,7 +247,7 @@ public class AddSingleActivity extends Activity {
 		protected Integer doInBackground(String... params) {
 			try {	
 		    	if (dbUtils == null) {
-		    		dbUtils = new DBUtils(AddSingleActivity.this);
+		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
 		    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
 				taskEvent = new TaskEvent(projId, 0, params[0], params[1], params[2], 0);
@@ -265,13 +273,13 @@ public class AddSingleActivity extends Activity {
 			boolean hasNetwork = true;
 			
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddSingleActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddSingleTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			// TODO:need more specific disconnection exception
 			if(taskeventId != null) {
 		    	if(dbUtils == null) {
-		    		dbUtils = new DBUtils(AddSingleActivity.this);
+		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
 		    	taskEvent.setServerId(taskeventId);
 				dbUtils.taskeventsDelegate.update(taskEvent);
@@ -279,7 +287,7 @@ public class AddSingleActivity extends Activity {
 			}else {
 				hasNetwork = false;
 			}	
-			AddSingleActivity.this.finish();
+			AddSingleTaskActivity.this.finish();
 		}
 	}
   	  

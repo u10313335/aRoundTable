@@ -1,40 +1,33 @@
 package tw.jouou.aRoundTable;
 
+import tw.jouou.aRoundTable.bean.Project;
+import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
+import tw.jouou.aRoundTable.util.DBUtils;
+import android.app.Activity;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-
-
-import tw.jouou.aRoundTable.bean.TaskEvent;
-import tw.jouou.aRoundTable.lib.ArtApi;
-import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
-import tw.jouou.aRoundTable.util.DBUtils;
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
-import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.TabHost.TabSpec;
 
 public class AddEventActivity extends Activity {
 	
@@ -42,12 +35,9 @@ public class AddEventActivity extends Activity {
 	private TaskEvent taskEvent;
 	private Bundle bundle;
 	private String projName;
+	private Project proj;
 	private long projId;
 	private long projServerId;
-// TODO:wait to be changed to tab layout
-//	private Button single;
-//  private Button assignment;
-//  private Button event;
     private TextView event_title;
     private EditText event_title_context;
     private TextView event_item_create_under;
@@ -65,16 +55,28 @@ public class AddEventActivity extends Activity {
     private Button event_additem_finish;
     private Button event_additem_cancel;
     
-    static final int DATE_DIALOG_ID = 0;
+    private static final int DATE_DIALOG_ID = 0;
     private int mYear;
     private int mMonth;
     private int mDay;
     
-    private static String TAG = "AddItemActivity";
+    private static String TAG = "AddEventActivity";
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.event);
+        setContentView(R.layout.add_event_tab);
+        
+        bundle = this.getIntent().getExtras();
+        if (bundle.getInt("type") == 0) {
+            proj = (Project)bundle.get("proj");
+            projName = proj.getName();
+            projId = proj.getId();
+            Log.v(TAG,Long.toString(projId));
+            projServerId = proj.getServerId();
+        } else {
+        	
+        }
+        
         findViews();
         final Calendar c = Calendar.getInstance();
         mYear = c.get(Calendar.YEAR);

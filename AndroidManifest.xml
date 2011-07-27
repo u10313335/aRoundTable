@@ -40,11 +40,21 @@
         <activity android:name="tw.jouou.aRoundTable.util.AccManagerActivity"
         			android:launchMode="singleInstance">
         </activity>
-        <activity android:name="AddItemActivity"></activity>
-        <activity android:name="AddBatchActivity"></activity>
-        <activity android:name="AddEventActivity"></activity>
-        <activity android:name="AddSingleActivity"></activity>
-        <activity android:name="DynamicIssueActivity"></activity>
+        
+        <activity android:name="AddItemActivity">
+        </activity>
+        
+        <activity android:name="AddBatchTaskActivity">
+        </activity>
+        
+        <activity android:name="AddEventActivity">
+        </activity>
+        
+        <activity android:name="AddSingleTaskActivity">
+        </activity>
+        
+        <activity android:name="DynamicIssueActivity">
+        </activity>
 
     </application>
 </manifest>

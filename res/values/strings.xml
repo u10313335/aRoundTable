@@ -24,4 +24,6 @@
     <string name="select_project">您要建立於何專案下？</string>
     <string name="enter_project_name_here">在此輸入專案名稱</string>
     <string name="create_project">建立專案</string>
+    <string name="add_task">建立單一工作</string>
+    <string name="add_event">建立事件</string>
 </resources>

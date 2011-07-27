@@ -10,13 +10,12 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:padding="5dp">
+        android:layout_height="fill_parent">
     
     <TabWidget 
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" 
-        android:id="@android:id/tabs" />
+        android:id="@android:id/tabs"/>
         
     <FrameLayout
     	android:layout_width="fill_parent"
