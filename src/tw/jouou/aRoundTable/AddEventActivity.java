@@ -234,12 +234,12 @@ public class AddEventActivity extends Activity {
 		    		dbUtils = new DBUtils(AddEventActivity.this);
 		    	}
 		    	if (bundle.getInt("type") == 0) {
-		    		taskEvent = new TaskEvent(projId, 1, params[0], params[1], params[2], 0);
+		    		taskEvent = new TaskEvent(projId, 2, params[0], params[1], params[2], 0);
 					taskEvent.setId(dbUtils.taskeventsDelegate.insert(taskEvent));
 		    	} else {
 		    		TaskEvent taskEvent = new TaskEvent(AddEventActivity.this.taskEvent.getId(),
 		    				AddEventActivity.this.taskEvent.getProjId(),
-		    				AddEventActivity.this.taskEvent.getServerId(), 1, params[0], params[1], params[2], 0);
+		    				AddEventActivity.this.taskEvent.getServerId(), 2, params[0], params[1], params[2], 0);
 		    		dbUtils.taskeventsDelegate.update(taskEvent);
 		    	}
 				dbUtils.close();

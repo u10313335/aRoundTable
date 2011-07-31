@@ -17,7 +17,7 @@ public class TaskEvent implements Serializable {
 	private long id;
 	private long projId;
 	private long serverId = 0;
-	private int type;
+	private int type; //0: single task; 1: batch tasks; 2: event
 	private String name;
 	private Date due;
 	private String note;
@@ -63,6 +63,10 @@ public class TaskEvent implements Serializable {
 	
 	public void setServerId(long serverId) {
 		this.serverId = serverId;
+	}
+	
+	public int getType() {
+		return type;
 	}
 	
 	public long getProjId() {

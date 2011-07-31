@@ -313,6 +313,7 @@ public class MainActivity extends Activity {
 					ContextMenuInfo menuInfo) {
 				menu.add(Menu.NONE,MENU_EditItem,0,getString(R.string.edit));
 				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
+				menu.setHeaderTitle(getString(R.string.item_operations));
 			}
     	});
     	

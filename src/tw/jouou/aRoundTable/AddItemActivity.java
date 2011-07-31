@@ -1,7 +1,5 @@
 package tw.jouou.aRoundTable;
 
-import java.util.Date;
-
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 
@@ -9,7 +7,6 @@ import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TabHost;
 
 public class AddItemActivity extends TabActivity{
@@ -18,33 +15,46 @@ public class AddItemActivity extends TabActivity{
 	private TabHost tabHost;
 	private TabHost.TabSpec spec;
 	private Resources res;
+	private int type;
+	private TaskEvent taskEvent;
 	private static String TAG = "AddItemActivity";
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.additem);
-		bundle = this.getIntent().getExtras();
-    
 		res = getResources(); // Resource object to get drawables
 		tabHost = getTabHost();  // The activity TabHost
-    
-		addSingleActivity();  
-		addBatchActivity();  
-		addEventActivity();
-		
 		tabHost.setCurrentTab(0);
+		bundle = this.getIntent().getExtras();
+		type = bundle.getInt("type");
+		if (type==0) {
+			addSingleActivity();
+			addBatchActivity();
+			addEventActivity();
+		} else {
+			taskEvent = (TaskEvent)bundle.get("taskevent");
+			switch (taskEvent.getType()) {
+				case 0:
+					addSingleActivity();
+					break;
+				case 1:
+					addBatchActivity();
+					break;
+				case 2:
+					addEventActivity();
+			}
+		}
 	}
 	
 	public void addSingleActivity() {  
 		Intent intent = new Intent();  
 	    intent.setClass(AddItemActivity.this, AddSingleTaskActivity.class);
-	    int type = bundle.getInt("type");
 	    intent.putExtra("type", type);
 	    if (type == 0) {
 	    	intent.putExtra("proj", (Project)bundle.get("proj"));
         } else {
-        	intent.putExtra("taskevent", (TaskEvent)bundle.get("taskevent"));
+        	intent.putExtra("taskevent", taskEvent);
         	intent.putExtra("projname", bundle.getString("projname"));
         }
 	    
@@ -57,7 +67,6 @@ public class AddItemActivity extends TabActivity{
 	public void addBatchActivity() {  
 		Intent intent = new Intent();  
 	    intent.setClass(AddItemActivity.this, AddBatchTaskActivity.class);
-	    int type = bundle.getInt("type");
 	    intent.putExtra("type", type);
 	    if (type == 0) {
 	    	intent.putExtra("proj", (Project)bundle.get("proj"));
@@ -74,12 +83,11 @@ public class AddItemActivity extends TabActivity{
 	public void addEventActivity(){  
 		Intent intent = new Intent();  
 		intent.setClass(AddItemActivity.this, AddEventActivity.class);
-	    int type = bundle.getInt("type");
 	    intent.putExtra("type", type);
 	    if (type == 0) {
 	    	intent.putExtra("proj", (Project)bundle.get("proj"));
         } else {
-        	intent.putExtra("taskevent", (TaskEvent)bundle.get("taskevent"));
+        	intent.putExtra("taskevent", taskEvent);
         	intent.putExtra("projname", bundle.getString("projname"));
         }
 	    
