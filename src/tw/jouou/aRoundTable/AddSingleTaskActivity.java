@@ -66,37 +66,40 @@ public class AddSingleTaskActivity extends Activity {
     private EditText single_remarks_context;
     private Button single_additem_finish;
     private Button single_additem_cancel;
+    private SimpleDateFormat dateToStr, strToDate;
     
     private static final int DATE_DIALOG_ID = 0;
     private int mYear;
     private int mMonth;
     private int mDay;
     
-    private static String TAG = "AddSingleActivity";
+    private static String TAG = "AddSingleTaskActivity";
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_single_task_tab);
-        
-        bundle = this.getIntent().getExtras();
-        if (bundle.getInt("type") == 0) {
-            proj = (Project)bundle.get("proj");
-            projName = proj.getName();
-            projId = proj.getId();
-            Log.v(TAG,Long.toString(projId));
-            projServerId = proj.getServerId();
-        } else {
-        	
-        }
-
         findViews();
         final Calendar c = Calendar.getInstance();
         mYear = c.get(Calendar.YEAR);
         mMonth = c.get(Calendar.MONTH);
         mDay = c.get(Calendar.DAY_OF_MONTH);
-        single_item_create_under_context.setText(projName);
-        updateDisplay(mYear, mMonth, mDay);
-        
+        dateToStr = new SimpleDateFormat("yyyy/MM/ddE");
+        strToDate = new SimpleDateFormat("yyyy MM dd");
+        bundle = this.getIntent().getExtras();
+        if (bundle.getInt("type") == 0) {
+            proj = (Project)bundle.get("proj");
+            projName = proj.getName();
+            projId = proj.getId();
+            projServerId = proj.getServerId();
+            single_item_create_under_context.setText(projName);
+            updateDisplay(mYear, mMonth, mDay);
+        } else {
+        	taskEvent = (TaskEvent)bundle.get("taskevent");
+        	single_title_context.setText(taskEvent.getName());
+        	single_item_create_under_context.setText(bundle.getString("projname"));
+        	single_additem_due.setText(dateToStr.format(taskEvent.getDue()));
+        	single_remarks_context.setText(taskEvent.getNote());
+        }   
        
         single_one_day.setOnClickListener(new OnClickListener() {
         	@Override
@@ -194,13 +197,11 @@ public class AddSingleTaskActivity extends Activity {
 
 		// Month is 0 based so add 1
 		String fromStr = year+" "+(month+1)+" "+day;
-		SimpleDateFormat from = new SimpleDateFormat("yyyy MM dd");
 		Date date;
 		
 		try {
-			date = from.parse(fromStr);
-			SimpleDateFormat to = new SimpleDateFormat("yyyy/MM/ddE");
-			String toStr = to.format(date);
+			date = strToDate.parse(fromStr);
+			String toStr = dateToStr.format(date);
 			single_additem_due.setText(toStr);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
@@ -249,11 +250,17 @@ public class AddSingleTaskActivity extends Activity {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
-		    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
-				taskEvent = new TaskEvent(projId, 0, params[0], params[1], params[2], 0);
-				taskEvent.setId(dbUtils.taskeventsDelegate.insert(taskEvent));
+		    	if (bundle.getInt("type") == 0) {
+		    		taskEvent = new TaskEvent(projId, 0, params[0], params[1], params[2], 0);
+					taskEvent.setId(dbUtils.taskeventsDelegate.insert(taskEvent));
+		    	} else {
+		    		TaskEvent taskEvent = new TaskEvent(AddSingleTaskActivity.this.taskEvent.getId(),
+		    				AddSingleTaskActivity.this.taskEvent.getProjId(),
+		    				AddSingleTaskActivity.this.taskEvent.getServerId(), 0, params[0], params[1], params[2], 0);
+		    		dbUtils.taskeventsDelegate.update(taskEvent);
+		    	}
 				dbUtils.close();
-/*				return ArtApi.getInstance(AddItemActivity.this).createTaskevent(projServerId, 0, params[0], sdf.parse(params[1]), params[2]);
+				/*return ArtApi.getInstance(AddSingleTaskActivity.this).createTaskevent(projServerId, 0, params[0], dateToStr.parse(params[1]), params[2]);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

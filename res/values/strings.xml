@@ -19,11 +19,14 @@
     <string name="dayafter">天後</string>
     <string name="overdue">已過期</string>
     <string name="due_today">今日</string>
+    <string name="item_operations">項目操作</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
     <string name="select_project">您要建立於何專案下？</string>
+    <string name="create_project_is_easy">建立專案十分容易！</string>
+    <string name="only_enter_name_and_color">輸入名稱並決定代表色即可：</string>
     <string name="enter_project_name_here">在此輸入專案名稱</string>
     <string name="create_project">建立專案</string>
-    <string name="add_task">建立單一工作</string>
-    <string name="add_event">建立事件</string>
+    <string name="add_task">單一工作</string>
+    <string name="add_event">事件</string>
 </resources>

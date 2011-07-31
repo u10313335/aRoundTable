@@ -12,15 +12,19 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 public class CreateProjectActivity extends Activity {
 
 	private EditText edTxtProjname;
+	private int color = 0;
+	private RadioGroup raGroupColorSel;
 	private Button btnNext;
 	private DBUtils dbUtils;
 	private Project proj;
@@ -28,15 +32,51 @@ public class CreateProjectActivity extends Activity {
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.projname);
+        setContentView(R.layout.add_project);
     	 
         edTxtProjname = (EditText)findViewById(R.id.projname_input);
-        
+        raGroupColorSel = (RadioGroup)findViewById(R.id.color_select);
+        raGroupColorSel.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(RadioGroup group, int checkedId) {
+				switch(checkedId) {
+					case R.id.color0:
+						color = 0;
+						break;
+					case R.id.color1:
+						color = 1;
+						break;
+					case R.id.color2:
+						color = 2;
+						break;
+					case R.id.color3:
+						color = 3;
+						break;
+					case R.id.color4:
+						color = 4;
+						break;
+					case R.id.color5:
+						color = 5;
+						break;
+					case R.id.color6:
+						color = 6;
+						break;
+					case R.id.color7:
+						color = 8;
+						break;
+				}
+			}
+        });
         btnNext = (Button)findViewById(R.id.next);
         btnNext.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-            	(new CreateProjectTask()).execute(edTxtProjname.getText().toString());
+            	String projName = edTxtProjname.getText().toString();
+				if ("".equals(projName)) {
+					CreateProjectActivity.this.finish();
+				} else {
+	            	(new CreateProjectTask()).execute(projName,Integer.toString(color));
+				}
             }
         });  
     }
@@ -58,7 +98,7 @@ public class CreateProjectActivity extends Activity {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(CreateProjectActivity.this);
 		    	}
-				proj = new Project(params[0]);
+				proj = new Project(params[0], Integer.parseInt(params[1]));
 				proj.setId(dbUtils.projectsDelegate.insert(proj));
 				dbUtils.close();
 //				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0]);

@@ -32,7 +32,7 @@ public class TaskEvent implements Serializable {
 		this.serverId = serverId;
 		this.type = type;
 		this.name = name;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 		this.due = sdf.parse(due);
 		this.note = note;
 		this.done = done;
@@ -77,6 +77,10 @@ public class TaskEvent implements Serializable {
 		return due;
 	}
 	
+	public String getNote() {
+		return note;
+	}
+	
 	public TaskEvent(JSONObject json) throws JSONException, ParseException {
 		this.type = json.getInt("type");
 		this.name = json.getString("name");
@@ -92,7 +96,7 @@ public class TaskEvent implements Serializable {
 		values.put(DBUtils.FIELD_TASKEVENT_NAME, name);
 		values.put(DBUtils.FIELD_TASKEVENT_PROJECTID, projId);
 		values.put(DBUtils.FIELD_TASKEVENT_SERVERID, serverId);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 		values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, sdf.format(due));
 		values.put(DBUtils.FIELD_TASKEVENT_NOTE, note);
 		values.put(DBUtils.FIELD_TASKEVENT_TYPE, type);

@@ -30,6 +30,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	public final static String FIELD_PROJECTS_ID = "_id";
 	public final static String FIELD_PROJECTS_NAME = "name";
 	public final static String FIELD_PROJECTS_SERVERID = "server_id";
+	public final static String FIELD_PROJECTS_COLOR = "color";
 	
 	public final static String TABLE_TASKEVENT = "taskevent";
 	public final static String FIELD_TASKEVENT_ID = "_id";
@@ -50,7 +51,8 @@ public class DBUtils extends SQLiteOpenHelper {
 		db.execSQL( "CREATE TABLE " + TABLE_PROJECTS
 				+ " (_id INTEGER PRIMARY KEY, "
 				+ FIELD_PROJECTS_NAME + " TEXT, "
-				+ FIELD_PROJECTS_SERVERID + " INTEGER )");
+				+ FIELD_PROJECTS_SERVERID + " INTEGER, "
+				+ FIELD_PROJECTS_COLOR + " INTEGER )");
 		
 		db.execSQL( "CREATE TABLE " + TABLE_TASKEVENT
 				+ " (_id INTEGER PRIMARY KEY, "
@@ -164,7 +166,8 @@ public class DBUtils extends SQLiteOpenHelper {
 			while (c.moveToNext()) {
 				Project proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECTS_NAME)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)));
+						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_PROJECTS_COLOR)));
 				projs.add(proj);
 			}
 
@@ -181,7 +184,8 @@ public class DBUtils extends SQLiteOpenHelper {
 			while (c.moveToNext()) {
 				proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECTS_NAME)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)));
+						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_PROJECTS_COLOR)));
 			}
 			c.close();
 			db.close();
@@ -202,7 +206,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		public void update(TaskEvent taskevent) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = taskevent.getValues();
-			db.update(TABLE_TASKEVENT, values, "_id =?", new String[] { String
+			db.update(TABLE_TASKEVENT, values, "_id = ?", new String[] { String
 					.valueOf(taskevent.getId()) });
 			db.close();
 		}

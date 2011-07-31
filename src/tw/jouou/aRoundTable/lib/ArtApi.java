@@ -72,7 +72,7 @@ public class ArtApi {
 						System.out.println("1");
 					if(project == null)
 						System.out.println("2");
-					r[i] = new Project(project.getInt("id"), project.getString("name")); 
+					r[i] = new Project(project.getInt("id"), project.getString("name"), project.getInt("color")); 
 				}
 				return r;
 			}else

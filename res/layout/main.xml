@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-    
-    <TextView android:layout_width="fill_parent"
-			  android:layout_height="25dp"
-			  android:paddingLeft="20dp"
-			  android:text="aRound table"
-			  android:textColor="#008000"
-			  android:textStyle="bold"
-    		  android:background="@android:color/darker_gray"
-			  android:gravity="center_vertical"/>
-</RelativeLayout>
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent">
+				
+	<LinearLayout android:layout_height="wrap_content"
+				  android:layout_width="wrap_content"
+				  android:layout_alignParentRight="true">
+				  
+	<org.taptwo.android.widget.CircleFlowIndicator
+			android:id="@+id/viewflowindic"
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:padding="10dip"
+			android:background="#00000000"/>
+			
+	</LinearLayout>
+	
+	<org.taptwo.android.widget.ViewFlow
+			android:id="@+id/viewflow"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"/>
+			
+</RelativeLayout> 
