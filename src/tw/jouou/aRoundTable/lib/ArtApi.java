@@ -132,7 +132,7 @@ public class ArtApi {
 	} 
 	
 	/* XXX: Not tested yet. */
-	public int createTaskevent(int projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
+	public int createTaskevent(long projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("taskevent[name]", name);

@@ -7,6 +7,7 @@ import java.util.Date;
 
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
@@ -141,13 +142,13 @@ public class AddItemActivity extends Activity {
 				taskEvent.setId(dbUtils.taskeventDelegate.insert(taskEvent));
 				dbUtils.close();
 				return ArtApi.getInstance(AddItemActivity.this).createTaskevent(projId, 0, params[0], sdf.parse(params[1]), params[2]);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (ServerException e) {
 				exception = e;				
 				e.printStackTrace();
 			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ConnectionFailException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
