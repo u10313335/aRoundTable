@@ -38,7 +38,7 @@ public class ArtApi {
 	private static final String baseURL = "http://api.hime.loli.tw:3000";
 	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
-	private static final String taskeventPath = "/projects/%d/taskevents/%d"; 
+	private static final String taskeventPath = "/taskevents/%d";
 	
 	private String token;
 	
@@ -152,15 +152,34 @@ public class ArtApi {
 	}
 	
 	/**
+	 * Update taskevent attributes	
+	 * @param taskeventId
+	 * @param name
+	 * @param due
+	 * @param note
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public void updatTaskEvent(int taskeventId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+
+		params.put("taskevent[name]", name);
+		params.put("taskevent[due]", due.toString());
+		params.put("taskevent[note]", note);
+		params.put("taskevent[finished]", (finished)? "1" : "0");
+		
+		performGet(String.format(taskeventPath, taskeventId), params);
+	}
+	
+	/**
 	 * Get dependency list of an taskevent
-	 * @param projectId
 	 * @param taskeventId
 	 * @return an array contains dependency taskevent ids
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public int[] getDependencies(int projectId, int taskeventId) throws ServerException, ConnectionFailException{
-		HttpResponse response = performGet(String.format(taskeventPath, projectId, taskeventId), makeTokenHash());
+	public int[] getDependencies(int taskeventId) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(taskeventPath, taskeventId), makeTokenHash());
 		try {
 			JSONArray jsonArray = extractJsonObject(response).getJSONArray("dependency_ids");
 			int dependencies[] = new int[jsonArray.length()];
@@ -171,6 +190,21 @@ public class ArtApi {
 		} catch (JSONException e) {
 			throw new ServerException("fail to get dependency array from json");
 		}
+	}
+	
+	/**
+	 * Set dependencies for taskevent
+	 * @param taskeventId
+	 * @param dependencies
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public void setDependencies(int taskeventId, int dependencies[]) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		for(int id: dependencies){
+			params.put("dependency_id[]", Integer.toString(id));
+		}
+		performGet(String.format(taskeventPath, taskeventId), params);
 	}
 	
 	/**
