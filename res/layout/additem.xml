@@ -11,7 +11,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" 
 		android:layout_column="1" 
-		android:text="Single"
+		android:text="時限"
 		android:textStyle="bold" 
 		android:gravity="center"
 		>
@@ -20,7 +20,7 @@
 	<Button android:id="@+id/assignment" 
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="Assignment"
+		android:text="分配"
 		android:gravity="center"
 		android:textStyle="bold"
 		>
@@ -29,7 +29,7 @@
 	<Button android:id="@+id/event" 
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" 
-		android:text="Event"
+		android:text="事件"
 		android:gravity="center"
 		android:textStyle="bold" 
 		>
@@ -42,7 +42,7 @@
 	<TextView android:id="@+id/title" 
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" 
-		android:text="Title" 
+		android:text="標題" 
 		android:textStyle="bold"
 		>
 	</TextView>
@@ -61,7 +61,7 @@
 	<TableRow>
 	
 	<TextView android:id="@+id/time" 
-		android:text="Time"
+		android:text="到期"
 		android:textStyle="bold" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content"
@@ -111,7 +111,7 @@
 	<Button android:id="@+id/customize" 
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" 
-		android:text="自訂"
+		android:text="未定"
 		>
 	</Button>
 	

@@ -6,9 +6,12 @@
     <string name="welcome_message_title">歡迎使用aRoundTable！</string>
     <string name="welcome_message">第一次啟動本程式，請先完成帳號認證</string>
     <string name="confirm">確認</string>
+    <string name="create_project_message_title">新增專案</string>
+    <string name="create_project_message">資料庫中無專案，現在就新增一個？</string>
     <string name="register_finished">認證完成</string>
     <string name="settings">設定</string>
     <string name="feedbacks">回報</string>
     <string name="about">關於</string>
     <string name="processing">正在處理中</string>
+    <string name="internet_connection_problem">伺服器連線異常，稍後重試上傳</string>
 </resources>

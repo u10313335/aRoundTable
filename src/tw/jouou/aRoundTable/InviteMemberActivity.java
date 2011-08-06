@@ -19,16 +19,15 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class InviteMemberActivity extends Activity {
 	
-	private DBUtils dbUtils;
-	private static List<User> users;
-	private Bundle bunde;
+	private Bundle bundle;
 	private String projname;
+	private boolean networkStatus;
 	private static String TAG = "InviteMemberActivity";
 	private String[] member_names = new String[]{"jack","michruo","albb","sol","bearRu"};
-	
 	private AutoCompleteTextView member_email;
 	private TextView projname_display;
 	private TextView invite;
@@ -43,8 +42,9 @@ public class InviteMemberActivity extends Activity {
 
         findViews();
         
-        bunde = this.getIntent().getExtras();
-        projname = bunde.getString("projname");
+        bundle = this.getIntent().getExtras();
+        projname = bundle.getString("projname");
+        networkStatus = bundle.getBoolean("networkstatus");
         projname_display.setText("Project name:"+projname);
         
         ArrayAdapter<String> contactsname = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,member_names);
@@ -71,7 +71,10 @@ public class InviteMemberActivity extends Activity {
     			// TODO:insert invite memeber here
     		}
         });
-
+    	
+    	if(!networkStatus) {
+			Toast.makeText(InviteMemberActivity.this, getString(R.string.internet_connection_problem), Toast.LENGTH_LONG).show();
+    	}
     }
 
 	private void findViews() {
