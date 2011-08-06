@@ -242,7 +242,7 @@ public class MainActivity extends Activity {
  
     
     public void initAcc(){
-		Uri uri = Uri.parse("http://api.hime.loli.tw/login");
+		Uri uri = Uri.parse(ArtApi.getLoginUrl());
     	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
     	startActivity(intent);
     }

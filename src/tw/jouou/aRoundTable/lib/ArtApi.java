@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +35,7 @@ import android.content.Context;
  */
 public class ArtApi {
 	private static ArtApi instance;
-	private static final String baseURL = "http://api.hime.loli.tw";
+	private static final String baseURL = "http://api.hime.loli.tw:3000";
 	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
 	
@@ -42,6 +43,10 @@ public class ArtApi {
 	
 	public ArtApi(String token){
 		this.token = token;		
+	}
+	
+	public static String getLoginUrl(){
+		return baseURL + "/login";
 	}
 	
 	public static ArtApi getInstance(Context context){
@@ -56,14 +61,14 @@ public class ArtApi {
 	}
 	
 	/* XXX: NOT tested yet. */
-	public Project[] getProjectList() throws ServerException, IOException{
+	public Project[] getProjectList() throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		Project r[];
 		try {
 			HttpResponse response = performGet(projectsPath, params);
 			if(response.getStatusLine().getStatusCode() == 200){
 				
-				JSONArray projects = new JSONArray(EntityUtils.toString(response.getEntity()));			
+				JSONArray projects = extractJsonArray(response);
 				JSONObject project = null;
 				
 				r = new Project[projects.length()];
@@ -79,12 +84,12 @@ public class ArtApi {
 	}
 	
 	/* XXX: NOT tested yet. */
-	public Project getProject(int projectId) throws IOException, ServerException{
+	public Project getProject(int projectId) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(projectsPath + "/" + projectId, params);
 		if(response.getStatusLine().getStatusCode() == 200){
+			JSONObject projectJson = extractJsonObject(response);
 			try {
-				JSONObject projectJson = new JSONObject(EntityUtils.toString(response.getEntity()));
 				return new Project(projectJson);
 			} catch (ParseException e) {
 				throw new ServerException("Server returned unexpected data");
@@ -97,14 +102,14 @@ public class ArtApi {
 	}
 	
 	/* XXX: not tested yet. */
-	public TaskEvent[] getTaskeventList(int projectId) throws IOException, ServerException{
+	public TaskEvent[] getTaskeventList(int projectId) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(projectsPath + "/" + projectId + "/taskevents", params);
 		TaskEvent[] taskEvents;
 		JSONObject taskEventJson = null;
 		if(response.getStatusLine().getStatusCode() == 200){
 			try {
-				JSONArray taskEventsJson = new JSONArray(EntityUtils.toString(response.getEntity()));
+				JSONArray taskEventsJson = extractJsonArray(response);
 
 				taskEvents = new TaskEvent[taskEventsJson.length()];
 				for(int i=0; i < taskEventsJson.length(); taskEventJson = taskEventsJson.getJSONObject(i)){			
@@ -122,7 +127,7 @@ public class ArtApi {
 	} 
 	
 	/* XXX: Not tested yet. */
-	public int createTaskevent(int projectId, int type, String name, Date due, String note) throws IOException, ServerException{
+	public int createTaskevent(int projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("taskevent[name]", name);
@@ -133,8 +138,7 @@ public class ArtApi {
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/taskevents", params);
 		if(response.getStatusLine().getStatusCode() == 200){
 			try{
-				String taskeventJson = EntityUtils.toString(response.getEntity());
-				JSONObject projectJson = new JSONObject(taskeventJson);
+				JSONObject projectJson = extractJsonObject(response);
 				return projectJson.getInt("id");
 			}catch(JSONException je){
 				throw new ServerException("Server returned unexpected data");
@@ -147,19 +151,18 @@ public class ArtApi {
 	/**
 	 * Create a new project with current user
 	 * @param name Name of new project
-	 * @return new project's id, -1 if failed
+	 * @return new project's id
 	 * @throws ServerException 
+	 * @throws ConnectionFailException 
 	 */
-	// FIXME: Internal Server Error 500
-	public int createProject(String name) throws IOException, ServerException{
+	public int createProject(String name) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		params.put("project[name]", name);
 		
 		HttpResponse response =  performPost(projectsPath, params);
 		if(response.getStatusLine().getStatusCode() == 200){
 			try{
-				String post_json = EntityUtils.toString(response.getEntity());
-				JSONObject projectJson = new JSONObject(post_json);
+				JSONObject projectJson = extractJsonObject(response);
 				return projectJson.getInt("id");
 			}catch(JSONException je){
 				throw new ServerException("Server returned unexpected data");
@@ -178,10 +181,10 @@ public class ArtApi {
 	 * @param projectId project identifier
 	 * @param emails emails to be invited
 	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @throws ConnectionFailException 
+	 * @throws ServerException 
 	 */
-	public JoinStatus[] addMember(int projectId, String emails[]) throws ClientProtocolException, IOException{
+	public JoinStatus[] addMember(int projectId, String emails[]) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash(); 
 		
 		for(int i=0; i< emails.length; i++){
@@ -192,7 +195,7 @@ public class ArtApi {
 		
 		try {
 			
-			JSONArray respArr = new JSONArray(EntityUtils.toString(response.getEntity()));
+			JSONArray respArr = extractJsonArray(response);
 			JoinStatus[] result = new JoinStatus[respArr.length()];
 			String iState;
 			
@@ -227,6 +230,32 @@ public class ArtApi {
 		}
 	};
 	
+	private JSONArray extractJsonArray(HttpResponse response) throws ServerException, ConnectionFailException{
+		try {
+			return new JSONArray(EntityUtils.toString(response.getEntity()));
+		} catch (org.apache.http.ParseException e) {
+			throw new ConnectionFailException();
+		} catch (JSONException e) {
+			throw new ServerException("Json error");
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}	
+	}
+	
+	private JSONObject extractJsonObject(HttpResponse response) throws ConnectionFailException, ServerException{
+		try {
+			return new JSONObject(EntityUtils.toString(response.getEntity()));
+		} catch (org.apache.http.ParseException e) {
+			throw new ConnectionFailException();
+		} catch (JSONException e) {
+			throw new ServerException("Json error");
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}	
+	}
+	
+	
+	
 	/**
 	 * Make a new hash with token in it.
 	 * @return params hash
@@ -245,20 +274,41 @@ public class ArtApi {
 	 * @throws ClientProtocolException 
 	 * @throws IOException
 	 */
-	private HttpResponse performPost(String path, HashMap<String, String> params) throws ClientProtocolException, IOException{
+	private HttpResponse performPost(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
 		HttpPost post = new HttpPost(baseURL + path);
-				
+		
 		// Perform request
-		post.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
+		try {
+			post.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		return httpClient.execute(post);
+		try {
+			HttpResponse response = httpClient.execute(post);
+			if(response.getStatusLine().getStatusCode() != 200)
+				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+			else
+				return response;
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}
 	}
 	
-	private HttpResponse performGet(String path, HashMap<String, String> params) throws ClientProtocolException, IOException{
+	private HttpResponse performGet(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
 		HttpGet get = new HttpGet(baseURL + path + "?" + URLEncodedUtils.format(prepareParams(params), "UTF-8"));
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		return httpClient.execute(get);
+		HttpResponse response;
+		try {
+			response = httpClient.execute(get);
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}
+		if(response.getStatusLine().getStatusCode() != 200)
+			throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+		else
+			return response;
 	}
 	
 	private List<NameValuePair> prepareParams(HashMap<String, String> params){		
@@ -269,5 +319,11 @@ public class ArtApi {
 		}
 		
 		return httpParams;
+	}
+	public class ConnectionFailException extends Exception{
+		private static final long serialVersionUID = -5345016442518985501L;
+	}
+	public class InvalidTokenException extends Exception{
+		private static final long serialVersionUID = -5159078241509001724L;
 	}
 }
