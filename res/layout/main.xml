@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-</LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:background="@drawable/background">
+
+	<RelativeLayout android:layout_height="wrap_content"
+				  	android:layout_width="fill_parent"
+				  	android:orientation="horizontal"
+    		  		android:background="#AFAFAE">
+    		  		
+    	<LinearLayout android:layout_height="wrap_content" 
+				  	  android:layout_width="wrap_content"
+				  	  android:layout_centerHorizontal="true"
+				  	  android:layout_centerVertical="true">
+				  	  
+			<TextView android:id="@+id/main_title"
+              	  	  android:layout_width="wrap_content" 
+              	  	  android:layout_height="fill_parent"
+              	  	  android:gravity="center"
+              	  	  android:textColor="#F6F6F7"
+              	  	  android:textAppearance="?android:attr/textAppearanceMedium"
+              	  	  android:text="@string/all_item_event"/>
+		</LinearLayout>	  		
+
+		<LinearLayout android:layout_height="wrap_content" 
+				  	  android:layout_width="wrap_content"
+				  	  android:layout_alignParentRight="true">
+				
+			<org.taptwo.android.widget.CircleFlowIndicator
+						android:id="@+id/viewflowindic"
+						android:layout_height="wrap_content"
+						android:layout_width="wrap_content"
+						android:padding="10dip"
+						android:background="#00000000"/>
+			
+		</LinearLayout>
+
+	</RelativeLayout>
+						
+	<org.taptwo.android.widget.ViewFlow
+			android:id="@+id/viewflow"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:background="@android:color/transparent"/>
+	
+</RelativeLayout> 

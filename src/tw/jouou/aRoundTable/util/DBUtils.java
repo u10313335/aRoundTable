@@ -30,6 +30,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	public final static String FIELD_PROJECTS_ID = "_id";
 	public final static String FIELD_PROJECTS_NAME = "name";
 	public final static String FIELD_PROJECTS_SERVERID = "server_id";
+	public final static String FIELD_PROJECTS_COLOR = "color";
 	
 	public final static String TABLE_TASKEVENT = "taskevent";
 	public final static String FIELD_TASKEVENT_ID = "_id";
@@ -50,7 +51,8 @@ public class DBUtils extends SQLiteOpenHelper {
 		db.execSQL( "CREATE TABLE " + TABLE_PROJECTS
 				+ " (_id INTEGER PRIMARY KEY, "
 				+ FIELD_PROJECTS_NAME + " TEXT, "
-				+ FIELD_PROJECTS_SERVERID + " INTEGER )");
+				+ FIELD_PROJECTS_SERVERID + " INTEGER, "
+				+ FIELD_PROJECTS_COLOR + " INTEGER )");
 		
 		db.execSQL( "CREATE TABLE " + TABLE_TASKEVENT
 				+ " (_id INTEGER PRIMARY KEY, "
@@ -83,7 +85,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	
 	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
-	public TaskEventDelegate taskeventDelegate = new TaskEventDelegate();
+	public TaskEventDelegate taskeventsDelegate = new TaskEventDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -159,18 +161,35 @@ public class DBUtils extends SQLiteOpenHelper {
 		
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_PROJECTS, null, null, null, null, null,
-					FIELD_PROJECTS_ID + " ASC");
+					FIELD_PROJECTS_ID + " DESC");
 
 			while (c.moveToNext()) {
 				Project proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECTS_NAME)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)));
+						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_PROJECTS_COLOR)));
 				projs.add(proj);
 			}
 
 			c.close();
 			db.close();
 			return projs;
+		}
+		
+		public Project get(long projId) {
+			Project proj = null;
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_PROJECTS, null, "_id=" + projId, null, null, null, null);
+			while (c.moveToNext()) {
+				proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECTS_NAME)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_SERVERID)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_PROJECTS_COLOR)));
+			}
+			c.close();
+			db.close();
+			return proj;
 		}
 	}
 	
@@ -187,7 +206,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		public void update(TaskEvent taskevent) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = taskevent.getValues();
-			db.update(TABLE_TASKEVENT, values, "_id =?", new String[] { String
+			db.update(TABLE_TASKEVENT, values, "_id = ?", new String[] { String
 					.valueOf(taskevent.getId()) });
 			db.close();
 		}
@@ -199,12 +218,37 @@ public class DBUtils extends SQLiteOpenHelper {
 			return id;
 		}
 	
-		public List<TaskEvent> get() throws IllegalArgumentException, ParseException {
+		public List<TaskEvent> get(long projId) throws ParseException {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASKEVENT, null, "project_id=?", null, null, null,
-					FIELD_TASKEVENT_ID + " ASC");
+			Cursor c = db.query(TABLE_TASKEVENT, null, "project_id=" + projId, null, null, null,
+					"due DESC", null);
+
+			while (c.moveToNext()) {
+				TaskEvent taskevent = new TaskEvent(c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_ID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_PROJECTID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_SERVERID)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_TASKEVENT_TYPE)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASKEVENT_NAME)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASKEVENT_DUEDATE)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASKEVENT_NOTE)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_TASKEVENT_FINISHED)));
+				taskevents.add(taskevent);
+			}
+
+			c.close();
+			db.close();
+
+			return taskevents;
+		}
+		
+		public List<TaskEvent> get() throws ParseException {
+			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASKEVENT, null, null, null, null, null,
+					"due DESC", null);
 
 			while (c.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c.getLong(c.getColumnIndexOrThrow(FIELD_TASKEVENT_ID)),

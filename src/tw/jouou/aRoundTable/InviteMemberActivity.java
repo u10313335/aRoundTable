@@ -10,7 +10,6 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -53,10 +52,10 @@ public class InviteMemberActivity extends Activity {
         
     	// email auto-complete
     	// TODO:make it much more faster
-    	ArrayAdapter<String> member_email_adapter = new ArrayAdapter<String> (
+    	/*ArrayAdapter<String> member_email_adapter = new ArrayAdapter<String> (
     				this, android.R.layout.simple_spinner_item, getContactsName());
     	member_email_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-	    member_email.setAdapter(member_email_adapter);
+	    member_email.setAdapter(member_email_adapter);*/
     	
     	cancel.setOnClickListener(new OnClickListener(){
     		@Override
@@ -87,8 +86,8 @@ public class InviteMemberActivity extends Activity {
 		cancel = (Button)findViewById(R.id.cancel);
 	}
 	
-	// get user's phone contacts
-	public List<String> getContactsName() {
+	//TODO:get user's phone contacts, need polish
+	/*public List<String> getContactsName() {
         int i = 0;
         List<String> contactsName = new ArrayList<String>();
         ContentResolver cr = getContentResolver();
@@ -111,5 +110,5 @@ public class InviteMemberActivity extends Activity {
         	}
         }   
     	return contactsName;  
-    }
+    }*/
 }

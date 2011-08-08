@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="tw.jouou.aRoundTable"
-      android:versionCode="17"
-      android:versionName="20110702dev">
+      android:versionCode="19"
+      android:versionName="20110808dev">
     <uses-sdk android:minSdkVersion="4" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-
+    
     <application android:icon="@drawable/icon" android:label="@string/app_name"
     			 android:theme="@style/windowNoTitle">
         <activity android:name="MainActivity"
@@ -30,7 +30,8 @@
             </intent-filter>
         </activity>
         
-        <activity android:name="CreateProjectActivity">
+        <activity android:name="CreateProjectActivity"
+        		  android:screenOrientation="portrait">
         </activity>
         
         <activity android:name="InviteMemberActivity">
@@ -39,7 +40,21 @@
         <activity android:name="tw.jouou.aRoundTable.util.AccManagerActivity"
         			android:launchMode="singleInstance">
         </activity>
-        <activity android:name="AddItemActivity"></activity>
+        
+        <activity android:name="AddItemActivity">
+        </activity>
+        
+        <activity android:name="AddBatchTaskActivity">
+        </activity>
+        
+        <activity android:name="AddEventActivity">
+        </activity>
+        
+        <activity android:name="AddSingleTaskActivity">
+        </activity>
+        
+        <activity android:name="DynamicIssueActivity">
+        </activity>
 
     </application>
 </manifest>

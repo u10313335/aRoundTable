@@ -6,7 +6,7 @@
 	
 	<LinearLayout android:layout_width="fill_parent"
 		 	  	  android:layout_height="wrap_content">
-		 	  	  
+
 			<TextView android:id="@+id/proj_name"
 					  android:layout_width="fill_parent"
 					  android:layout_height="wrap_content"
@@ -16,40 +16,64 @@
 	</LinearLayout>
 		 	  	
     <ListView android:id="@+id/proj_item_list"
-			  android:layout_width="wrap_content"
+			  android:layout_width="fill_parent"
 			  android:layout_height="wrap_content"
+			  android:divider="@drawable/divider"
+			  android:dividerHeight="1dp"
 			  android:scrollbars="vertical"
+			  android:cacheColorHint="@android:color/transparent"
 			  android:layout_weight="1"
 			  android:layout_span="4"/>
 			  
-	<TableLayout android:id="@+id/project_menu"
-				 android:layout_width="wrap_content" 
-				 android:layout_height="wrap_content"
-				 android:stretchColumns="*">
+	<LinearLayout android:id="@+id/project_menu"
+				  android:layout_width="fill_parent"
+				  android:layout_height="50dp"
+				  android:orientation="horizontal"
+				  android:background="#26FFFFFF">
 				 
-		<TableRow>	
-			<Button android:id="@+id/proj_issue_tracker" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Issue"/>
-			<Button android:id="@+id/proj_docs" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Docs"/>
-			<Button android:id="@+id/proj_additem" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="AddItem"/>
-			<Button android:id="@+id/proj_contact" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Contacts"/>
-			<Button android:id="@+id/proj_chart" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:text="Chart"/>				
-		</TableRow>
-		
-	</TableLayout>
+			<ImageView android:id="@+id/proj_issue_tracker" 
+					   android:layout_width="wrap_content"
+					   android:layout_height="wrap_content"
+					   android:layout_gravity="center"
+					   android:layout_weight="1"
+					   android:src="@drawable/issue"/>
+					   
+			<View  style="@style/vertical_divider"/>
+					   
+			<ImageView android:id="@+id/proj_docs"
+					   android:layout_width="wrap_content"
+					   android:layout_height="wrap_content"
+					   android:layout_gravity="center"
+					   android:layout_weight="1"
+					   android:src="@drawable/doc"/>
+					   
+			<View  style="@style/vertical_divider"/>
+        			    
+			<ImageView android:id="@+id/proj_additem"
+					   android:layout_width="wrap_content"
+					   android:layout_height="wrap_content"
+					   android:layout_gravity="center"
+					   android:layout_weight="1"
+					   android:src="@drawable/additem_under_project"/>
+					   			  
+        	<View  style="@style/vertical_divider"/>
+        			    
+			<ImageView android:id="@+id/proj_contact" 
+					   android:layout_width="wrap_content"
+					   android:layout_height="wrap_content"
+					   android:layout_gravity="center"
+					   android:layout_weight="1"
+					   android:src="@drawable/contacts"/>
+					   
+			<View  style="@style/vertical_divider"/>
+			
+			<ImageView android:id="@+id/proj_chart" 
+					   android:layout_width="wrap_content"
+					   android:layout_height="wrap_content"
+					   android:layout_gravity="center" 
+					   android:layout_weight="1"
+					   android:src="@drawable/chart"/>				
+
+	</LinearLayout>
 	
 </LinearLayout>

@@ -27,6 +27,7 @@ import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
+import android.graphics.Color;
 
 /**
  * Interface for around-table API
@@ -80,7 +81,8 @@ public class ArtApi {
 					System.out.println("1");
 				if(project == null)
 					System.out.println("2");
-				r[i] = new Project(project.getInt("id"), project.getString("name")); 
+				//FIXME: Color is mocked up
+				r[i] = new Project(project.getLong("id"), project.getString("name"), Color.BLACK); 
 			}
 			return r;
 		} catch (JSONException e) {

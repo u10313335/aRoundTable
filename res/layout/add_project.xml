@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/background">
+    
+    <ImageView android:id="@+id/addproj_prompt" 
+        	   android:layout_width="wrap_content"
+        	   android:layout_height="wrap_content"
+        	   android:paddingTop="20dp"
+        	   android:adjustViewBounds="true"
+        	   android:maxWidth="349dp"
+        	   android:maxHeight="312dp"
+        	   android:scaleType="fitCenter"
+        	   android:layout_centerHorizontal="true"
+        	   android:src="@drawable/addproject_prompt"/>
+       
+	<TextView android:id = "@+id/projname_input_prompt1" 
+			  android:layout_width="fill_parent"
+			  android:layout_height="wrap_content" 
+			  android:paddingTop="30dp"
+			  android:gravity="center"
+			  android:text="@string/create_project_is_easy"
+			  android:textAppearance="?android:attr/textAppearanceMedium"
+			  android:layout_below="@id/addproj_prompt"/>
+			  
+	<TextView android:id="@+id/projname_input_prompt2" 
+			  android:layout_width="fill_parent"
+			  android:layout_height="wrap_content"
+			  android:paddingBottom="25dp"
+			  android:gravity="center"
+			  android:text="@string/only_enter_name_and_color"
+			  android:textAppearance="?android:attr/textAppearanceMedium"
+			  android:layout_below="@id/projname_input_prompt1"/>
+	
+	<EditText android:id="@+id/projname_input"
+    		  android:layout_width="300px"
+    		  android:layout_height="wrap_content"
+    		  android:layout_centerHorizontal="true"
+    		  android:singleLine="true"
+    		  android:hint="@string/enter_project_name_here"
+    		  android:layout_below="@id/projname_input_prompt2"/>
+    			
+    <LinearLayout android:id="@+id/color_select_1"
+    			  android:layout_width="fill_parent" 
+			 	  android:layout_height="wrap_content"
+			 	  android:paddingTop="15dp"
+			 	  android:orientation="horizontal"
+			 	  android:gravity="center_horizontal"
+			 	  android:layout_below="@id/projname_input">"
+
+    	<RadioButton android:id="@+id/color0"
+        		 	 android:layout_width="wrap_content"
+        		 	 android:layout_height="wrap_content"
+        		 	 android:button="@drawable/color_btn_0"/>
+    	<RadioButton android:id="@+id/color1"
+        			 android:layout_width="wrap_content"
+        			 android:layout_height="wrap_content"
+        			 android:button="@drawable/color_btn_1"
+        			 android:layout_toRightOf="@id/color0"/>
+    	<RadioButton android:id="@+id/color2"
+        			 android:layout_width="wrap_content"
+        			 android:layout_height="wrap_content"
+        			 android:button="@drawable/color_btn_2"
+        			 android:layout_toRightOf="@id/color1"/>
+    	<RadioButton android:id="@+id/color3"
+        			 android:layout_width="wrap_content"
+        			 android:layout_height="wrap_content"
+        			 android:button="@drawable/color_btn_3"
+        			 android:layout_toRightOf="@id/color2"/>
+        			 
+	</LinearLayout>
+       	
+    <LinearLayout android:id="@+id/color_select_2"
+    			  android:layout_width="fill_parent" 
+			 	  android:layout_height="wrap_content"
+			 	  android:paddingBottom="15dp"
+			 	  android:orientation="horizontal"
+			  	  android:gravity="center_horizontal"
+			 	  android:layout_below="@id/color_select_1">
+        			 
+        <RadioButton android:id="@+id/color4"
+        		 	 android:layout_width="wrap_content"
+        		 	 android:layout_height="wrap_content"
+        		 	 android:button="@drawable/color_btn_4"/>
+    	<RadioButton android:id="@+id/color5"
+        			 android:layout_width="wrap_content"
+        			 android:layout_height="wrap_content"
+        			 android:button="@drawable/color_btn_5"
+        			 android:layout_toRightOf="@id/color4"/>
+    	<RadioButton android:id="@+id/color6"
+        			 android:layout_width="wrap_content"
+        			 android:layout_height="wrap_content"
+        			 android:button="@drawable/color_btn_6"
+        			 android:layout_toRightOf="@id/color5"/>
+    	<RadioButton android:id="@+id/color7"
+        			 android:layout_width="wrap_content"
+        			 android:layout_height="wrap_content"
+        			 android:button="@drawable/color_btn_7"
+        			 android:layout_toRightOf="@id/color6"/>
+        			 
+	</LinearLayout>
+
+	<Button android:id="@+id/next"
+			android:layout_width="300px"
+			android:layout_height="wrap_content"
+			android:layout_centerHorizontal="true"
+			android:text="@string/create_project"
+			android:layout_below="@+id/color_select_2"/>	
+
+</RelativeLayout>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/add_single_task_assign_date"
+				xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:layout_column="1"
+				android:layout_span="3"
+				android:orientation="vertical">
+				
+	<TableLayout android:layout_width="fill_parent"
+			 	 android:layout_height="fill_parent"
+			 	 android:stretchColumns="1">
+			 	 
+		<TableRow>
+			<TextView android:id="@+id/single_date_picker" 
+					  android:layout_width="wrap_content"
+					  android:layout_height="wrap_content"
+					  android:layout_centerVertical="true"
+					  android:text="日期："
+					  android:textStyle="bold"
+					  android:textAppearance="?android:attr/textAppearanceMedium"/>
+			
+			<Button android:id="@+id/single_date_picker_context" 
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text=""
+					android:textStyle="bold"
+					android:textAppearance="?android:attr/textAppearanceMedium"
+					android:layout_toRightOf="@id/single_date_picker"/>	
+		</TableRow>
+					
+		<TableRow>
+			<LinearLayout android:layout_width="wrap_content"
+			  	  		  android:layout_height="wrap_content"
+			  	  		  android:orientation="horizontal"
+			  	  		  android:layout_column="1">
+
+				<ImageButton android:id="@+id/single_one_day" 
+							 android:layout_width="wrap_content"
+							 android:layout_height="wrap_content" 
+							 android:src="@drawable/plus_1"/>
+				
+				<ImageButton android:id="@+id/single_seven_day" 
+							 android:layout_width="wrap_content"
+							 android:layout_height="wrap_content"
+							 android:src="@drawable/plus_7"/>
+
+				<ImageButton android:id="@+id/single_n_day" 
+							 android:layout_width="wrap_content"
+							 android:layout_height="wrap_content"
+							 android:src="@drawable/plus_n"/>			 
+			</LinearLayout>
+		</TableRow>
+					
+	</TableLayout>
+	
+</RelativeLayout>

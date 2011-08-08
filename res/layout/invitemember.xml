@@ -30,7 +30,7 @@
 
 			<ImageButton android:id="@+id/add_member" 
 						 android:layout_height="wrap_content" 
-						 android:src="@drawable/add"/>	
+						 android:src="@drawable/ic_input_add"/>	
 		</TableRow>
 	</TableLayout>
 
