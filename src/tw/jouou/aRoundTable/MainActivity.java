@@ -22,8 +22,6 @@ import org.taptwo.android.widget.ViewFlow;
 import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
@@ -42,14 +40,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -63,20 +59,21 @@ import android.widget.Toast;
  */
 public class MainActivity extends Activity {
 	
-	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };  //TODO:dummy test data, remove them ASAP
+	//TODO:dummy test data, remove them ASAP
+	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
 	private String token;
 	private DBUtils dbUtils;
 	private List<User> users;
 	private List<Project> projs;
 	private View lists[]; //list[0] is "all task/events list", the followings(lists[1]~) are "project list"
-    private View titleView; //view on the top
     private View mainView;
+    private TextView txTitle;
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
-	private ArrayList allTaskEvents = new ArrayList();
+	private ArrayList<List<TaskEvent>> allTaskEvents = new ArrayList<List<TaskEvent>>();
 	private int position;  // screen position
-	private final String colors[] = { "#FF37FD", "#FA0300", "#F7FA00", "#00DC03", "#0300FA", "#5200A0", "#F8F8F2" };  //TODO:wait to design by bearRu
+	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423", "#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
     protected static final int MENU_Settings = Menu.FIRST;
     protected static final int MENU_Feedbacks = Menu.FIRST+1;
     protected static final int MENU_About = Menu.FIRST+2;
@@ -124,7 +121,6 @@ public class MainActivity extends Activity {
     		dbUtils = new DBUtils(this);
     	}
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        titleView = inflater.inflate(R.layout.main_title, null);
     	projs = dbUtils.projectsDelegate.get();
     	if(!projs.isEmpty()) {
     		lists = new View[(projs.size())+1];
@@ -144,8 +140,8 @@ public class MainActivity extends Activity {
     			formProjLists(lists[i], projs.get(i-1));
     		}
     		mainView = inflater.inflate(R.layout.main, null);
-    		setContentView(titleView);
-    		addContentView(mainView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+    		txTitle = (TextView) mainView.findViewById(R.id.main_title);
+    		setContentView(mainView);
     		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
             adapter = new DiffAdapter(this);
             viewFlow.setAdapter(adapter);
@@ -154,6 +150,11 @@ public class MainActivity extends Activity {
     		viewFlow.setOnViewSwitchListener(new ViewSwitchListener() {
     		    public void onSwitched(View v, int position) {
     		        MainActivity.this.position = position;
+    		        if(position==0) {
+    		        	txTitle.setText(getString(R.string.all_item_event));
+    		        } else {
+    		        	txTitle.setText(projs.get(position-1).getName());
+    		        }
     		        //Log.v(TAG, "Now At Screen: "+position);
     		    }
     		});
@@ -175,29 +176,37 @@ public class MainActivity extends Activity {
     	
     	CheckBox itemDone = (CheckBox) v.findViewById(R.id.all_item_done);
 		ListView allItemListView = (ListView) v.findViewById(R.id.all_item_list);
-		Button btnRefresh = (Button) v.findViewById(R.id.all_item_refresh);
-		Button btnAddItem = (Button) v.findViewById(R.id.all_item_add);
-		Button btnAddProj = (Button) v.findViewById(R.id.all_item_add_project);
+		ImageView btnRefresh = (ImageView) v.findViewById(R.id.all_item_refresh);
+		ImageView btnAddItem = (ImageView) v.findViewById(R.id.all_item_add);
+		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
 		
 	    for (int i=0; i < taskevents.size(); i++) {
 	    		Date due = taskevents.get(i).getDue();
-	    		String dayDistance = dayDistance(due);
 	    		Project proj = dbUtils.projectsDelegate.get((int)taskevents.get(i).getProjId());
 	    		HashMap< String, Object > item = new HashMap< String, Object >();
 	    		item.put("checkDone", itemDone);
 	    		item.put("itemName", taskevents.get(i).getName());
 	    		item.put("itemProj", proj.getName());
 	    		item.put("taskEventId", taskevents.get(i).getId());
-	    		item.put("dueRelateDay", dayDistance);
-	    		if (dayDistance == getString(R.string.due_today)) {
-	    			item.put("overDue", true);
+
+	    		if (due==null) {
+	    			item.put("dueRelateDay", getString(R.string.undetermined));
+    				item.put("overDue", false);
+    				item.put("dueDate", "");
 	    		} else {
-	    			item.put("overDue", false);
+		    		String dayDistance = dayDistance(due);
+		    		item.put("dueRelateDay", dayDistance);
+	    			if (dayDistance == getString(R.string.due_today)) {
+	    				item.put("overDue", true);
+	    			} else {
+	    				item.put("overDue", false);
+	    			}
+	    			item.put("dueDate", formatter.format(due));
 	    		}
-	    		item.put("dueDate", formatter.format(due));
+	    		
 	    		item.put("color", proj.getColor());
 	    		items.add(item);
-	    	}
+	    }
 		
 		allItemListView.setAdapter(new SpecialAdapter(this,items,R.layout.all_item_list_item,
     			new String[] { "checkDone", "itemName", "itemProj", "dueRelateDay", "dueDate" },
@@ -276,29 +285,33 @@ public class MainActivity extends Activity {
     	
 		CheckBox chkBoxItemDone = (CheckBox) v.findViewById(R.id.itemDone);
 		ListView projItemListView = (ListView) v.findViewById(R.id.proj_item_list);
-		TextView txtProjName = (TextView) v.findViewById(R.id.proj_name);
-		Button btnIssue = (Button) v.findViewById(R.id.proj_issue_tracker);
-		Button btnDocs = (Button) v.findViewById(R.id.proj_docs);
-		Button btnAddItem = (Button) v.findViewById(R.id.proj_additem);
-		Button btnContacts = (Button) v.findViewById(R.id.proj_contact);
-		Button btnChart = (Button) v.findViewById(R.id.proj_chart);	
-		txtProjName.setText(p.getName());
+		ImageView btnIssue = (ImageView) v.findViewById(R.id.proj_issue_tracker);
+		ImageView btnDocs = (ImageView) v.findViewById(R.id.proj_docs);
+		ImageView btnAddItem = (ImageView) v.findViewById(R.id.proj_additem);
+		ImageView btnContacts = (ImageView) v.findViewById(R.id.proj_contact);
+		ImageView btnChart = (ImageView) v.findViewById(R.id.proj_chart);	
 
 	    for (int i=0; i < taskevents.size(); i++) {
 	    	Date due = taskevents.get(i).getDue();
-	    	String dayDistance = dayDistance(due);
 	    	HashMap< String, Object > item = new HashMap< String, Object >();
 	    	item.put("checkDone", chkBoxItemDone);
 	    	item.put("itemName", taskevents.get(i).getName());
 	    	item.put("itemOwner", itemOwners[0]);
 	    	item.put("taskEventId", taskevents.get(i).getId());
-	    	item.put("dueRelateDay", dayDistance);
-    		if (dayDistance == getString(R.string.due_today)) {
-    			item.put("overDue", true);
+    		if (due==null) {
+    			item.put("dueRelateDay", getString(R.string.undetermined));
+				item.put("overDue", false);
+				item.put("dueDate", "");
     		} else {
-    			item.put("overDue", false);
+	    		String dayDistance = dayDistance(due);
+	    		item.put("dueRelateDay", dayDistance);
+    			if (dayDistance == getString(R.string.due_today)) {
+    				item.put("overDue", true);
+    			} else {
+    				item.put("overDue", false);
+    			}
+    			item.put("dueDate", formatter.format(due));
     		}
-	    	item.put("dueDate", formatter.format(due));
 	    	item.put("color", proj.getColor());
 	    	items.add(item);
 	    }
@@ -363,7 +376,7 @@ public class MainActivity extends Activity {
         		additem_intent.setClass(MainActivity.this, AddItemActivity.class);
         		additem_intent.putExtra("type", 1);
         		additem_intent.putExtra("taskevent", taskevent);
-        		additem_intent.putExtra("projname", dbUtils.projectsDelegate.get(taskevent.getProjId()).getName());
+        		additem_intent.putExtra("proj", dbUtils.projectsDelegate.get(taskevent.getProjId()));
     			startActivity(additem_intent);
     			break;
         	case MENU_DeleteItem:

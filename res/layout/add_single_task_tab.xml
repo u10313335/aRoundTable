@@ -3,7 +3,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
 				android:id="@+id/tab1"
 				android:layout_width="fill_parent"
-				android:layout_height="fill_parent">
+				android:layout_height="fill_parent"
+				android:background="@drawable/background">
 
 	<LinearLayout android:id="@+id/single_additem_title"
 				  android:orientation="vertical"
@@ -31,63 +32,36 @@
 					 android:stretchColumns="*"
 					 android:layout_alignParentBottom="true">
 	
-			<TableRow android:background="@android:color/darker_gray">
-				<Button android:id="@+id/single_additem_finish" 
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:layout_centerInParent="true"
-						android:gravity="center"
-						android:text="@string/done"
-						android:textStyle="bold"/>
+		<TableRow android:background="@android:color/darker_gray">
+			<Button android:id="@+id/single_additem_finish" 
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_centerInParent="true"
+					android:gravity="center"
+					android:text="@string/done"
+					android:textStyle="bold"/>
 	
-				<Button android:id="@+id/single_additem_cancel" 
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:layout_toRightOf="@id/single_additem_finish"
-						android:gravity="center"
-						android:text="@string/cancel"
-						android:textStyle="bold"/>
-			</TableRow>
+			<Button android:id="@+id/single_additem_cancel" 
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/single_additem_finish"
+					android:gravity="center"
+					android:text="@string/cancel"
+					android:textStyle="bold"/>
+		</TableRow>
 		
-		</TableLayout>
+	</TableLayout>
 			
 	<ScrollView android:id="@+id/single_additem_main"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
 				android:layout_above="@id/single_additem_button"
 				android:layout_below="@id/single_additem_title">    
-			  
-			  
+	  
 		<TableLayout android:layout_width="fill_parent" 
 			 	 	 android:layout_height="fill_parent"
 			 		 android:stretchColumns="*">
-<!-- wait to be changed to tab layout		
-			<TableRow>
-		
-				<Button android:id="@+id/single" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content" 
-						android:layout_column="1" 
-						android:text="時限"
-						android:textStyle="bold" 
-						android:gravity="center"/>
-	
-				<Button android:id="@+id/assignment" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="批次"
-						android:gravity="center"
-						android:textStyle="bold"/>
-	
-				<Button android:id="@+id/event" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content" 
-						android:text="事件"
-						android:gravity="center"
-						android:textStyle="bold"/>
 
-			</TableRow>
--->		
 			<TableRow>
 				<TextView android:id="@+id/single_title" 
 				 	 	  android:layout_width="wrap_content"
@@ -110,14 +84,6 @@
 				  	  	  android:layout_height="wrap_content"
 				  	  	  android:text="建立於"
 				  	  	  android:textStyle="bold"/>
-				  	  	  
-				<!--<Spinner  android:id="@+id/item_create_under_context"
-						  android:layout_width="wrap_content"
-						  android:layout_height="wrap_content"
-        				  android:drawSelectorOnTop="true"
-        				  android:layout_span="3"
-        				  android:textStyle="bold"
-        				  android:textAppearance="?android:attr/textAppearanceMedium"/>-->
 
 				<TextView android:id="@+id/single_item_create_under_context" 
 				 	 	  android:layout_width="wrap_content"
@@ -135,51 +101,32 @@
 				 	  	  android:text="到期"
 				 	  	  android:textStyle="bold"
 				 	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
-	
-				<Button android:id="@+id/single_one_day" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content" 
-						android:text="+1"/>
-				
-				<Button android:id="@+id/single_seven_day" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="+7"/>
 
-				<Button android:id="@+id/single_n_day" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content" 
-						android:text="+n"/>
-			</TableRow>
-	
-			<TableRow>
 				<ImageButton android:id="@+id/single_date" 
-					 	 	 android:layout_column="1" 
 					 	 	 android:layout_width="wrap_content"
 					 	 	 android:layout_height="wrap_content"
 	  				 	 	 android:src="@drawable/date"/>
 	
-				<Button android:id="@+id/single_dependent" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content" 
-						android:text="相依"/>
+				<ImageButton android:id="@+id/single_dependent" 
+							 android:layout_width="wrap_content"
+							 android:layout_height="wrap_content" 
+							 android:src="@drawable/dependency"/>
 	
-				<Button android:id="@+id/single_underdetermined" 
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content" 
-						android:text="未定"/>
+				<ImageButton android:id="@+id/single_undetermined" 
+							 android:layout_width="wrap_content"
+							 android:layout_height="wrap_content" 
+							 android:src="@drawable/undetermined"/>
 			</TableRow>
-	
+			
 			<TableRow>
-				<TextView android:id="@+id/single_additem_due"
-					  	  android:layout_column="1"
-					  	  android:layout_span="3"
-				 	  	  android:layout_width="wrap_content"
-				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="" 
-				  	  	  android:textStyle="bold"
-				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
-			</TableRow>	
+				<RelativeLayout android:id="@+id/single_date_chooser"
+								android:layout_height="wrap_content"
+				  				android:layout_width="wrap_content"
+				  				android:layout_column="1"
+				  				android:layout_span="3"
+				  				android:orientation="vertical">
+				</RelativeLayout>
+			</TableRow>
 	
 			<TableRow>
 				<TextView android:id="@+id/single_owner" 
@@ -196,7 +143,7 @@
 				  	 	  android:text="none"/>
 			</TableRow>
 	
-			<TableRow>	
+			<TableRow>
 				<EditText android:id="@+id/single_owneradd_context"
 				 	  	  android:layout_width="wrap_content" 
 				  	  	  android:layout_height="wrap_content"
@@ -207,7 +154,7 @@
 				<ImageButton android:id="@+id/single_owner_add" 
 					 	 	 android:layout_width="wrap_content"
 					 	 	 android:layout_height="wrap_content"
-					 	 	 android:src="@drawable/add"/>
+					 	 	 android:src="@drawable/ic_input_add"/>
 			</TableRow>
 			
 			<TableRow>

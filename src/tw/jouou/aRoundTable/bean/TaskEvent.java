@@ -32,8 +32,13 @@ public class TaskEvent implements Serializable {
 		this.serverId = serverId;
 		this.type = type;
 		this.name = name;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-		this.due = sdf.parse(due);
+		if(due.equals("")) {
+			this.due = null;
+		} else {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+			this.due = sdf.parse(due);
+		}
+
 		this.note = note;
 		this.done = done;
 	}
@@ -43,8 +48,12 @@ public class TaskEvent implements Serializable {
 		this.projId = projId;
 		this.type = type;
 		this.name = name;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
-		this.due = sdf.parse(due);
+		if(due.equals("")) {
+			this.due = null;
+		} else {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+			this.due = sdf.parse(due);
+		}
 		this.note = note;
 		this.done = done;
 	}
@@ -100,8 +109,12 @@ public class TaskEvent implements Serializable {
 		values.put(DBUtils.FIELD_TASKEVENT_NAME, name);
 		values.put(DBUtils.FIELD_TASKEVENT_PROJECTID, projId);
 		values.put(DBUtils.FIELD_TASKEVENT_SERVERID, serverId);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-		values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, sdf.format(due));
+		if (due==null) {
+			values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, "");
+		} else {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+			values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, sdf.format(due));
+		}
 		values.put(DBUtils.FIELD_TASKEVENT_NOTE, note);
 		values.put(DBUtils.FIELD_TASKEVENT_TYPE, type);
 		values.put(DBUtils.FIELD_TASKEVENT_FINISHED, done);

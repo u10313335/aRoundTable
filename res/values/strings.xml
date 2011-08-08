@@ -16,9 +16,11 @@
     <string name="about">關於</string>
     <string name="done">完成</string>
     <string name="cancel">取消</string>
+    <string name="setting_days">設定天數</string>
     <string name="dayafter">天後</string>
     <string name="overdue">已過期</string>
     <string name="due_today">今日</string>
+    <string name="undetermined">未定</string>
     <string name="item_operations">項目操作</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
@@ -29,4 +31,5 @@
     <string name="create_project">建立專案</string>
     <string name="add_task">單一工作</string>
     <string name="add_event">事件</string>
+    <string name="all_item_event">所有時限</string>
 </resources>

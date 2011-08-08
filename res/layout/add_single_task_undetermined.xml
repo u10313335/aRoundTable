@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/add_single_task_undetermined"
+				xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:layout_column="1"
+				android:layout_span="3"
+				android:orientation="vertical">
+				
+	<TextView android:id="@+id/single_undetermined_context" 
+			  android:layout_width="wrap_content"
+			  android:layout_height="wrap_content"
+			  android:text="@string/undetermined"
+			  android:textStyle="bold"
+			  android:textAppearance="?android:attr/textAppearanceMedium"/>
+	
+</RelativeLayout>

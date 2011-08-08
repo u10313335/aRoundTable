@@ -51,11 +51,9 @@ public class AddItemActivity extends TabActivity{
 		Intent intent = new Intent();  
 	    intent.setClass(AddItemActivity.this, AddSingleTaskActivity.class);
 	    intent.putExtra("type", type);
-	    if (type == 0) {
-	    	intent.putExtra("proj", (Project)bundle.get("proj"));
-        } else {
+    	intent.putExtra("proj", (Project)bundle.get("proj"));
+	    if (type == 1) {
         	intent.putExtra("taskevent", taskEvent);
-        	intent.putExtra("projname", bundle.getString("projname"));
         }
 	    
 	    spec = tabHost.newTabSpec("tab1");  

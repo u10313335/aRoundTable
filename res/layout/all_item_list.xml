@@ -7,41 +7,54 @@
 	<LinearLayout android:layout_width="fill_parent"
 		 	  	  android:layout_height="wrap_content">
 
-			<TextView android:id="@+id/all_item_title"
-					  android:layout_width="fill_parent"
-					  android:layout_height="wrap_content"
-					  android:textAppearance="?android:attr/textAppearanceMedium"
-					  android:text="所有時限"
-					  android:gravity="center"/>
+		<TextView android:id="@+id/all_item_title"
+				  android:layout_width="fill_parent"
+				  android:layout_height="wrap_content"
+				  android:textAppearance="?android:attr/textAppearanceMedium"
+				  android:text=""
+				  android:gravity="center"/>
 	</LinearLayout>
 	 	  	
     <ListView android:id="@+id/all_item_list"
 			  android:layout_width="fill_parent"
 			  android:layout_height="wrap_content"
+			  android:divider="@drawable/divider"
+			  android:dividerHeight="0.5dp"
 			  android:scrollbars="vertical"
-			  android:layout_weight="2"
+			  android:cacheColorHint="@android:color/transparent"
+			  android:layout_weight="1"
 			  android:layout_span="4"/>
 			  
-	<TableLayout android:id="@+id/all_item_menu"
-				 android:layout_width="wrap_content"
-				 android:layout_height="wrap_content"
-				 android:stretchColumns="*">
-				 
-		<TableRow android:background="@android:color/darker_gray">	
-			<Button android:id="@+id/all_item_refresh" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:background="@drawable/refresh"/>
-			<Button android:id="@+id/all_item_add" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:background="@drawable/additem"/>
-			<Button android:id="@+id/all_item_add_project" 
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content" 
-					android:background="@drawable/addproject"/>
-		</TableRow>
-		
-	</TableLayout>
-	
+	<LinearLayout android:id="@+id/all_item_menu"
+				  android:layout_width="fill_parent"
+				  android:layout_height="50dp"
+				  android:orientation="horizontal"
+				  android:background="#26FFFFFF">
+				  
+		<ImageView android:id="@+id/all_item_refresh"
+				   android:layout_width="wrap_content"
+				   android:layout_height="wrap_content"
+				   android:layout_gravity="center"
+				   android:layout_weight="1"
+				   android:src="@drawable/refresh"/>
+					
+		<View  style="@style/vertical_divider"/>
+			
+		<ImageView android:id="@+id/all_item_add" 
+				   android:layout_width="wrap_content"
+				   android:layout_height="wrap_content"
+				   android:layout_gravity="center"
+				   android:layout_weight="1"
+				   android:src="@drawable/additem"/>
+					
+		<View  style="@style/vertical_divider"/>
+			
+		<ImageView android:id="@+id/all_item_add_project" 
+				   android:layout_width="wrap_content"
+				   android:layout_height="wrap_content"
+				   android:layout_gravity="center"
+				   android:layout_weight="1"
+				   android:src="@drawable/addproject"/>
+				   
+	</LinearLayout>
 </LinearLayout>
