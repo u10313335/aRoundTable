@@ -39,6 +39,8 @@ public class ArtApi {
 	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
 	private static final String taskeventPath = "/taskevents/%d";
+	private static final String notificationsPath = "/projects/%d/notifications";
+	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
 	
 	private String token;
 	
@@ -199,12 +201,17 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public void setDependencies(int taskeventId, int dependencies[]) throws ServerException, ConnectionFailException{
+	public void setDependencies(int taskeventId, int dependencies[], int duration) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		for(int id: dependencies){
 			params.put("dependency_id[]", Integer.toString(id));
 		}
 		performGet(String.format(taskeventPath, taskeventId), params);
+		
+		// Update duration, which is part of update API
+		params = makeTokenHash();
+		params.put("taskevent[duration]", Integer.toString(duration));
+		performPost(String.format(taskeventPath, taskeventId), params);
 	}
 	
 	/**
@@ -272,6 +279,69 @@ public class ArtApi {
 		}
 		
 		return null;
+	}
+	
+	public class Notification{
+		public int projectId;
+		public int userId;
+		public String message;
+		public Notification(int projectId, int userId, String message){
+			this.projectId = projectId;
+			this.userId = userId;
+			this.message = message;
+		}
+	}
+	
+	/**
+	 * Get notification list of project
+	 * @param projectId
+	 * @return
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public Notification[] getNotifications(int projectId) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(notificationsPath, projectId), makeTokenHash());
+		JSONArray json = extractJsonArray(response);
+		Notification notifications[] = new Notification[json.length()];
+		for(int i=0; i<notifications.length; i++){
+			try {
+				JSONObject jsonNotification = json.getJSONObject(i);
+				notifications[i] = new Notification(projectId, jsonNotification.getInt("user_id"), jsonNotification.getString("message"));
+			} catch (JSONException e) {
+				throw new ServerException("Server return invalid json");
+			}
+		}
+		return notifications;
+	}
+	
+	class NotificationResponse{
+		int userId;
+		String message;
+		public NotificationResponse(int userId, String message){
+			this.userId = userId;
+			this.message = message;
+		}
+	}
+	
+	public NotificationResponse[] getResponses(int notificationId) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(notificationResponsePath, notificationId), makeTokenHash());
+		JSONArray jsonArray = extractJsonArray(response);
+		NotificationResponse notificationResponses[] = new NotificationResponse[jsonArray.length()];
+		for(int i=0; i< notificationResponses.length; i++){
+			try {
+				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				notificationResponses[i] = new NotificationResponse(jsonObject.getInt("user_id"), jsonObject.getString("message"));
+			} catch (JSONException e) {
+				throw new ServerException("Server return invalid json");
+			}
+		}
+		return notificationResponses;
+	}
+	
+	public void addResponse(int notificationId, String message) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash(); 
+		params.put("notification_response[message]", message);
+		performPost(String.format(notificationResponsePath, notificationId), params);
 	}
 	
 	/**
