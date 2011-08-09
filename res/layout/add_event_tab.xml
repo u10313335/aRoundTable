@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
-				android:id="@+id/tab3"
-				android:orientation="vertical"
-				android:layout_width="fill_parent"
-				android:layout_height="fill_parent"
-				android:paddingTop="10dp"
-				android:background="@drawable/background">
+			  android:id="@+id/tab3"
+			  android:orientation="vertical"
+			  android:layout_width="fill_parent"
+			  android:layout_height="fill_parent"
+			  android:paddingTop="10dp"
+			  android:background="@drawable/background">
 			
-	<ScrollView android:id="@+id/event_additem_main"
-				android:layout_width="fill_parent"
+	<ScrollView android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
 				android:layout_weight="1">    
 			  
@@ -117,9 +116,9 @@
 	</ScrollView>
 	
 	<TableLayout android:id="@+id/event_additem_button"
-        			 android:layout_width="fill_parent" 
-        			 android:layout_height="wrap_content"
-					 android:stretchColumns="*">
+        		 android:layout_width="fill_parent" 
+        		 android:layout_height="wrap_content"
+				 android:stretchColumns="*">
 	
 			<TableRow android:background="@android:color/darker_gray">
 				<Button android:id="@+id/event_additem_finish" 

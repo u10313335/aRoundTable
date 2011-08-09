@@ -8,10 +8,8 @@ public class AddBatchTaskActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		
-		 setContentView(R.layout.add_batch_task_tab);
+		setContentView(R.layout.add_batch_task_tab);
 		 
 		 
 		 

@@ -94,7 +94,6 @@ public class MainActivity extends Activity {
  
     	if(!users.isEmpty()) {
     		token = users.get(0).getToken();
-        	dbUtils.close();
          	update();
     	}else {
     		Builder dialog = new Builder(MainActivity.this);
@@ -169,11 +168,6 @@ public class MainActivity extends Activity {
     private void formAllItemList(View v, List<TaskEvent> taskevents) {
     	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
     	ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
-    	
-    	if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
-    	}
-    	
     	CheckBox itemDone = (CheckBox) v.findViewById(R.id.all_item_done);
 		ListView allItemListView = (ListView) v.findViewById(R.id.all_item_list);
 		ImageView btnRefresh = (ImageView) v.findViewById(R.id.all_item_refresh);
@@ -269,11 +263,6 @@ public class MainActivity extends Activity {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
 		List<TaskEvent> taskevents = null;
-		
-    	if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
-    	}
-    	
     	try {
     		taskevents = dbUtils.taskeventsDelegate.get(proj.getId());
     		allTaskEvents.add(taskevents);
@@ -416,6 +405,9 @@ public class MainActivity extends Activity {
 	 	Uri uri = intent.getData();
 	 	token = uri.getQueryParameter("");
 	    User user = new User(token);
+	    if (dbUtils == null) {
+			dbUtils = new DBUtils(this);
+		}
 		dbUtils.userDelegate.insert(user);
 		dbUtils.close();
 		Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
