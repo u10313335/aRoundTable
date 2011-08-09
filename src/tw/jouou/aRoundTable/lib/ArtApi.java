@@ -36,7 +36,7 @@ import android.graphics.Color;
  */
 public class ArtApi {
 	private static ArtApi instance;
-	private static final String baseURL = "http://api.hime.loli.tw:3000";
+	private static final String baseURL = "http://api.hime.loli.tw";
 	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
 	private static final String taskeventPath = "/taskevents/%d";
