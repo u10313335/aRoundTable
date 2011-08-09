@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
@@ -110,23 +111,22 @@ public class CreateProjectActivity extends Activity {
 		
 		@Override
 		protected Integer doInBackground(String... params) {
-//			try {	
+			try {	
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(CreateProjectActivity.this);
 		    	}
 				proj = new Project(params[0], Integer.parseInt(params[1]));
 				proj.setId(dbUtils.projectsDelegate.insert(proj));
 				dbUtils.close();
-//				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0]);
-				return null;
-/*			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0]);
 			} catch (ServerException e) {
 				exception = e;				
 				e.printStackTrace();
+			} catch (ConnectionFailException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			return null;*/
+			return null;
 		}
 		
 		@Override

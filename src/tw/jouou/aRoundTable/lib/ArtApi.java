@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +27,7 @@ import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
+import android.graphics.Color;
 
 /**
  * Interface for around-table API
@@ -37,11 +39,18 @@ public class ArtApi {
 	private static final String baseURL = "http://api.hime.loli.tw";
 	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
+	private static final String taskeventPath = "/taskevents/%d";
+	private static final String notificationsPath = "/projects/%d/notifications";
+	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
 	
 	private String token;
 	
 	public ArtApi(String token){
 		this.token = token;		
+	}
+	
+	public static String getLoginUrl(){
+		return baseURL + "/login";
 	}
 	
 	public static ArtApi getInstance(Context context){
@@ -55,78 +64,81 @@ public class ArtApi {
         return instance = new ArtApi(users.get(0).getToken());
 	}
 	
-	public Project[] getProjectList() throws ServerException, IOException{
+	/* XXX: NOT tested yet. */
+	public Project[] getProjectList() throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		Project r[];
 		try {
 			HttpResponse response = performGet(projectsPath, params);
-			if(response.getStatusLine().getStatusCode() == 200){
 				
-				JSONArray projects = new JSONArray(EntityUtils.toString(response.getEntity()));			
-				JSONObject project = null;
-				
-				r = new Project[projects.length()];
-				for(int i=0; i < projects.length(); i++){
-					project = projects.getJSONObject(i);
-					if(r == null)
-						System.out.println("1");
-					if(project == null)
-						System.out.println("2");
-					r[i] = new Project(project.getInt("id"), project.getString("name"), project.getInt("color")); 
-				}
-				return r;
-			}else
-				throw new ServerException("Server respond with: "+response.getStatusLine());		
+			JSONArray projects = extractJsonArray(response);
+			JSONObject project = null;
+			
+			r = new Project[projects.length()];
+			for(int i=0; i < projects.length(); i++){
+				project = projects.getJSONObject(i);
+				if(r == null)
+					System.out.println("1");
+				if(project == null)
+					System.out.println("2");
+				//FIXME: Color is mocked up
+				r[i] = new Project(project.getLong("id"), project.getString("name"), Color.BLACK); 
+			}
+			return r;
 		} catch (JSONException e) {
 			throw new ServerException("Server respond with invalid json");
 		}
 	}
 	
 	/* XXX: NOT tested yet. */
-	public Project getProject(int projectId) throws IOException, ServerException{
+	public Project getProject(int projectId) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(projectsPath + "/" + projectId, params);
-		if(response.getStatusLine().getStatusCode() == 200){
-			try {
-				JSONObject projectJson = new JSONObject(EntityUtils.toString(response.getEntity()));
-				return new Project(projectJson);
-			} catch (ParseException e) {
-				throw new ServerException("Server returned unexpected data");
-			} catch (JSONException e) {
-				throw new ServerException("Server returned unexpected data");
-			}
-		}else{
-			throw new ServerException("Response code:"+response.getStatusLine());
+		
+		JSONObject projectJson = extractJsonObject(response);
+		try {
+			return new Project(projectJson);
+		} catch (ParseException e) {
+			throw new ServerException("Server returned unexpected data");
+		} catch (JSONException e) {
+			throw new ServerException("Server returned unexpected data");
 		}
 	}
 	
 	/* XXX: not tested yet. */
-	public TaskEvent[] getTaskeventList(int projectId) throws IOException, ServerException{
+	public TaskEvent[] getTaskeventList(int projectId) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(projectsPath + "/" + projectId + "/taskevents", params);
 		TaskEvent[] taskEvents;
 		JSONObject taskEventJson = null;
-		if(response.getStatusLine().getStatusCode() == 200){
-			try {
-				JSONArray taskEventsJson = new JSONArray(EntityUtils.toString(response.getEntity()));
 
-				taskEvents = new TaskEvent[taskEventsJson.length()];
-				for(int i=0; i < taskEventsJson.length(); taskEventJson = taskEventsJson.getJSONObject(i)){			
-					taskEvents[i] = new TaskEvent(taskEventJson); 
-				}
-				return taskEvents;
-			} catch (JSONException e) {
-				throw new ServerException("Server returned unexpected data");
-			} catch (ParseException e) {
-				throw new ServerException("Server returned unexpected data");
-			}	
-		}else{
-			throw new ServerException("Response code:"+response.getStatusLine());
-		}
+		try {
+			JSONArray taskEventsJson = extractJsonArray(response);
+
+			taskEvents = new TaskEvent[taskEventsJson.length()];
+			for(int i=0; i < taskEventsJson.length(); taskEventJson = taskEventsJson.getJSONObject(i)){			
+				taskEvents[i] = new TaskEvent(taskEventJson); 
+			}
+			return taskEvents;
+		} catch (JSONException e) {
+			throw new ServerException("Server returned unexpected data");
+		} catch (ParseException e) {
+			throw new ServerException("Server returned unexpected data");
+		}	
 	} 
 	
-	/* XXX: Not tested yet. */
-	public int createTaskevent(long projectId, int type, String name, Date due, String note) throws IOException, ServerException{
+	/**
+	 * Create a new task or event
+	 * @param projectId project belongs to
+	 * @param type 0: task 1: event
+	 * @param name
+	 * @param due
+	 * @param note
+	 * @return newly created taskevent id
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public int createTaskevent(long projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("taskevent[name]", name);
@@ -135,40 +147,92 @@ public class ArtApi {
 		params.put("taskevent[note]", note);
 		
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/taskevents", params);
-		if(response.getStatusLine().getStatusCode() == 200){
-			try{
-				String taskeventJson = EntityUtils.toString(response.getEntity());
-				JSONObject projectJson = new JSONObject(taskeventJson);
-				return projectJson.getInt("id");
-			}catch(JSONException je){
-				throw new ServerException("Server returned unexpected data");
-			}
-		}else{
-			throw new ServerException("Response code:"+response.getStatusLine());
+		try{
+			JSONObject projectJson = extractJsonObject(response);
+			return projectJson.getInt("id");
+		}catch(JSONException je){
+			throw new ServerException("Server returned unexpected data");
 		}
+	}
+	
+	/**
+	 * Update taskevent attributes	
+	 * @param taskeventId
+	 * @param name
+	 * @param due
+	 * @param note
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public void updatTaskEvent(int taskeventId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+
+		params.put("taskevent[name]", name);
+		params.put("taskevent[due]", due.toString());
+		params.put("taskevent[note]", note);
+		params.put("taskevent[finished]", (finished)? "1" : "0");
+		
+		performGet(String.format(taskeventPath, taskeventId), params);
+	}
+	
+	/**
+	 * Get dependency list of an taskevent
+	 * @param taskeventId
+	 * @return an array contains dependency taskevent ids
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public int[] getDependencies(int taskeventId) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(taskeventPath, taskeventId), makeTokenHash());
+		try {
+			JSONArray jsonArray = extractJsonObject(response).getJSONArray("dependency_ids");
+			int dependencies[] = new int[jsonArray.length()];
+			for(int i=0; i<dependencies.length; i++){
+				dependencies[i] = jsonArray.getInt(i);
+			}
+			return dependencies;
+		} catch (JSONException e) {
+			throw new ServerException("fail to get dependency array from json");
+		}
+	}
+	
+	/**
+	 * Set dependencies for taskevent
+	 * @param taskeventId
+	 * @param dependencies
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public void setDependencies(int taskeventId, int dependencies[], int duration) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		for(int id: dependencies){
+			params.put("dependency_id[]", Integer.toString(id));
+		}
+		performGet(String.format(taskeventPath, taskeventId), params);
+		
+		// Update duration, which is part of update API
+		params = makeTokenHash();
+		params.put("taskevent[duration]", Integer.toString(duration));
+		performPost(String.format(taskeventPath, taskeventId), params);
 	}
 	
 	/**
 	 * Create a new project with current user
 	 * @param name Name of new project
-	 * @return new project's id, -1 if failed
+	 * @return new project's id
 	 * @throws ServerException 
+	 * @throws ConnectionFailException 
 	 */
-	public int createProject(String name) throws IOException, ServerException{
+	public int createProject(String name) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		params.put("project[name]", name);
 		
 		HttpResponse response =  performPost(projectsPath, params);
-		if(response.getStatusLine().getStatusCode() == 200){
-			try{
-				String post_json = EntityUtils.toString(response.getEntity());
-				JSONObject projectJson = new JSONObject(post_json);
-				return projectJson.getInt("id");
-			}catch(JSONException je){
-				throw new ServerException("Server returned unexpected data");
-			}
-		}else{
-			throw new ServerException("Response code:"+response.getStatusLine());
+		try{
+			JSONObject projectJson = extractJsonObject(response);
+			return projectJson.getInt("id");
+		}catch(JSONException je){
+			throw new ServerException("Server returned unexpected data");
 		}
 	}
 	
@@ -181,10 +245,10 @@ public class ArtApi {
 	 * @param projectId project identifier
 	 * @param emails emails to be invited
 	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
+	 * @throws ConnectionFailException 
+	 * @throws ServerException 
 	 */
-	public JoinStatus[] addMember(int projectId, String emails[]) throws ClientProtocolException, IOException{
+	public JoinStatus[] addMember(int projectId, String emails[]) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash(); 
 		
 		for(int i=0; i< emails.length; i++){
@@ -195,7 +259,7 @@ public class ArtApi {
 		
 		try {
 			
-			JSONArray respArr = new JSONArray(EntityUtils.toString(response.getEntity()));
+			JSONArray respArr = extractJsonArray(response);
 			JoinStatus[] result = new JoinStatus[respArr.length()];
 			String iState;
 			
@@ -219,6 +283,69 @@ public class ArtApi {
 		return null;
 	}
 	
+	public class Notification{
+		public int projectId;
+		public int userId;
+		public String message;
+		public Notification(int projectId, int userId, String message){
+			this.projectId = projectId;
+			this.userId = userId;
+			this.message = message;
+		}
+	}
+	
+	/**
+	 * Get notification list of project
+	 * @param projectId
+	 * @return
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public Notification[] getNotifications(int projectId) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(notificationsPath, projectId), makeTokenHash());
+		JSONArray json = extractJsonArray(response);
+		Notification notifications[] = new Notification[json.length()];
+		for(int i=0; i<notifications.length; i++){
+			try {
+				JSONObject jsonNotification = json.getJSONObject(i);
+				notifications[i] = new Notification(projectId, jsonNotification.getInt("user_id"), jsonNotification.getString("message"));
+			} catch (JSONException e) {
+				throw new ServerException("Server return invalid json");
+			}
+		}
+		return notifications;
+	}
+	
+	class NotificationResponse{
+		int userId;
+		String message;
+		public NotificationResponse(int userId, String message){
+			this.userId = userId;
+			this.message = message;
+		}
+	}
+	
+	public NotificationResponse[] getResponses(int notificationId) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(notificationResponsePath, notificationId), makeTokenHash());
+		JSONArray jsonArray = extractJsonArray(response);
+		NotificationResponse notificationResponses[] = new NotificationResponse[jsonArray.length()];
+		for(int i=0; i< notificationResponses.length; i++){
+			try {
+				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				notificationResponses[i] = new NotificationResponse(jsonObject.getInt("user_id"), jsonObject.getString("message"));
+			} catch (JSONException e) {
+				throw new ServerException("Server return invalid json");
+			}
+		}
+		return notificationResponses;
+	}
+	
+	public void addResponse(int notificationId, String message) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash(); 
+		params.put("notification_response[message]", message);
+		performPost(String.format(notificationResponsePath, notificationId), params);
+	}
+	
 	/**
 	 * Server fault
 	 */
@@ -229,6 +356,32 @@ public class ArtApi {
 			super(msg);
 		}
 	};
+	
+	private JSONArray extractJsonArray(HttpResponse response) throws ServerException, ConnectionFailException{
+		try {
+			return new JSONArray(EntityUtils.toString(response.getEntity()));
+		} catch (org.apache.http.ParseException e) {
+			throw new ConnectionFailException();
+		} catch (JSONException e) {
+			throw new ServerException("Json error");
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}	
+	}
+	
+	private JSONObject extractJsonObject(HttpResponse response) throws ConnectionFailException, ServerException{
+		try {
+			return new JSONObject(EntityUtils.toString(response.getEntity()));
+		} catch (org.apache.http.ParseException e) {
+			throw new ConnectionFailException();
+		} catch (JSONException e) {
+			throw new ServerException("Json error");
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}	
+	}
+	
+	
 	
 	/**
 	 * Make a new hash with token in it.
@@ -248,20 +401,41 @@ public class ArtApi {
 	 * @throws ClientProtocolException 
 	 * @throws IOException
 	 */
-	private HttpResponse performPost(String path, HashMap<String, String> params) throws ClientProtocolException, IOException{
+	private HttpResponse performPost(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
 		HttpPost post = new HttpPost(baseURL + path);
-				
+		
 		// Perform request
-		post.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
+		try {
+			post.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		return httpClient.execute(post);
+		try {
+			HttpResponse response = httpClient.execute(post);
+			if(response.getStatusLine().getStatusCode() != 200)
+				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+			else
+				return response;
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}
 	}
 	
-	private HttpResponse performGet(String path, HashMap<String, String> params) throws ClientProtocolException, IOException{
+	private HttpResponse performGet(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
 		HttpGet get = new HttpGet(baseURL + path + "?" + URLEncodedUtils.format(prepareParams(params), "UTF-8"));
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		return httpClient.execute(get);
+		HttpResponse response;
+		try {
+			response = httpClient.execute(get);
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}
+		if(response.getStatusLine().getStatusCode() != 200)
+			throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+		else
+			return response;
 	}
 	
 	private List<NameValuePair> prepareParams(HashMap<String, String> params){		
@@ -272,5 +446,11 @@ public class ArtApi {
 		}
 		
 		return httpParams;
+	}
+	public class ConnectionFailException extends Exception{
+		private static final long serialVersionUID = -5345016442518985501L;
+	}
+	public class InvalidTokenException extends Exception{
+		private static final long serialVersionUID = -5159078241509001724L;
 	}
 }
