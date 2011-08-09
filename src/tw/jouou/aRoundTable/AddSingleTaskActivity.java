@@ -47,14 +47,20 @@ import android.widget.Toast;
 
 public class AddSingleTaskActivity extends Activity {
 	
+
+    private static final int DATE_DIALOG_ID = 0;
+    private static final int ASSIGN_DAY_PANEL = 0;
+    private static final int DEPENDENCY_PANEL = 1;
+    private static final int UNDETERMINED_PANEL = 2;
+    private static String TAG = "AddSingleTaskActivity";
 	private DBUtils dbUtils;
 	private TaskEvent mTask;
 	private Bundle mBundle;
 	private String mProjName;
 	private Project mProj;
 	private Date mTaskDue;
-	private int mDueType = 0; //0:assign day ; 1:dependency; 2:undetermined
-	private int mPlusMinusFlag = 1; //1:plus ; 0:minus
+	private int mDueType = ASSIGN_DAY_PANEL;
+	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private long mProjId;
 	private LayoutInflater mInflater;
@@ -68,7 +74,7 @@ public class AddSingleTaskActivity extends Activity {
     private ImageButton mBtnAssignDate;
     private ImageButton mBtnDependency;
     private ImageButton mBtnUndetermined;
-    private ImageButton single_owner_add;
+    private ImageButton mBtnAddOwner;
     private Button mBtnDatePicker;
     private Button mBtnFinish;
     private Button mBtnCancel;
@@ -76,12 +82,10 @@ public class AddSingleTaskActivity extends Activity {
     private EditText mEdRemarks;
     private SimpleDateFormat mDateToStr, mStrToDate;
     private Calendar mCalendar = Calendar.getInstance();
-    private static final int DATE_DIALOG_ID = 0;
     private int mYear;
     private int mMonth;
     private int mDay;
-    
-    private static String TAG = "AddSingleTaskActivity";
+
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,7 +115,7 @@ public class AddSingleTaskActivity extends Activity {
             mProjName = mProj.getName();
             mProjId = mProj.getId();
             mTxCreateUnder.setText(mProjName);
-            findSingleTaskAssignDateView();
+            findAssignDateView();
             updateDisplay(mYear, mMonth, mDay);
         } else {
         	// remove itself from dependable mTasks when edit
@@ -128,40 +132,40 @@ public class AddSingleTaskActivity extends Activity {
         	mEdRemarks.setText(mTask.getNote());
         	mTaskDue = mTask.getDue();
         	if(mTaskDue == null) {
-        		findSingleTaskUndeterminedView();
+        		findUndeterminedView();
         	} else {
         		mCalendar.setTime(mTaskDue);
         		mYear = mCalendar.get(Calendar.YEAR);
         		mMonth = mCalendar.get(Calendar.MONTH); // Month is 0 based so add 1
         		mDay = mCalendar.get(Calendar.DATE);
-        		findSingleTaskAssignDateView();
+        		findAssignDateView();
         	}
         }
 
         mBtnAssignDate.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = 0;
+        		mDueType = ASSIGN_DAY_PANEL;
         		mDateChooser.removeAllViews();
-        		findSingleTaskAssignDateView();
+        		findAssignDateView();
       	  	}
     	});
 
         mBtnDependency.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = 1;
+        		mDueType = DEPENDENCY_PANEL;
         		mDateChooser.removeAllViews();
-        		findSingleTaskDependencyView();
+        		findDependencyView();
       	  	}
     	});
         
         mBtnUndetermined.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = 2;
+        		mDueType = UNDETERMINED_PANEL;
         		mDateChooser.removeAllViews();
-        		findSingleTaskUndeterminedView();
+        		findUndeterminedView();
       	  	}
     	});
  
@@ -191,7 +195,7 @@ public class AddSingleTaskActivity extends Activity {
       	  	}
     	});
         
-        single_owner_add.setOnClickListener(new OnClickListener() {
+        mBtnAddOwner.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
         		// TODO:add addowner function here
@@ -235,11 +239,10 @@ public class AddSingleTaskActivity extends Activity {
 			Log.v(TAG, "parse error");
 		}
     }
-	
-	
-	private void findSingleTaskAssignDateView() {
+
+	private void findAssignDateView() {
         RelativeLayout add_single_task_assign_date = 
-        		(RelativeLayout) mInflater.inflate(R.layout.add_single_task_assign_date, null)
+        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null)
         		.findViewById(R.id.add_single_task_assign_date);
         mBtnDatePicker = (Button) add_single_task_assign_date.findViewById(R.id.single_date_picker_context);
         mBtnOneDay = (ImageButton) add_single_task_assign_date.findViewById(R.id.single_one_day);
@@ -248,7 +251,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnDatePicker.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		Log.v(TAG, "[be]: "+mYear+""+mMonth+""+mDay );
         		showDialog(DATE_DIALOG_ID);
       	  	}
     	});
@@ -294,7 +296,7 @@ public class AddSingleTaskActivity extends Activity {
         mDateChooser.addView(add_single_task_assign_date);
 	}
 
-	private void findSingleTaskDependencyView() {
+	private void findDependencyView() {
 		RelativeLayout add_single_task_dependency;
 		if (mTasks.isEmpty()) {
 			add_single_task_dependency = new RelativeLayout(this);
@@ -308,7 +310,7 @@ public class AddSingleTaskActivity extends Activity {
 				taskNames[i] = mTasks.get(i).getName();
 			}
 		
-        add_single_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_single_task_dependency, null)
+        add_single_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null)
         		.findViewById(R.id.add_single_task_dependency);
         final TableLayout single_depend_on_view = (TableLayout) add_single_task_dependency
 				.findViewById(R.id.single_depend_on_view);
@@ -321,11 +323,9 @@ public class AddSingleTaskActivity extends Activity {
 			@Override
 			public void onItemSelected(AdapterView<?> arg0, View view,
 					int position, long id) {
-				mPlusMinusFlag = position;
 			}
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
-				mPlusMinusFlag = 1;
 			}
         });
         ImageButton single_depend_add_task = (ImageButton) add_single_task_dependency
@@ -362,8 +362,8 @@ public class AddSingleTaskActivity extends Activity {
         mDateChooser.addView(add_single_task_dependency);
 	}
 	
-	private void findSingleTaskUndeterminedView() {
-        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_single_task_undetermined, null)
+	private void findUndeterminedView() {
+        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
         		.findViewById(R.id.add_single_task_undetermined);
         mDateChooser.addView(add_single_task_undetermined);
 	}
@@ -371,12 +371,12 @@ public class AddSingleTaskActivity extends Activity {
     private void findViews() {
     	mDateChooser = (RelativeLayout)findViewById(R.id.single_date_chooser);
     	mEdTitle = (EditText)findViewById(R.id.single_title_context);
-    	mTxCreateUnder = (TextView)findViewById(R.id.single_item_create_under_context);
+    	mTxCreateUnder = (TextView)findViewById(R.id.single_task_create_under_context);
     	mBtnAssignDate = (ImageButton)findViewById(R.id.single_date);
-    	mBtnDependency = (ImageButton)findViewById(R.id.single_dependent);
+    	mBtnDependency = (ImageButton)findViewById(R.id.single_dependency);
     	mBtnUndetermined = (ImageButton)findViewById(R.id.single_undetermined);
     	mEdOwner = (EditText)findViewById(R.id.single_owneradd_context);
-    	single_owner_add = (ImageButton)findViewById(R.id.single_owner_add);
+    	mBtnAddOwner = (ImageButton)findViewById(R.id.single_owner_add);
     	mEdRemarks = (EditText)findViewById(R.id.single_remarks_context);
     	mBtnFinish = (Button)findViewById(R.id.single_additem_finish);
     	mBtnCancel = (Button)findViewById(R.id.single_additem_cancel);

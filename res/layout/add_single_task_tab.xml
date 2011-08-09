@@ -1,62 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
 				android:id="@+id/tab1"
+				android:orientation="vertical"
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent"
+				android:paddingTop="10dp"
 				android:background="@drawable/background">
-
-	<LinearLayout android:id="@+id/single_additem_title"
-				  android:orientation="vertical"
-			  	  android:layout_width="fill_parent"
-			  	  android:layout_height="wrap_content">
-			  
-		<TextView android:layout_width="fill_parent"
-			  	  android:layout_height="wrap_content" 
-			  	  android:background="@android:color/darker_gray"
-			  	  android:text="@string/add_task"
-			  	  android:gravity="center"
-			  	  android:textColor="@android:color/white"
-			  	  android:textAppearance="?android:attr/textAppearanceMedium"
-			  	  android:textStyle="bold"/>
-			  
-		<TextView android:layout_width="fill_parent"
-			 	  android:layout_height="wrap_content" 
-			  	  android:text=""/>
-			  
-	</LinearLayout>
-	
-	<TableLayout android:id="@+id/single_additem_button"
-        			 android:layout_width="fill_parent" 
-        			 android:layout_height="wrap_content"
-					 android:stretchColumns="*"
-					 android:layout_alignParentBottom="true">
-	
-		<TableRow android:background="@android:color/darker_gray">
-			<Button android:id="@+id/single_additem_finish" 
-					android:layout_width="fill_parent"
-					android:layout_height="wrap_content"
-					android:layout_centerInParent="true"
-					android:gravity="center"
-					android:text="@string/done"
-					android:textStyle="bold"/>
-	
-			<Button android:id="@+id/single_additem_cancel" 
-					android:layout_width="fill_parent"
-					android:layout_height="wrap_content"
-					android:layout_toRightOf="@id/single_additem_finish"
-					android:gravity="center"
-					android:text="@string/cancel"
-					android:textStyle="bold"/>
-		</TableRow>
-		
-	</TableLayout>
 			
 	<ScrollView android:id="@+id/single_additem_main"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:layout_above="@id/single_additem_button"
-				android:layout_below="@id/single_additem_title">    
+				android:layout_weight="1">    
 	  
 		<TableLayout android:layout_width="fill_parent" 
 			 	 	 android:layout_height="fill_parent"
@@ -79,13 +34,13 @@
 			</TableRow>
 			
 			<TableRow>
-				<TextView android:id="@+id/single_item_create_under" 
+				<TextView android:id="@+id/single_task_create_under" 
 				 	 	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
 				  	  	  android:text="建立於"
 				  	  	  android:textStyle="bold"/>
 
-				<TextView android:id="@+id/single_item_create_under_context" 
+				<TextView android:id="@+id/single_task_create_under_context" 
 				 	 	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
 				  	  	  android:text="" 
@@ -107,7 +62,7 @@
 					 	 	 android:layout_height="wrap_content"
 	  				 	 	 android:src="@drawable/date"/>
 	
-				<ImageButton android:id="@+id/single_dependent" 
+				<ImageButton android:id="@+id/single_dependency" 
 							 android:layout_width="wrap_content"
 							 android:layout_height="wrap_content" 
 							 android:src="@drawable/dependency"/>
@@ -176,4 +131,29 @@
 	
 	</ScrollView>
 
-</RelativeLayout>
+	<TableLayout android:id="@+id/single_additem_button"
+        			 android:layout_width="fill_parent" 
+        			 android:layout_height="wrap_content"
+					 android:stretchColumns="*">
+	
+		<TableRow android:background="@android:color/darker_gray">
+			<Button android:id="@+id/single_additem_finish" 
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_centerInParent="true"
+					android:gravity="center"
+					android:text="@string/done"
+					android:textStyle="bold"/>
+	
+			<Button android:id="@+id/single_additem_cancel" 
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/single_additem_finish"
+					android:gravity="center"
+					android:text="@string/cancel"
+					android:textStyle="bold"/>
+		</TableRow>
+		
+	</TableLayout>
+
+</LinearLayout>

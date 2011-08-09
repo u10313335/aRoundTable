@@ -4,10 +4,14 @@ import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 
 import android.app.TabActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.TabHost;
+import android.widget.TextView;
 
 public class AddItemActivity extends TabActivity{
 	
@@ -23,7 +27,7 @@ public class AddItemActivity extends TabActivity{
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.additem);
-		res = getResources(); // Resource object to get drawables
+		//res = getResources(); // Resource object to get drawables
 		tabHost = getTabHost();  // The activity TabHost
 		tabHost.setCurrentTab(0);
 		bundle = this.getIntent().getExtras();
@@ -55,9 +59,8 @@ public class AddItemActivity extends TabActivity{
 	    if (type == 1) {
         	intent.putExtra("taskevent", taskEvent);
         }
-	    
-	    spec = tabHost.newTabSpec("tab1");  
-	    spec.setIndicator("Single", res.getDrawable(R.drawable.icon));  
+	    spec = tabHost.newTabSpec("tab1");
+	    spec.setIndicator(createTabView(tabHost.getContext(), "單一工作"));  
 	    spec.setContent(intent);
 	    tabHost.addTab(spec);
 	}
@@ -71,9 +74,8 @@ public class AddItemActivity extends TabActivity{
         } else {
         	
         }
-	    
 	    spec = tabHost.newTabSpec("tab2");  
-	    spec.setIndicator("Batch",res.getDrawable(R.drawable.icon));  
+	    spec.setIndicator(createTabView(tabHost.getContext(), "批次新增"));  
 	    spec.setContent(intent);          
 	    tabHost.addTab(spec);  
 	}  
@@ -88,11 +90,17 @@ public class AddItemActivity extends TabActivity{
         	intent.putExtra("taskevent", taskEvent);
         	intent.putExtra("projname", bundle.getString("projname"));
         }
-	    
 		spec = tabHost.newTabSpec("tab3");  
-		spec.setIndicator("Event", res.getDrawable(R.drawable.icon));  
+		spec.setIndicator(createTabView(tabHost.getContext(), "事件"));  
 		spec.setContent(intent);          
 		tabHost.addTab(spec);  
-	}  
+	}
+	
+	private static View createTabView(final Context context, final String text) {
+		View view = LayoutInflater.from(context).inflate(R.layout.tabs_bg, null);
+		TextView tv = (TextView) view.findViewById(R.id.tabsText);
+		tv.setText(text);
+		return view;
+	}
   	  
 }

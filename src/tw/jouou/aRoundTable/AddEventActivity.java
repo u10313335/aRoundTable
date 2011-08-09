@@ -5,6 +5,7 @@ import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
+import tw.jouou.aRoundTable.widget.NumberPicker;
 import android.app.Activity;
 
 import java.io.IOException;
@@ -12,140 +13,198 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 public class AddEventActivity extends Activity {
 	
+	private static final int DATE_DIALOG_ID = 0;
+	private static final int TIME_DIALOG_ID = 1;
+    private static final int ASSIGN_TIME_PANEL = 0;
+    private static final int DEPENDENCY_PANEL = 1;
+    private static final int UNDETERMINED_PANEL = 2;
+    private static final int FROM_DATE_CHOOSER = 0;
+    private static final int TO_DATE_CHOOSER = 1;
+    private static final int FROM_TIME_CHOOSER = 2;
+    private static final int TO_TIME_CHOOSER = 3;
+    private static String TAG = "AddEventActivity";
 	private DBUtils dbUtils;
-	private TaskEvent taskEvent;
-	private Bundle bundle;
-	private String projName = "";
-	private Project proj;
-	private long projId;
-	private long projServerId;
-    private TextView event_title;
-    private EditText event_title_context;
-    private TextView event_item_create_under;
-    private TextView event_item_create_under_context;
-    private TextView event_time;
-    private Button event_one_day;
-    private Button event_seven_day;
-    private Button event_n_day;
-    private ImageButton event_date;
-    private Button event_dependent;
-    private Button event_customize;
-    private TextView event_additem_due;
-    private TextView event_remarks;
-    private EditText event_remarks_context;
-    private Button event_additem_finish;
-    private Button event_additem_cancel;
-    private SimpleDateFormat dateToStr, strToDate;
-    
-    private static final int DATE_DIALOG_ID = 0;
+	private TaskEvent mEvent;
+	private Bundle mBundle;
+	private String mProjName;
+	private Project mProj;
+	private Date mEventDue;
+	private int mDueType = ASSIGN_TIME_PANEL;
+	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
+	private LinkedList<TableRow> mDependableEvents = new LinkedList<TableRow>();
+	private long mProjId;
+	private LayoutInflater mInflater;
+	private RelativeLayout mTimeChooser;
+	private List<TaskEvent> mEvents = null;
+    private EditText mEdTitle;
+    private TextView mTxCreateUnder;
+    private ImageButton mBtnAssignDate;
+    private ImageButton mBtnDependency;
+    private ImageButton mBtnUndetermined;
+    private Button mBtnFromDatePicker;
+    private Button mBtnToDatePicker;
+    private Button mBtnFromTimePicker;
+    private Button mBtnToTimePicker;
+    private Button mBtnFinish;
+    private Button mBtnCancel;
+    private EditText mEdRemarks;
+    private SimpleDateFormat mDateToStr1, mStrToDate1, mDateToStr2, mStrToDate2;
+    private Calendar mCalendar = Calendar.getInstance();
     private int mYear;
     private int mMonth;
     private int mDay;
-    
-    private static String TAG = "AddEventActivity";
+    private int mHour;
+    private int mMinute;
 	
 	public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
         setContentView(R.layout.add_event_tab);
-        findViews();
-        final Calendar c = Calendar.getInstance();
-        mYear = c.get(Calendar.YEAR);
-        mMonth = c.get(Calendar.MONTH);
-        mDay = c.get(Calendar.DAY_OF_MONTH);
-        dateToStr = new SimpleDateFormat("yyyy/MM/ddE");
-        strToDate = new SimpleDateFormat("yyyy MM dd");
-        bundle = this.getIntent().getExtras();
-        if (bundle.getInt("type") == 0) {
-            proj = (Project)bundle.get("proj");
-            projName = proj.getName();
-            projId = proj.getId();
-            projServerId = proj.getServerId();
-            event_item_create_under_context.setText(projName);
-            updateDisplay(mYear, mMonth, mDay);
+        
+        if(dbUtils == null) {
+    		dbUtils = new DBUtils(this);
+    	}
+        findViews();  //find basic views
+        mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mDateToStr1 = new SimpleDateFormat("yyyy/MM/dd");
+        mStrToDate1 = new SimpleDateFormat("yyyy MM dd");
+        mDateToStr2 = new SimpleDateFormat("HH:mm");
+        mStrToDate2 = new SimpleDateFormat("HH mm");
+        //get today
+        mYear = mCalendar.get(Calendar.YEAR);
+        mMonth = mCalendar.get(Calendar.MONTH);
+        mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
+        mHour = mCalendar.get(Calendar.HOUR_OF_DAY);
+        mMinute = mCalendar.get(Calendar.MINUTE);
+        mBundle = this.getIntent().getExtras();
+        mProj = (Project)mBundle.get("proj");
+        try {
+    		mEvents = dbUtils.taskeventsDelegate.get(mProj.getId());
+		} catch (IllegalArgumentException e) {
+			Log.v(TAG, "IllegalArgument");
+		} catch (ParseException e) {
+			Log.v(TAG, "Parse error");
+		}
+        if (mBundle.getInt("type") == 0) {
+            mProjName = mProj.getName();
+            mProjId = mProj.getId();
+            mTxCreateUnder.setText(mProjName);
+            findAssignTimeView();
+            updateDate(FROM_DATE_CHOOSER, mYear, mMonth, mDay);
+            updateDate(TO_DATE_CHOOSER, mYear, mMonth, mDay);
         } else {
-        	taskEvent = (TaskEvent)bundle.get("taskevent");
-        	event_title_context.setText(taskEvent.getName());
-        	event_item_create_under_context.setText(bundle.getString("projname"));
-        	event_additem_due.setText(dateToStr.format(taskEvent.getDue()));
-        	event_remarks_context.setText(taskEvent.getNote());
+        	// remove itself from dependable mEvents when edit
+        	mEvent = (TaskEvent)mBundle.get("taskevent");
+        	Iterator<TaskEvent> irr = mEvents.iterator();
+        	while (irr.hasNext()) {
+        	    TaskEvent nextTaskEvent = irr.next();
+        	    if(nextTaskEvent.getId() == mEvent.getId()) {
+        	    	irr.remove();
+        	    }
+        	}
+        	mEdTitle.setText(mEvent.getName());
+        	mTxCreateUnder.setText(mBundle.getString("projname"));
+        	mEdRemarks.setText(mEvent.getNote());
+        	mEventDue = mEvent.getDue();
+        	if(mEventDue == null) {
+        		findUndeterminedView();
+        	} else {
+        		mCalendar.setTime(mEventDue);
+        		mYear = mCalendar.get(Calendar.YEAR);
+        		mMonth = mCalendar.get(Calendar.MONTH); // Month is 0 based so add 1
+        		mDay = mCalendar.get(Calendar.DATE);
+        		findAssignTimeView();
+        	}
         }
-        
-        event_one_day.setOnClickListener(new OnClickListener() {
+
+        mBtnAssignDate.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		updateDisplay(mYear, mMonth, mDay+1);
+        		mDueType = ASSIGN_TIME_PANEL;
+        		mTimeChooser.removeAllViews();
+        		findAssignTimeView();
+      	  	}
+    	});
+
+        mBtnDependency.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		mDueType = DEPENDENCY_PANEL;
+        		mTimeChooser.removeAllViews();
+        		findDependencyView();
       	  	}
     	});
         
-        event_seven_day.setOnClickListener(new OnClickListener() {
+        mBtnUndetermined.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		updateDisplay(mYear, mMonth, mDay+7);
+        		mDueType = UNDETERMINED_PANEL;
+        		mTimeChooser.removeAllViews();
+        		findUndeterminedView();
+      	  	}
+    	});
+ 
+        mBtnFinish.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		switch(mDueType) {       		
+        			case 0:
+        				/*(new CreateItemEventTask()).execute(mEdTitle.getText().toString(), 
+        							mBtnDatePicker.getText().toString(),
+        							mEdRemarks.getText().toString());*/
+        				break;
+        			case 1:
+        				break;
+        			case 2:
+        				/*(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
+        							"", mEdRemarks.getText().toString());*/
+        				break;
+        		}
       	  	}
     	});
         
-        event_n_day.setOnClickListener(new OnClickListener() {
-        	@Override
-      	  	public void onClick(View v) {
-        		
-      	  	}
-    	});
-        
-        event_dependent.setOnClickListener(new OnClickListener() {
-        	@Override
-      	  	public void onClick(View v) {
-        		//TODO:add dependency here
-      	  	}
-    	});
-        
-        event_customize.setOnClickListener(new OnClickListener() {
-        	@Override
-      	  	public void onClick(View v) {
-      	  	}
-    	});
-        
-        event_date.setOnClickListener(new OnClickListener() {
-        	@Override
-      	  	public void onClick(View v) {
-        		showDialog(DATE_DIALOG_ID);
-      	  	}
-    	});
-        
-        event_additem_finish.setOnClickListener(new OnClickListener() {
-        	@Override
-      	  	public void onClick(View v) {
-        		(new CreateItemEventTask()).execute(event_title_context.getText().toString(), 
-        				event_additem_due.getText().toString(), event_remarks_context.getText().toString());
-      	  	}
-    	});
-        
-        event_additem_cancel.setOnClickListener(new OnClickListener() {
+        mBtnCancel.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
         		AddEventActivity.this.finish();
       	  	}
     	});
-        
-      
     }
 	
 	@Override
@@ -157,65 +216,208 @@ public class AddEventActivity extends Activity {
 		}
 	}
 
-   	private DatePickerDialog.OnDateSetListener mDateSetListener =
-            new DatePickerDialog.OnDateSetListener() {
-                public void onDateSet(DatePicker view, int year,
-                		int monthOfYear, int dayOfMonth) {
-                    updateDisplay(year, monthOfYear, dayOfMonth);
-                }
-            };
-            
     @Override
     protected Dialog onCreateDialog(int id) {
     	switch (id) {
-        case DATE_DIALOG_ID:
-            return new DatePickerDialog(this,
-            		mDateSetListener,
-            		mYear, mMonth, mDay);
+        	case FROM_DATE_CHOOSER:
+        		return new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+        				public void onDateSet(DatePicker view, int year, int monthOfYear,
+        						int dayOfMonth) {
+        							updateDate(FROM_DATE_CHOOSER, year, monthOfYear, dayOfMonth);}},
+        									mYear, mMonth, mDay);
+        	case TO_DATE_CHOOSER:
+        		return new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+        				public void onDateSet(DatePicker view, int year, int monthOfYear,
+        						int dayOfMonth) {
+        							updateDate(TO_DATE_CHOOSER, year, monthOfYear, dayOfMonth);}},
+        									mYear, mMonth, mDay);
+        	case FROM_TIME_CHOOSER:
+        		return new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+        				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        							updateTime(FROM_TIME_CHOOSER, hourOfDay, minute);}},
+        									mHour, mMinute,false);
+        	case TO_TIME_CHOOSER:
+        		return new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+        				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        							updateTime(TO_TIME_CHOOSER, hourOfDay, minute);}},
+        									mHour, mMinute,false);
     	}
-    	return null;
+		return null;
     }
-            
-	private void updateDisplay(int year, int month, int day){
+    
+	private void findAssignTimeView() {
+        RelativeLayout add_event_assign_time = 
+        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_time, null)
+        		.findViewById(R.id.add_event_assign_time);
+        mBtnFromDatePicker = (Button) add_event_assign_time.findViewById(R.id.event_from_date_picker_context);
+        mBtnFromTimePicker = (Button) add_event_assign_time.findViewById(R.id.event_from_time_picker_context);
+        mBtnToDatePicker = (Button) add_event_assign_time.findViewById(R.id.event_to_date_picker_context);
+        mBtnToTimePicker = (Button) add_event_assign_time.findViewById(R.id.event_to_time_picker_context);
+        mBtnFromDatePicker.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		showDialog(FROM_DATE_CHOOSER);
+      	  	}
+    	});
+        mBtnToDatePicker.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		showDialog(TO_DATE_CHOOSER);
+      	  	}
+    	}); 
+        mBtnFromTimePicker.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		showDialog(FROM_TIME_CHOOSER);
+      	  	}
+    	});
+        mBtnToTimePicker.setOnClickListener(new OnClickListener() {
+        	@Override
+      	  	public void onClick(View v) {
+        		showDialog(TO_TIME_CHOOSER);
+      	  	}
+    	}); 
+        updateDate(FROM_DATE_CHOOSER, mYear, mMonth, mDay);
+        updateDate(TO_DATE_CHOOSER, mYear, mMonth, mDay);
+        updateTime(FROM_TIME_CHOOSER, mHour, mMinute);
+        updateTime(TO_TIME_CHOOSER, mHour, mMinute);
+        mTimeChooser.addView(add_event_assign_time);
+	}
 
+	private void findDependencyView() {
+		RelativeLayout add_event_dependency;
+		if (mEvents.isEmpty()) {
+			add_event_dependency = new RelativeLayout(this);
+			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
+			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			noDependable.setText("無可相依工作");
+			add_event_dependency.addView(noDependable);
+		} else {
+			final String taskNames[] = new String[mEvents.size()];
+			for (int i=0; i < mEvents.size(); i++) {
+				taskNames[i] = mEvents.get(i).getName();
+			}
+		
+			add_event_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null)
+        		.findViewById(R.id.add_single_task_dependency);
+        final TableLayout single_depend_on_view = (TableLayout) add_event_dependency
+				.findViewById(R.id.single_depend_on_view);
+        Spinner single_dependency_plus_minus = (Spinner) add_event_dependency.findViewById(R.id.single_dependency_plus_minus);
+        ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
+        		android.R.layout.simple_spinner_item, new String[]{"加","減"});
+        plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        single_dependency_plus_minus.setAdapter(plus_minus_adapter);
+        single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View view,
+					int position, long id) {
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+        });
+        ImageButton single_depend_add_task = (ImageButton) add_event_dependency
+				.findViewById(R.id.single_depend_add_task);
+        single_depend_add_task.setOnClickListener( new OnClickListener() {
+        	@Override
+        	public void onClick(View v) {
+        		final TableRow tr = new TableRow(AddEventActivity.this);
+        		mDependableEvents.add(tr);
+        		tr.setTag("tr");
+        		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+        		final Spinner sp = new Spinner(AddEventActivity.this);
+        		ArrayAdapter<String> depend_on_adapter = new ArrayAdapter<String>(AddEventActivity.this
+        				,android.R.layout.simple_spinner_item, taskNames);
+                depend_on_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                sp.setAdapter(depend_on_adapter);
+                sp.setTag("sp");
+        		ImageButton ib = new ImageButton(AddEventActivity.this);
+        		ib.setImageResource(R.drawable.ic_delete);
+        		ib.setOnClickListener( new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						mDependableEvents.remove(tr);
+						single_depend_on_view.removeView(tr);
+					}
+        		});
+        		tr.addView(sp);
+        		tr.addView(ib);
+        		single_depend_on_view.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+        				LayoutParams.WRAP_CONTENT));
+        	}
+        });
+		}
+        mTimeChooser.addView(add_event_dependency);
+	}
+	
+	private void findUndeterminedView() {
+        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
+        		.findViewById(R.id.add_single_task_undetermined);
+        mTimeChooser.addView(add_single_task_undetermined);
+	}
+    
+            
+	private void updateDate(int type, int year, int month, int day){
 		// Month is 0 based so add 1
 		String fromStr = year+" "+(month+1)+" "+day;
-		Date date;
-		
 		try {
-			date = strToDate.parse(fromStr);
-			String toStr = dateToStr.format(date);
-			event_additem_due.setText(toStr);
+			Date date = mStrToDate1.parse(fromStr);
+			String toStr = mDateToStr1.format(date);
+			switch(type) {
+				case FROM_DATE_CHOOSER:
+					mBtnFromDatePicker.setText(toStr);
+					break;
+				case TO_DATE_CHOOSER:
+					mBtnToDatePicker.setText(toStr);
+					break;
+			}
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.v(TAG, "parse error");
+		}
+    }
+	
+	private void updateTime(int type, int hour, int minute){
+		String fromStr = hour+" "+minute;
+		try {
+			Date date = mStrToDate2.parse(fromStr);
+			String toStr = mDateToStr2.format(date);
+			switch(type) {
+				case FROM_TIME_CHOOSER:
+					mBtnFromTimePicker.setText(toStr);
+					break;
+				case TO_TIME_CHOOSER:
+					mBtnToTimePicker.setText(toStr);
+			}
+		} catch (ParseException e) {
+			Log.v(TAG, "parse error");
 		}
     }
 	
     private void findViews() {
-    	//TODO:wait to be changed to tab layout
-    	//single = (Button)findViewById(R.id.single);
-    	//assignment = (Button)findViewById(R.id.assignment);
-    	//event = (Button)findViewById(R.id.event);
-    	event_title = (TextView)findViewById(R.id.event_title);
-    	event_title_context = (EditText)findViewById(R.id.event_title_context);
-    	event_item_create_under = (TextView)findViewById(R.id.event_item_create_under);
-    	event_item_create_under_context = (TextView)findViewById(R.id.event_item_create_under_context);
-    	event_time = (TextView)findViewById(R.id.event_time);
-    	event_one_day = (Button)findViewById(R.id.event_one_day);
-    	event_seven_day = (Button)findViewById(R.id.event_seven_day);
-    	event_n_day = (Button)findViewById(R.id.event_n_day);
-    	event_date = (ImageButton)findViewById(R.id.event_date);
-    	event_dependent = (Button)findViewById(R.id.event_dependent);
-    	event_customize = (Button)findViewById(R.id.event_underdetermined);
-    	event_additem_due = (TextView)findViewById(R.id.event_additem_due);
-    	event_remarks = (TextView)findViewById(R.id.event_remarks);
-    	event_remarks_context = (EditText)findViewById(R.id.event_remarks_context);
-    	event_additem_finish = (Button)findViewById(R.id.event_additem_finish);
-    	event_additem_cancel = (Button)findViewById(R.id.event_additem_cancel);
+    	mTimeChooser = (RelativeLayout)findViewById(R.id.event_time_chooser);
+    	mEdTitle = (EditText)findViewById(R.id.event_title_context);
+    	mTxCreateUnder = (TextView)findViewById(R.id.event_create_under_context);
+    	mBtnAssignDate = (ImageButton)findViewById(R.id.event_date);
+    	mBtnDependency = (ImageButton)findViewById(R.id.event_dependency);
+    	mBtnUndetermined = (ImageButton)findViewById(R.id.event_undetermined);
+    	mEdRemarks = (EditText)findViewById(R.id.event_remarks_context);
+    	mBtnFinish = (Button)findViewById(R.id.event_additem_finish);
+    	mBtnCancel = (Button)findViewById(R.id.event_additem_cancel);
     }
     
-  	  
+    // get depended mEvents in array of Long
+    private Long[] getDependedTasks() {
+		Set<Long> set = new TreeSet<Long>();
+		for (int i=0; i < mDependableEvents.size(); i++) {
+			Long taskEventId = mEvents.get((int)((Spinner) mDependableEvents.get(i).findViewWithTag("sp"))
+					.getSelectedItemId()).getId();
+			set.add(taskEventId);
+		}
+		return set.toArray(new Long[set.size()]);
+    }
+    
+    
+  	// not tested after add new features
   	private class CreateItemEventTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;
 		private Exception exception;
@@ -233,17 +435,17 @@ public class AddEventActivity extends Activity {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddEventActivity.this);
 		    	}
-		    	if (bundle.getInt("type") == 0) {
-		    		taskEvent = new TaskEvent(projId, 2, params[0], params[1], params[2], 0);
-					taskEvent.setId(dbUtils.taskeventsDelegate.insert(taskEvent));
+		    	if (mBundle.getInt("type") == 0) {
+		    		mEvent = new TaskEvent(mProjId, 0, params[0], params[1], params[2], 0);
+					mEvent.setId(dbUtils.taskeventsDelegate.insert(mEvent));
 		    	} else {
-		    		TaskEvent taskEvent = new TaskEvent(AddEventActivity.this.taskEvent.getId(),
-		    				AddEventActivity.this.taskEvent.getProjId(),
-		    				AddEventActivity.this.taskEvent.getServerId(), 2, params[0], params[1], params[2], 0);
-		    		dbUtils.taskeventsDelegate.update(taskEvent);
+		    		TaskEvent mEvent = new TaskEvent(AddEventActivity.this.mEvent.getId(),
+		    				AddEventActivity.this.mEvent.getProjId(),
+		    				AddEventActivity.this.mEvent.getServerId(), 0, params[0], params[1], params[2], 0);
+		    		dbUtils.taskeventsDelegate.update(mEvent);
 		    	}
 				dbUtils.close();
-/*				return ArtApi.getInstance(AddEventActivity.this).createTaskevent(projServerId, 0, params[0], dateToStr.parse(params[1]), params[2]);
+				/*return ArtApi.getInstance(AddEventActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr1.parse(params[1]), params[2]);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -271,8 +473,8 @@ public class AddEventActivity extends Activity {
 		    	if(dbUtils == null) {
 		    		dbUtils = new DBUtils(AddEventActivity.this);
 		    	}
-		    	taskEvent.setServerId(taskeventId);
-				dbUtils.taskeventsDelegate.update(taskEvent);
+		    	mEvent.setServerId(taskeventId);
+				dbUtils.taskeventsDelegate.update(mEvent);
 				dbUtils.close();
 			}else {
 				hasNetwork = false;
@@ -280,5 +482,4 @@ public class AddEventActivity extends Activity {
 			AddEventActivity.this.finish();
 		}
 	}
-  	  
 }
