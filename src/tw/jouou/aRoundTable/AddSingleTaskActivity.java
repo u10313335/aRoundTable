@@ -416,10 +416,9 @@ public class AddSingleTaskActivity extends Activity {
 		    		mTask = new TaskEvent(mProjId, 0, params[0], params[1], params[2], 0);
 					mTask.setId(dbUtils.taskeventsDelegate.insert(mTask));
 		    	} else {
-		    		TaskEvent mTask = new TaskEvent(AddSingleTaskActivity.this.mTask.getId(),
-		    				AddSingleTaskActivity.this.mTask.getProjId(),
-		    				AddSingleTaskActivity.this.mTask.getServerId(), 0, params[0], params[1], params[2], 0);
-		    		dbUtils.taskeventsDelegate.update(mTask);
+		    		TaskEvent task = new TaskEvent(mTask.getId(), mTask.getProjId(),
+		    				mTask.getServerId(), 0, params[0], params[1], params[2], 0);
+		    		dbUtils.taskeventsDelegate.update(task);
 		    	}
 				dbUtils.close();
 				/*return ArtApi.getInstance(AddSingleTaskActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr.parse(params[1]), params[2]);

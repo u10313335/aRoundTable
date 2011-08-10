@@ -222,7 +222,7 @@ public class DBUtils extends SQLiteOpenHelper {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASKEVENT, null, "project_id=" + projId, null, null, null,
+			Cursor c = db.query(TABLE_TASKEVENT, null, "project_id=" + projId + " and finish=0", null, null, null,
 					"due DESC", null);
 
 			while (c.moveToNext()) {
@@ -247,7 +247,7 @@ public class DBUtils extends SQLiteOpenHelper {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASKEVENT, null, null, null, null, null,
+			Cursor c = db.query(TABLE_TASKEVENT, null, "finish=0", null, null, null,
 					"due DESC", null);
 
 			while (c.moveToNext()) {

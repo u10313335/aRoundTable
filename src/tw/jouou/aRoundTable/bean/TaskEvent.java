@@ -94,6 +94,10 @@ public class TaskEvent implements Serializable {
 		return note;
 	}
 	
+	public void setDone(int done) {
+		this.done = done;
+	}
+	
 	public TaskEvent(JSONObject json) throws JSONException, ParseException {
 		this.type = json.getInt("type");
 		this.name = json.getString("name");

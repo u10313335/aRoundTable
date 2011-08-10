@@ -38,13 +38,17 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -168,7 +172,7 @@ public class MainActivity extends Activity {
     private void formAllItemList(View v, List<TaskEvent> taskevents) {
     	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
     	ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
-    	CheckBox itemDone = (CheckBox) v.findViewById(R.id.all_item_done);
+    	CheckBox itemDone = null;
 		ListView allItemListView = (ListView) v.findViewById(R.id.all_item_list);
 		ImageView btnRefresh = (ImageView) v.findViewById(R.id.all_item_refresh);
 		ImageView btnAddItem = (ImageView) v.findViewById(R.id.all_item_add);
@@ -272,7 +276,7 @@ public class MainActivity extends Activity {
 			Log.v(TAG, "Parse error");
 		}
     	
-		CheckBox chkBoxItemDone = (CheckBox) v.findViewById(R.id.itemDone);
+		CheckBox chkBoxItemDone = null;
 		ListView projItemListView = (ListView) v.findViewById(R.id.proj_item_list);
 		ImageView btnIssue = (ImageView) v.findViewById(R.id.proj_issue_tracker);
 		ImageView btnDocs = (ImageView) v.findViewById(R.id.proj_docs);
@@ -479,27 +483,44 @@ public class MainActivity extends Activity {
 		}
 
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
+		public View getView(final int position, View convertView, ViewGroup parent) {
 		  View view = super.getView(position, convertView, parent);
 		  TextView relateDay = null;
 		  TextView color = null;
+		  CheckBox done = null;
 		  
 		  switch(resource) {
 		  	case R.layout.all_item_list_item:
 		  		relateDay = (TextView) view.findViewById(R.id.all_item_due_relate_day);
 		  		color = (TextView) view.findViewById(R.id.all_item_color);
+		  		done = (CheckBox) view.findViewById(R.id.all_item_done);
 		  		break;	
 		  	case R.layout.project_list_item:
 		  		relateDay = (TextView) view.findViewById(R.id.item_dueRelateDay);
 		  		color = (TextView) view.findViewById(R.id.item_color);
+		  		done = (CheckBox) view.findViewById(R.id.itemDone);
 		  }
 		  
 		  if((Boolean)items.get(position).get("overDue") == true) {
 			  relateDay.setTextColor(Color.RED);
 		  } else {
 			  relateDay.setTextColor(Color.WHITE);
-		  }		  
+		  }
+		  
 		  color.setBackgroundColor(Color.parseColor(colors[(Integer)items.get(position).get("color")])); 
+		  
+		  done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			  @Override
+			  public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
+				  Log.v(TAG, "check");
+				  TaskEvent taskevent = ((List<TaskEvent>) allTaskEvents.get(MainActivity.this.position))
+							  .get(position);
+				  taskevent.setDone(1);
+				  dbUtils.taskeventsDelegate.update(taskevent);
+				  update();
+			  }
+		  });
+		  
 		  return view;
 		}
 	}
