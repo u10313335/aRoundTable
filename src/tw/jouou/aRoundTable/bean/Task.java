@@ -11,31 +11,27 @@ import org.json.JSONObject;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.ContentValues;
 
-public class TaskEvent implements Serializable {
+public class Task implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	private long id;
 	private long projId;
 	private long serverId = 0;
-	private int type; //0: single task; 1: batch tasks; 2: event
 	private String name;
 	private Date due;
 	private String note;
 	private int done;
-	public static int TYPE_TASK = 0;
-	public static int TYPE_EVENT = 1;
 	
-	public TaskEvent(long id, long projId, long serverId, int type, String name, String due,
+	public Task(long id, long projId, long serverId, String name, String due,
 			String note, int done) throws ParseException {
 		this.id = id;
 		this.projId = projId;
 		this.serverId = serverId;
-		this.type = type;
 		this.name = name;
 		if(due.equals("")) {
 			this.due = null;
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			this.due = sdf.parse(due);
 		}
 
@@ -43,15 +39,14 @@ public class TaskEvent implements Serializable {
 		this.done = done;
 	}
 	
-	public TaskEvent(long projId, int type, String name, String due,
+	public Task(long projId, String name, String due,
 			String note, int done) throws ParseException {
 		this.projId = projId;
-		this.type = type;
 		this.name = name;
 		if(due.equals("")) {
 			this.due = null;
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
 			this.due = sdf.parse(due);
 		}
 		this.note = note;
@@ -74,10 +69,6 @@ public class TaskEvent implements Serializable {
 		this.serverId = serverId;
 	}
 	
-	public int getType() {
-		return type;
-	}
-	
 	public long getProjId() {
 		return projId;
 	}
@@ -98,8 +89,7 @@ public class TaskEvent implements Serializable {
 		this.done = done;
 	}
 	
-	public TaskEvent(JSONObject json) throws JSONException, ParseException {
-		this.type = json.getInt("type");
+	public Task(JSONObject json) throws JSONException, ParseException {
 		this.name = json.getString("name");
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -110,18 +100,17 @@ public class TaskEvent implements Serializable {
 	
 	public ContentValues getValues() {
 		ContentValues values = new ContentValues();
-		values.put(DBUtils.FIELD_TASKEVENT_NAME, name);
-		values.put(DBUtils.FIELD_TASKEVENT_PROJECTID, projId);
-		values.put(DBUtils.FIELD_TASKEVENT_SERVERID, serverId);
+		values.put(DBUtils.FIELD_TASK_NAME, name);
+		values.put(DBUtils.FIELD_TASK_PROJECTID, projId);
+		values.put(DBUtils.FIELD_TASK_SERVERID, serverId);
 		if (due==null) {
-			values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, "");
+			values.put(DBUtils.FIELD_TASK_DUEDATE, "");
 		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-			values.put(DBUtils.FIELD_TASKEVENT_DUEDATE, sdf.format(due));
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			values.put(DBUtils.FIELD_TASK_DUEDATE, sdf.format(due));
 		}
-		values.put(DBUtils.FIELD_TASKEVENT_NOTE, note);
-		values.put(DBUtils.FIELD_TASKEVENT_TYPE, type);
-		values.put(DBUtils.FIELD_TASKEVENT_FINISHED, done);
+		values.put(DBUtils.FIELD_TASK_NOTE, note);
+		values.put(DBUtils.FIELD_TASK_FINISHED, done);
 		return values;
 	}
 }

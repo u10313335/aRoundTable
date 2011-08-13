@@ -1,7 +1,7 @@
 package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.bean.Task;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -19,7 +19,7 @@ public class AddItemActivity extends TabActivity{
 	private TabHost.TabSpec spec;
 	private Resources res;
 	private int type;
-	private TaskEvent taskEvent;
+	private Task mTask;
 	private static String TAG = "AddItemActivity";
 	
 	
@@ -36,17 +36,17 @@ public class AddItemActivity extends TabActivity{
 			addBatchActivity();
 			addEventActivity();
 		} else {
-			taskEvent = (TaskEvent)bundle.get("taskevent");
-			switch (taskEvent.getType()) {
-				case 0:
+			mTask = (Task)bundle.get("task");
+/*			switch (mTask.getType()) {
+				case 0:*/
 					addSingleActivity();
-					break;
+/*					break;
 				case 1:
 					addBatchActivity();
 					break;
 				case 2:
 					addEventActivity();
-			}
+			}*/
 		}
 	}
 	
@@ -56,7 +56,7 @@ public class AddItemActivity extends TabActivity{
 	    intent.putExtra("type", type);
     	intent.putExtra("proj", (Project)bundle.get("proj"));
 	    if (type == 1) {
-        	intent.putExtra("taskevent", taskEvent);
+        	intent.putExtra("task", mTask);
         }
 	    spec = tabHost.newTabSpec("tab1");
 	    spec.setIndicator(createTabView(tabHost.getContext(), "單一工作"));  
@@ -86,7 +86,7 @@ public class AddItemActivity extends TabActivity{
 	    if (type == 0) {
 	    	intent.putExtra("proj", (Project)bundle.get("proj"));
         } else {
-        	intent.putExtra("taskevent", taskEvent);
+        	intent.putExtra("taskevent", mTask);
         	intent.putExtra("projname", bundle.getString("projname"));
         }
 		spec = tabHost.newTabSpec("tab3");  

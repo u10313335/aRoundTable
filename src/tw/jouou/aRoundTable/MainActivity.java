@@ -1,7 +1,7 @@
 package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
@@ -72,10 +72,10 @@ public class MainActivity extends Activity {
 	private View lists[]; //list[0] is "all task/events list", the followings(lists[1]~) are "project list"
     private View mainView;
     private TextView txTitle;
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
-	private ArrayList<List<TaskEvent>> allTaskEvents = new ArrayList<List<TaskEvent>>();
+	private ArrayList<List<Task>> mAllTasks = new ArrayList<List<Task>>();
 	private int position;  // screen position
 	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423", "#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
     protected static final int MENU_Settings = Menu.FIRST;
@@ -119,7 +119,7 @@ public class MainActivity extends Activity {
     }
     
     protected void update() {
-    	allTaskEvents.clear();
+    	mAllTasks.clear();
     	if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
@@ -130,9 +130,9 @@ public class MainActivity extends Activity {
     		lists[0] = inflater.inflate(R.layout.all_item_list, null);
     		
     		try {
-    			List<TaskEvent> taskevents;
+    			List<Task> taskevents;
         		taskevents = dbUtils.taskeventsDelegate.get();
-        		allTaskEvents.add(taskevents);
+        		mAllTasks.add(taskevents);
         		formAllItemList(lists[0],taskevents);
     		} catch (ParseException e) {
     			Log.v(TAG, "Parse error");
@@ -169,8 +169,8 @@ public class MainActivity extends Activity {
     }
     
     // form all task/event list
-    private void formAllItemList(View v, List<TaskEvent> taskevents) {
-    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+    private void formAllItemList(View v, List<Task> taskevents) {
+    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     	ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
     	CheckBox itemDone = null;
 		ListView allItemListView = (ListView) v.findViewById(R.id.all_item_list);
@@ -189,15 +189,15 @@ public class MainActivity extends Activity {
 
 	    		if (due==null) {
 	    			item.put("dueRelateDay", getString(R.string.undetermined));
-    				item.put("overDue", false);
+    				item.put("today", false);
     				item.put("dueDate", "");
 	    		} else {
-		    		String dayDistance = dayDistance(due);
-		    		item.put("dueRelateDay", dayDistance);
-	    			if (dayDistance == getString(R.string.due_today)) {
-	    				item.put("overDue", true);
+		    		int dayDistance = dayDistance(due);
+		    		item.put("dueRelateDay", dayDistance+getString(R.string.dayafter));
+	    			if (dayDistance == 0) {
+	    				item.put("today", true);
 	    			} else {
-	    				item.put("overDue", false);
+	    				item.put("today", false);
 	    			}
 	    			item.put("dueDate", formatter.format(due));
 	    		}
@@ -264,12 +264,12 @@ public class MainActivity extends Activity {
     // form task/event list belongs to specific project
 	private void formProjLists(View v, Project p){
 		final Project proj = p;
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
-		List<TaskEvent> taskevents = null;
+		List<Task> taskevents = null;
     	try {
     		taskevents = dbUtils.taskeventsDelegate.get(proj.getId());
-    		allTaskEvents.add(taskevents);
+    		mAllTasks.add(taskevents);
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
@@ -293,15 +293,15 @@ public class MainActivity extends Activity {
 	    	item.put("taskEventId", taskevents.get(i).getId());
     		if (due==null) {
     			item.put("dueRelateDay", getString(R.string.undetermined));
-				item.put("overDue", false);
+				item.put("today", false);
 				item.put("dueDate", "");
     		} else {
-	    		String dayDistance = dayDistance(due);
-	    		item.put("dueRelateDay", dayDistance);
-    			if (dayDistance == getString(R.string.due_today)) {
-    				item.put("overDue", true);
+	    		int dayDistance = dayDistance(due);
+	    		item.put("dueRelateDay", dayDistance+getString(R.string.dayafter));
+    			if (dayDistance == 0) {
+    				item.put("today", true);
     			} else {
-    				item.put("overDue", false);
+    				item.put("today", false);
     			}
     			item.put("dueDate", formatter.format(due));
     		}
@@ -361,27 +361,27 @@ public class MainActivity extends Activity {
 	
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo)item.getMenuInfo();
-        TaskEvent taskevent;
+        Task task;
         switch (item.getItemId()) {
         	case MENU_EditItem:
-        		taskevent = ((List<TaskEvent>) allTaskEvents.get(position)).get(menuInfo.position);
+        		task = ((List<Task>) mAllTasks.get(position)).get(menuInfo.position);
         		Intent additem_intent= new Intent();
         		additem_intent.setClass(MainActivity.this, AddItemActivity.class);
         		additem_intent.putExtra("type", 1);
-        		additem_intent.putExtra("taskevent", taskevent);
-        		additem_intent.putExtra("proj", dbUtils.projectsDelegate.get(taskevent.getProjId()));
+        		additem_intent.putExtra("task", task);
+        		additem_intent.putExtra("proj", dbUtils.projectsDelegate.get(task.getProjId()));
     			startActivity(additem_intent);
     			break;
         	case MENU_DeleteItem:
         		Log.v(TAG, "position: "+position+", menupo: "+menuInfo.position);
-        		taskevent = ((List<TaskEvent>) allTaskEvents.get(position)).get(menuInfo.position);
-        		dbUtils.taskeventsDelegate.delete(taskevent);
+        		task = ((List<Task>) mAllTasks.get(position)).get(menuInfo.position);
+        		dbUtils.taskeventsDelegate.delete(task);
         		MainActivity.this.update();
         }
     	return super.onContextItemSelected(item); 
     }
 	
-	private String dayDistance(Date due) {
+	private Integer dayDistance(Date due) {
 		Date today = new Date();
 		long DAY = 24L * 60L * 60L * 1000L;
 		Calendar dueCal = new GregorianCalendar();
@@ -392,15 +392,8 @@ public class MainActivity extends Activity {
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse error");
 		}
-		long dis = (dueCal.getTime().getTime()-todayCal.getTime().getTime()) /DAY;
-		long day = todayCal.compareTo(dueCal);
-		if(day>0) {
-			return getString(R.string.overdue);
-		} else if(day<0) {
-			return dis+getString(R.string.dayafter);
-		} else {
-			return getString(R.string.due_today);
-		}
+		return Math.round((dueCal.getTime().getTime()-todayCal.getTime().getTime()) /DAY);
+		//long day = todayCal.compareTo(dueCal);
 	}
 
     // FIXME: duplicate notification after registration
@@ -465,6 +458,11 @@ public class MainActivity extends Activity {
 			case MENU_Settings:
 				break;
 			case MENU_Feedbacks:
+				// TODO: replace feedback email here
+				Uri uri = Uri.parse("mailto:u103133.u103135@gmail.com");
+                Intent intent = new Intent(Intent.ACTION_SENDTO,uri);
+                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.feedback_mail_title));
+                startActivity(intent);
 				break;
 			case MENU_About:
 				break;
@@ -501,7 +499,8 @@ public class MainActivity extends Activity {
 		  		done = (CheckBox) view.findViewById(R.id.itemDone);
 		  }
 		  
-		  if((Boolean)items.get(position).get("overDue") == true) {
+		  if((Boolean)items.get(position).get("today") == true) {
+			  relateDay.setText(getString(R.string.due_today));
 			  relateDay.setTextColor(Color.RED);
 		  } else {
 			  relateDay.setTextColor(Color.WHITE);
@@ -513,10 +512,10 @@ public class MainActivity extends Activity {
 			  @Override
 			  public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
 				  Log.v(TAG, "check");
-				  TaskEvent taskevent = ((List<TaskEvent>) allTaskEvents.get(MainActivity.this.position))
+				  Task task = ((List<Task>) mAllTasks.get(MainActivity.this.position))
 							  .get(position);
-				  taskevent.setDone(1);
-				  dbUtils.taskeventsDelegate.update(taskevent);
+				  task.setDone(1);
+				  dbUtils.taskeventsDelegate.update(task);
 				  update();
 			  }
 		  });

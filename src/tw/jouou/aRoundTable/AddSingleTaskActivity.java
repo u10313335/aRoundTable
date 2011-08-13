@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
@@ -54,7 +54,7 @@ public class AddSingleTaskActivity extends Activity {
     private static final int UNDETERMINED_PANEL = 2;
     private static String TAG = "AddSingleTaskActivity";
 	private DBUtils dbUtils;
-	private TaskEvent mTask;
+	private Task mTask;
 	private Bundle mBundle;
 	private String mProjName;
 	private Project mProj;
@@ -65,7 +65,7 @@ public class AddSingleTaskActivity extends Activity {
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
-	private List<TaskEvent> mTasks = null;
+	private List<Task> mTasks = null;
     private EditText mEdTitle;
     private TextView mTxCreateUnder;
     private ImageButton mBtnOneDay;
@@ -119,11 +119,11 @@ public class AddSingleTaskActivity extends Activity {
             updateDisplay(mYear, mMonth, mDay);
         } else {
         	// remove itself from dependable mTasks when edit
-        	mTask = (TaskEvent)mBundle.get("taskevent");
-        	Iterator<TaskEvent> irr = mTasks.iterator();
+        	mTask = (Task)mBundle.get("task");
+        	Iterator<Task> irr = mTasks.iterator();
         	while (irr.hasNext()) {
-        	    TaskEvent nextTaskEvent = irr.next();
-        	    if(nextTaskEvent.getId() == mTask.getId()) {
+        	    Task nextTask = irr.next();
+        	    if(nextTask.getId() == mTask.getId()) {
         	    	irr.remove();
         	    }
         	}
@@ -413,11 +413,11 @@ public class AddSingleTaskActivity extends Activity {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
 		    	if (mBundle.getInt("type") == 0) {
-		    		mTask = new TaskEvent(mProjId, 0, params[0], params[1], params[2], 0);
+		    		mTask = new Task(mProjId, params[0], params[1], params[2], 0);
 					mTask.setId(dbUtils.taskeventsDelegate.insert(mTask));
 		    	} else {
-		    		TaskEvent task = new TaskEvent(mTask.getId(), mTask.getProjId(),
-		    				mTask.getServerId(), 0, params[0], params[1], params[2], 0);
+		    		Task task = new Task(mTask.getId(), mTask.getProjId(),
+		    				mTask.getServerId(), params[0], params[1], params[2], 0);
 		    		dbUtils.taskeventsDelegate.update(task);
 		    	}
 				dbUtils.close();

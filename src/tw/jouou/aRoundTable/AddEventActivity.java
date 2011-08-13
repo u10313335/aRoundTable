@@ -1,7 +1,7 @@
 package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
@@ -61,7 +61,7 @@ public class AddEventActivity extends Activity {
     private static final int TO_TIME_CHOOSER = 3;
     private static String TAG = "AddEventActivity";
 	private DBUtils dbUtils;
-	private TaskEvent mEvent;
+	private Task mTask;
 	private Bundle mBundle;
 	private String mProjName;
 	private Project mProj;
@@ -72,7 +72,7 @@ public class AddEventActivity extends Activity {
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mTimeChooser;
-	private List<TaskEvent> mEvents = null;
+	private List<Task> mEvents = null;
     private EditText mEdTitle;
     private TextView mTxCreateUnder;
     private ImageButton mBtnAssignDate;
@@ -130,18 +130,18 @@ public class AddEventActivity extends Activity {
             updateDate(TO_DATE_CHOOSER, mYear, mMonth, mDay);
         } else {
         	// remove itself from dependable mEvents when edit
-        	mEvent = (TaskEvent)mBundle.get("taskevent");
-        	Iterator<TaskEvent> irr = mEvents.iterator();
+        	mTask = (Task)mBundle.get("taskevent");
+        	Iterator<Task> irr = mEvents.iterator();
         	while (irr.hasNext()) {
-        	    TaskEvent nextTaskEvent = irr.next();
-        	    if(nextTaskEvent.getId() == mEvent.getId()) {
+        	    Task nextTaskEvent = irr.next();
+        	    if(nextTaskEvent.getId() == mTask.getId()) {
         	    	irr.remove();
         	    }
         	}
-        	mEdTitle.setText(mEvent.getName());
+        	mEdTitle.setText(mTask.getName());
         	mTxCreateUnder.setText(mBundle.getString("projname"));
-        	mEdRemarks.setText(mEvent.getNote());
-        	mEventDue = mEvent.getDue();
+        	mEdRemarks.setText(mTask.getNote());
+        	mEventDue = mTask.getDue();
         	if(mEventDue == null) {
         		findUndeterminedView();
         	} else {
@@ -436,13 +436,13 @@ public class AddEventActivity extends Activity {
 		    		dbUtils = new DBUtils(AddEventActivity.this);
 		    	}
 		    	if (mBundle.getInt("type") == 0) {
-		    		mEvent = new TaskEvent(mProjId, 0, params[0], params[1], params[2], 0);
-					mEvent.setId(dbUtils.taskeventsDelegate.insert(mEvent));
+		    		mTask = new Task(mProjId, params[0], params[1], params[2], 0);
+					mTask.setId(dbUtils.taskeventsDelegate.insert(mTask));
 		    	} else {
-		    		TaskEvent mEvent = new TaskEvent(AddEventActivity.this.mEvent.getId(),
-		    				AddEventActivity.this.mEvent.getProjId(),
-		    				AddEventActivity.this.mEvent.getServerId(), 0, params[0], params[1], params[2], 0);
-		    		dbUtils.taskeventsDelegate.update(mEvent);
+		    		Task mTask = new Task(AddEventActivity.this.mTask.getId(),
+		    				AddEventActivity.this.mTask.getProjId(),
+		    				AddEventActivity.this.mTask.getServerId(), params[0], params[1], params[2], 0);
+		    		dbUtils.taskeventsDelegate.update(mTask);
 		    	}
 				dbUtils.close();
 				/*return ArtApi.getInstance(AddEventActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr1.parse(params[1]), params[2]);
@@ -473,8 +473,8 @@ public class AddEventActivity extends Activity {
 		    	if(dbUtils == null) {
 		    		dbUtils = new DBUtils(AddEventActivity.this);
 		    	}
-		    	mEvent.setServerId(taskeventId);
-				dbUtils.taskeventsDelegate.update(mEvent);
+		    	mTask.setServerId(taskeventId);
+				dbUtils.taskeventsDelegate.update(mTask);
 				dbUtils.close();
 			}else {
 				hasNetwork = false;

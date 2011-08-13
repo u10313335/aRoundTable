@@ -23,7 +23,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
@@ -106,18 +106,18 @@ public class ArtApi {
 	}
 	
 	/* XXX: not tested yet. */
-	public TaskEvent[] getTaskeventList(int projectId) throws ServerException, ConnectionFailException{
+	public Task[] getTaskeventList(int projectId) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(projectsPath + "/" + projectId + "/taskevents", params);
-		TaskEvent[] taskEvents;
+		Task[] taskEvents;
 		JSONObject taskEventJson = null;
 
 		try {
 			JSONArray taskEventsJson = extractJsonArray(response);
 
-			taskEvents = new TaskEvent[taskEventsJson.length()];
+			taskEvents = new Task[taskEventsJson.length()];
 			for(int i=0; i < taskEventsJson.length(); taskEventJson = taskEventsJson.getJSONObject(i)){			
-				taskEvents[i] = new TaskEvent(taskEventJson); 
+				taskEvents[i] = new Task(taskEventJson); 
 			}
 			return taskEvents;
 		} catch (JSONException e) {
