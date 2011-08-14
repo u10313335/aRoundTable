@@ -21,7 +21,7 @@
               	  	  android:gravity="center"
               	  	  android:textColor="#F6F6F7"
               	  	  android:textAppearance="?android:attr/textAppearanceMedium"
-              	  	  android:text="@string/all_item_event"/>
+              	  	  android:text="@string/notification"/>
 		</LinearLayout>	  		
 
 		<LinearLayout android:layout_height="wrap_content" 

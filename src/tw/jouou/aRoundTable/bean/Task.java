@@ -3,6 +3,7 @@ package tw.jouou.aRoundTable.bean;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.json.JSONException;
@@ -106,6 +107,8 @@ public class Task implements Serializable {
 		if (due==null) {
 			values.put(DBUtils.FIELD_TASK_DUEDATE, "");
 		} else {
+			due.setHours(23);
+			due.setMinutes(59);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			values.put(DBUtils.FIELD_TASK_DUEDATE, sdf.format(due));
 		}

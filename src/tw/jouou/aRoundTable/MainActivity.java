@@ -49,6 +49,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -126,21 +127,22 @@ public class MainActivity extends Activity {
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     	projs = dbUtils.projectsDelegate.get();
     	if(!projs.isEmpty()) {
-    		lists = new View[(projs.size())+1];
-    		lists[0] = inflater.inflate(R.layout.all_item_list, null);
-    		
+    		lists = new View[(projs.size())+2];
+    		lists[0] = inflater.inflate(R.layout.notification, null);
+    		lists[1] = inflater.inflate(R.layout.all_item_list, null);
     		try {
     			List<Task> taskevents;
         		taskevents = dbUtils.taskeventsDelegate.get();
         		mAllTasks.add(taskevents);
-        		formAllItemList(lists[0],taskevents);
+        		formNotification(lists[0]);
+        		formAllItemList(lists[1],taskevents);
     		} catch (ParseException e) {
     			Log.v(TAG, "Parse error");
     		}
 
-    		for (int i=1; i < (projs.size())+1; i++) {
+    		for (int i=2; i < (projs.size())+2; i++) {
     			lists[i] = inflater.inflate(R.layout.project_list, null);
-    			formProjLists(lists[i], projs.get(i-1));
+    			formProjLists(lists[i], projs.get(i-2));
     		}
     		mainView = inflater.inflate(R.layout.main, null);
     		txTitle = (TextView) mainView.findViewById(R.id.main_title);
@@ -154,9 +156,11 @@ public class MainActivity extends Activity {
     		    public void onSwitched(View v, int position) {
     		        MainActivity.this.position = position;
     		        if(position==0) {
+    		        	txTitle.setText(getString(R.string.notification));
+    		        } else if(position==1) {
     		        	txTitle.setText(getString(R.string.all_item_event));
     		        } else {
-    		        	txTitle.setText(projs.get(position-1).getName());
+    		        	txTitle.setText(projs.get(position-2).getName());
     		        }
     		        //Log.v(TAG, "Now At Screen: "+position);
     		    }
@@ -167,6 +171,28 @@ public class MainActivity extends Activity {
             startActivity(addgroup_intent);
     	}
     }
+    
+    private void formNotification(View v) {
+    	ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>> ();
+    	String[] notifications = new String[]{"小羽完成了「OR PPT」",
+    			"小熊完成了「FI訪談問題」",
+    			"洞洞更改了「SA PPT」時間"};
+    	ListView notificationView = (ListView) v.findViewById(R.id.dynamic_issue_list);
+        
+        for(int i=0;i<notifications.length;i++)
+        {
+        	HashMap<String, Object> map = new HashMap<String, Object>();
+        	map.put("notifications",notifications[i]);
+        	listItem.add(map);
+        }
+        
+        notificationView.setAdapter(new SimpleAdapter(this,listItem, 
+                R.layout.notification_item,
+                new String[] {"notifications"}, 
+                new int[] {R.id.notificaton_context}));
+    }
+    
+    
     
     // form all task/event list
     private void formAllItemList(View v, List<Task> taskevents) {
@@ -179,31 +205,30 @@ public class MainActivity extends Activity {
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
 		
 	    for (int i=0; i < taskevents.size(); i++) {
-	    		Date due = taskevents.get(i).getDue();
-	    		Project proj = dbUtils.projectsDelegate.get((int)taskevents.get(i).getProjId());
-	    		HashMap< String, Object > item = new HashMap< String, Object >();
-	    		item.put("checkDone", itemDone);
-	    		item.put("itemName", taskevents.get(i).getName());
-	    		item.put("itemProj", proj.getName());
-	    		item.put("taskEventId", taskevents.get(i).getId());
+	    	Date due = taskevents.get(i).getDue();
+	    	Project proj = dbUtils.projectsDelegate.get((int)taskevents.get(i).getProjId());
+	    	HashMap< String, Object > item = new HashMap< String, Object >();
+	    	item.put("checkDone", itemDone);
+	    	item.put("itemName", taskevents.get(i).getName());
+	    	item.put("itemProj", proj.getName());
+	    	item.put("taskEventId", taskevents.get(i).getId());
 
-	    		if (due==null) {
-	    			item.put("dueRelateDay", getString(R.string.undetermined));
-    				item.put("today", false);
-    				item.put("dueDate", "");
+	    	if (due==null) {
+	    		item.put("dueRelateDay", getString(R.string.undetermined));
+    			item.put("today", false);
+    			item.put("dueDate", "");
+	    	} else {
+		    	int dayDistance = dayDistance(due);
+		    	item.put("dueRelateDay", dayDistance+getString(R.string.dayafter));
+	    		if (dayDistance == 0) {
+	    			item.put("today", true);
 	    		} else {
-		    		int dayDistance = dayDistance(due);
-		    		item.put("dueRelateDay", dayDistance+getString(R.string.dayafter));
-	    			if (dayDistance == 0) {
-	    				item.put("today", true);
-	    			} else {
-	    				item.put("today", false);
-	    			}
-	    			item.put("dueDate", formatter.format(due));
+	    			item.put("today", false);
 	    		}
-	    		
-	    		item.put("color", proj.getColor());
-	    		items.add(item);
+	    		item.put("dueDate", formatter.format(due));
+	    	}
+	    	item.put("color", proj.getColor());
+	    	items.add(item);
 	    }
 		
 		allItemListView.setAdapter(new SpecialAdapter(this,items,R.layout.all_item_list_item,
@@ -231,8 +256,8 @@ public class MainActivity extends Activity {
     		@Override
     		public void onClick(View arg0) {
     			String projNames[] = new String[projs.size()];
-    			for (int i=1; i < (projs.size())+1; i++) {
-    				projNames[i-1] = projs.get(i-1).getName();
+    			for (int i=0; i < (projs.size()); i++) {
+    				projNames[i] = projs.get(i).getName();
     			}
     			Builder dialog = new Builder(MainActivity.this);
     			dialog.setTitle(getString(R.string.select_project));

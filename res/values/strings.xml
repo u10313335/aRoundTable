@@ -32,5 +32,6 @@
     <string name="add_task">單一工作</string>
     <string name="add_event">事件</string>
     <string name="all_item_event">所有時限</string>
+    <string name="notification">所有動態</string>
     <string name="feedback_mail_title">[aRoundTable] Feedback</string>
 </resources>

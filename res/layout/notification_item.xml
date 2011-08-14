@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent" 
+	android:orientation="horizontal">
+    
+	<LinearLayout android:id="@+id/notification_icon"
+				  android:layout_height="wrap_content" 
+				  android:layout_width="wrap_content"
+				  android:layout_centerVertical="true">
+    
+		<ImageView android:id="@+id/picture"
+    			   android:layout_width="48dip" 
+    			   android:layout_height="48dip"
+    			   android:gravity="left"
+				   android:layout_marginLeft="10dip"
+    			   android:src="@drawable/icon"/>
+    
+    </LinearLayout>
+    
+    <LinearLayout android:id="@+id/notification_main"
+    			  android:layout_height="60dip"
+                  android:layout_width="fill_parent"
+                  android:layout_marginTop="20dip"
+                  android:layout_toRightOf="@id/notification_icon"
+                  android:layout_centerVertical="true"
+                  android:orientation="vertical">
+    
+    	<TextView android:id="@+id/notificaton_context"
+    		  	  android:layout_width="wrap_content" 
+    		  	  android:layout_height="wrap_content"              	  
+   			  	  android:gravity="left"
+              	  android:layout_marginLeft="6dip"
+             	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+  
+    	<LinearLayout android:orientation="horizontal"
+    			  	  android:layout_width="wrap_content"
+    			  	  android:layout_height="wrap_content"
+    			  	  android:layout_below="@id/notificaton_context"
+    			  	  android:layout_marginRight="10dip"
+    			  	  android:layout_gravity="right">
+    
+    		<Button android:id="@+id/reply"
+    				android:layout_width="wrap_content" 
+    				android:layout_height="wrap_content"
+    				android:text="Reply"/>
+    
+    		<Button android:id="@+id/like"
+    				android:layout_width="wrap_content" 
+    				android:layout_height="wrap_content"
+    				android:text="Like"/>
+    			
+    	</LinearLayout>
+    		
+    </LinearLayout>
+    
+</RelativeLayout>
