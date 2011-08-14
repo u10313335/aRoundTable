@@ -12,16 +12,35 @@
     		  		
     	<LinearLayout android:layout_height="wrap_content" 
 				  	  android:layout_width="wrap_content"
-				  	  android:layout_centerHorizontal="true"
+				  	  android:layout_marginLeft="6dip"
+				  	  android:layout_alignParentLeft="true"
+				  	  android:layout_centerVertical="true">
+				  	  
+			<ImageView android:id="@+id/main_unread"
+    			   	   android:layout_height="wrap_content" 
+				  	   android:layout_width="wrap_content"
+    			   	   android:src="@drawable/unread"/>
+    			   	   
+    	</LinearLayout>
+    	
+    	<TextView android:layout_width="wrap_content" 
+              	  android:layout_height="wrap_content"
+              	  android:layout_marginLeft="25dip"
+              	  android:textColor="@android:color/black"
+              	  android:text="99"/>
+    	
+    	<LinearLayout android:layout_height="wrap_content" 
+				  	  android:layout_width="wrap_content"
+              	  	  android:layout_centerInParent="true"
 				  	  android:layout_centerVertical="true">
 				  	  
 			<TextView android:id="@+id/main_title"
               	  	  android:layout_width="wrap_content" 
-              	  	  android:layout_height="fill_parent"
-              	  	  android:gravity="center"
+              	  	  android:layout_height="wrap_content"
               	  	  android:textColor="#F6F6F7"
               	  	  android:textAppearance="?android:attr/textAppearanceMedium"
               	  	  android:text="@string/notification"/>
+              	  	  
 		</LinearLayout>	  		
 
 		<LinearLayout android:layout_height="wrap_content" 
