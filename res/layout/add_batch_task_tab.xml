@@ -15,29 +15,48 @@
 		<TableLayout android:layout_width="fill_parent" 
 			 	 	 android:layout_height="fill_parent"
 			 		 android:stretchColumns="*">
-
-			<!--<TableRow>
-				<TextView android:id="@+id/batch_title" 
-				 	 	  android:layout_width="wrap_content"
+			 		 
+			<TableRow>
+				<LinearLayout android:orientation="horizontal"
+			  	  		  	  android:layout_width="wrap_content"
+			  	  		  	  android:layout_height="wrap_content"
+			  	  		  	  android:layout_span="4">
+			  	  		  
+				<ImageButton android:id="@+id/batch_add"
+							 android:layout_width="wrap_content"
+						 	 android:layout_height="wrap_content"
+						 	 android:layout_gravity="center_vertical"
+						 	 android:src="@drawable/ic_input_add"/>
+		  
+				<TextView android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="標題" 
+				  	  	  android:layout_gravity="center_vertical"
+				  	  	  android:text="新增批次工作"
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
-	
-				<EditText android:id="@+id/event_title_context"
-				  	  	  android:layout_width="fill_parent" 
-				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="" 
-				  	  	  android:layout_span="3"
-				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
-			</TableRow>-->
+
+				</LinearLayout>
+			</TableRow>
+			
+			<TableRow>
+				<RelativeLayout android:layout_height="wrap_content"
+				  				android:layout_width="wrap_content"
+				  				android:layout_span="4"
+				  				android:orientation="vertical">
+					<TableLayout  android:id="@+id/add_batch"
+			  	  		  		  android:layout_width="fill_parent"
+			  	  		  		  android:layout_height="wrap_content"
+			  	  		  		  android:stretchColumns="1"/>
+				</RelativeLayout>
+			</TableRow>
 			
 			<TableRow>
 				<TextView android:id="@+id/batch_create_under" 
 				 	 	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="建立於"
-				  	  	  android:textStyle="bold"/>
+				  	  	  android:textStyle="bold"
+				  	  	  android:textColor="@android:color/white"
+				  	  	  android:text="建立於"/>
 
 				<TextView android:id="@+id/batch_create_under_context" 
 				 	 	  android:layout_width="wrap_content"
@@ -73,7 +92,7 @@
 			</TableRow>
 	
 			<TableRow>
-				<RelativeLayout android:id="@+id/event_time_chooser"
+				<RelativeLayout android:id="@+id/batch_time_chooser"
 								android:layout_height="wrap_content"
 				  				android:layout_width="wrap_content"
 				  				android:layout_column="1"

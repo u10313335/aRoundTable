@@ -335,7 +335,6 @@ public class AddSingleTaskActivity extends Activity {
         	public void onClick(View v) {
         		final TableRow tr = new TableRow(AddSingleTaskActivity.this);
         		mDependableTasks.add(tr);
-        		tr.setTag("tr");
         		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
         		final Spinner sp = new Spinner(AddSingleTaskActivity.this);
         		ArrayAdapter<String> depend_on_adapter = new ArrayAdapter<String>(AddSingleTaskActivity.this
@@ -382,7 +381,7 @@ public class AddSingleTaskActivity extends Activity {
     	mBtnCancel = (Button)findViewById(R.id.single_additem_cancel);
     }
     
-    // get depended mTasks in array of Long
+    // get depended tasks in array of Long
     private Long[] getDependedTasks() {
 		Set<Long> set = new TreeSet<Long>();
 		for (int i=0; i < mDependableTasks.size(); i++) {

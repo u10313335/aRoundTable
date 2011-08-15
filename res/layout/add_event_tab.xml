@@ -37,8 +37,9 @@
 				<TextView android:id="@+id/event_create_under" 
 				 	 	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="建立於"
-				  	  	  android:textStyle="bold"/>
+				  	  	  android:textStyle="bold"
+				  	  	  android:textColor="@android:color/white"
+				  	  	  android:text="建立於"/>
 
 				<TextView android:id="@+id/event_create_under_context" 
 				 	 	  android:layout_width="wrap_content"
