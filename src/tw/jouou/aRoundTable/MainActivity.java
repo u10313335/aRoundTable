@@ -428,6 +428,9 @@ public class MainActivity extends Activity {
     	if(!users.isEmpty()){
     		update();
     	}
+    	
+    	//XXX: This is UNSAFE!!! project list is sorted by alphabet order
+    	viewFlow.setSelection(position);
     }
     
 	@Override
