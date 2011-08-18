@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
 	private ArrayList<List<TaskEvent>> mAllTaskEvents = new ArrayList<List<TaskEvent>>();
-	private int position;  // screen position
+	private int position = 1;  // screen position
 	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423",
 			"#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
     protected static final int MENU_Settings = Menu.FIRST;
@@ -167,6 +167,7 @@ public class MainActivity extends Activity {
     		        }
     		    }
     		});
+			viewFlow.setSelection(MainActivity.this.position);
     	}else {
             Intent addgroup_intent= new Intent();
             addgroup_intent.setClass(MainActivity.this,CreateProjectActivity.class);
@@ -449,15 +450,6 @@ public class MainActivity extends Activity {
 			Log.v(TAG, "Parse error");
 		}
 		return Math.round((dueCal.getTime().getTime()-todayCal.getTime().getTime()) /DAY);
-	}
-	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if(requestCode == REQUEST_CREATE_PROJECT && resultCode == RESULT_OK) {
-			Log.v(TAG, "got result");
-			long projectId = data.getLongExtra(Constants.INTENT_EXTRA_NEW_PROJECT_ID, -1);
-			Log.v(TAG, "it is:"+projectId);
-		}
 	}
 
     // FIXME: duplicate notification after registration
