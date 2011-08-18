@@ -2,6 +2,7 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
@@ -127,9 +128,9 @@ public class AddEventActivity extends Activity {
             updateDate(FROM_DATE_CHOOSER, mStartAtYear, mStartAtMonth, mStartAtDay);
             updateDate(TO_DATE_CHOOSER, mStartAtYear, mStartAtMonth, mStartAtDay);
         } else {
-        	// remove itself from dependable mEvents when edit
+        	mEvent = (Event)mBundle.get("event");
         	mEdTitle.setText(mEvent.getName());
-        	mTxCreateUnder.setText(mBundle.getString("projname"));
+        	mTxCreateUnder.setText(mProj.getName());
         	mEdLocation.setText(mEvent.getLocation());
         	mEdRemarks.setText(mEvent.getNote());
         	mEventStartAt = mEvent.getStartAt();

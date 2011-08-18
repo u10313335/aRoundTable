@@ -1,11 +1,11 @@
 package tw.jouou.aRoundTable;
 
+import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,14 +18,13 @@ public class AddItemActivity extends TabActivity{
 	private TabHost tabHost;
 	private TabHost.TabSpec spec;
 	private int addOrEdit; // 0 add, 1 edit
-	private Task mTask;
 	private static String TAG = "AddItemActivity";
 	
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.additem);
-		tabHost = getTabHost();  // The activity TabHost
+		tabHost = getTabHost();
 		tabHost.setCurrentTab(0);
 		bundle = this.getIntent().getExtras();
 		addOrEdit = bundle.getInt("addOrEdit");
@@ -34,7 +33,6 @@ public class AddItemActivity extends TabActivity{
 			addBatchActivity();
 			addEventActivity();
 		} else {
-			mTask = (Task)bundle.get("task");
 			switch (bundle.getInt("type")) {
 				case 0:
 					addSingleActivity();
@@ -52,7 +50,7 @@ public class AddItemActivity extends TabActivity{
 	    intent.putExtra("addOrEdit", addOrEdit);
     	intent.putExtra("proj", (Project)bundle.get("proj"));
 	    if (addOrEdit == 1) {
-        	intent.putExtra("task", mTask);
+        	intent.putExtra("task", (Task)bundle.get("item"));
         }
 	    spec = tabHost.newTabSpec("tab1");
 	    spec.setIndicator(createTabView(tabHost.getContext(), getString(R.string.add_task)));  
@@ -64,12 +62,8 @@ public class AddItemActivity extends TabActivity{
 		Intent intent = new Intent();  
 	    intent.setClass(AddItemActivity.this, AddBatchTaskActivity.class);
 	    intent.putExtra("addOrEdit", addOrEdit);
-	    if (addOrEdit == 0) {
-	    	intent.putExtra("proj", (Project)bundle.get("proj"));
-        } else {
-        	
-        }
-	    spec = tabHost.newTabSpec("tab2");  
+	    intent.putExtra("proj", (Project)bundle.get("proj"));
+	    spec = tabHost.newTabSpec("tab2");
 	    spec.setIndicator(createTabView(tabHost.getContext(), getString(R.string.add_batch)));  
 	    spec.setContent(intent);          
 	    tabHost.addTab(spec);  
@@ -79,11 +73,9 @@ public class AddItemActivity extends TabActivity{
 		Intent intent = new Intent();  
 		intent.setClass(AddItemActivity.this, AddEventActivity.class);
 	    intent.putExtra("addOrEdit", addOrEdit);
-	    if (addOrEdit == 0) {
-	    	intent.putExtra("proj", (Project)bundle.get("proj"));
-        } else {
-        	intent.putExtra("taskevent", mTask);
-        	intent.putExtra("projname", bundle.getString("projname"));
+	    intent.putExtra("proj", (Project)bundle.get("proj"));
+	    if (addOrEdit == 1) {
+        	intent.putExtra("event", (Event)bundle.get("item"));
         }
 		spec = tabHost.newTabSpec("tab3");  
 		spec.setIndicator(createTabView(tabHost.getContext(), getString(R.string.add_event)));  

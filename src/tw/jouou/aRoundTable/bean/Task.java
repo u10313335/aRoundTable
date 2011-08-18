@@ -21,6 +21,7 @@ public class Task implements Serializable {
 	private Date due;
 	private String note;
 	private int done;
+	private int type = 0;
 	
 	public Task(long id, long projId, long serverId, String name, Date due,
 			String note, int done) throws ParseException {
@@ -28,12 +29,6 @@ public class Task implements Serializable {
 		this.projId = projId;
 		this.serverId = serverId;
 		this.name = name;
-		/*if(due.equals("")) {
-			this.due = null;
-		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			this.due = sdf.parse(due);
-		}*/
 		this.due = due;
 		this.note = note;
 		this.done = done;
@@ -43,12 +38,6 @@ public class Task implements Serializable {
 			String note, int done) throws ParseException {
 		this.projId = projId;
 		this.name = name;
-		/*if(due.equals("")) {
-			this.due = null;
-		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
-			this.due = sdf.parse(due);
-		}*/
 		this.due = due;
 		this.note = note;
 		this.done = done;
@@ -95,6 +84,10 @@ public class Task implements Serializable {
 		this.done = done;
 	}
 	
+	public int getType() {
+		return type;
+	}
+	
 	public Task(JSONObject json) throws JSONException, ParseException {
 		this.name = json.getString("name");
 		
@@ -119,6 +112,7 @@ public class Task implements Serializable {
 		}
 		values.put(DBUtils.FIELD_TASK_NOTE, note);
 		values.put(DBUtils.FIELD_TASK_FINISHED, done);
+		values.put(DBUtils.FIELD_TASK_TYPE, type);
 		return values;
 	}
 }

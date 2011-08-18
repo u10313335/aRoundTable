@@ -20,6 +20,7 @@ public class Event implements Serializable {
 	private String name;
 	private Date start_at, end_at;
 	private String location, note;
+	private int type = 1;
 	
 	public Event(long id, long projId, long serverId, String name, Date start_at,
 			Date end_at, String location, String note) throws ParseException {
@@ -27,13 +28,6 @@ public class Event implements Serializable {
 		this.projId = projId;
 		this.serverId = serverId;
 		this.name = name;
-		/*if(start_at.equals("")) {
-			this.start_at = null;
-		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			this.start_at = sdf.parse(start_at);
-			this.end_at = sdf.parse(end_at);
-		}*/
 		this.start_at = start_at;
 		this.end_at = end_at;
 		this.location = location;
@@ -44,13 +38,6 @@ public class Event implements Serializable {
 			String note) throws ParseException {
 		this.projId = projId;
 		this.name = name;
-		/*if(start_at.equals("")) {
-			this.start_at = null;
-		} else {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-			this.start_at = sdf.parse(start_at);
-			this.end_at = sdf.parse(end_at);
-		}*/
 		this.start_at = start_at;
 		this.end_at = end_at;
 		this.location = location;
@@ -121,7 +108,8 @@ public class Event implements Serializable {
 			values.put(DBUtils.FIELD_EVENT_END, sdf.format(end_at));
 		}
 		values.put(DBUtils.FIELD_EVENT_LOCATION, location);
-		values.put(DBUtils.FIELD_TASK_NOTE, note);
+		values.put(DBUtils.FIELD_EVENT_NOTE, note);
+		values.put(DBUtils.FIELD_EVENT_TYPE, type);
 		return values;
 	}
 }

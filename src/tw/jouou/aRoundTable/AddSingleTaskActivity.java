@@ -121,13 +121,13 @@ public class AddSingleTaskActivity extends Activity {
         	mTask = (Task)mBundle.get("task");
         	Iterator<Task> irr = mTasks.iterator();
         	while (irr.hasNext()) {
-        	    Task nextTask = irr.next();
-        	    if(nextTask.getId() == mTask.getId()) {
-        	    	irr.remove();
-        	    }
+        		Task nextTask = irr.next();
+        		if((nextTask.getId() == mTask.getId()) || (nextTask.getDueDate() == null)) {
+        			irr.remove();
+        		}
         	}
         	mEdTitle.setText(mTask.getName());
-        	mTxCreateUnder.setText(mBundle.getString("projname"));
+        	mTxCreateUnder.setText(mProj.getName());
         	mEdRemarks.setText(mTask.getNote());
         	mTaskDue = mTask.getDueDate();
         	if(mTaskDue == null) {
