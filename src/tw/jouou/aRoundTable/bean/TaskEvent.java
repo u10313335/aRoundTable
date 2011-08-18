@@ -38,10 +38,10 @@ public class TaskEvent implements Serializable {
 	public String getDue() {
 		String date;
 		if(type==0) {
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+			SimpleDateFormat formatter = new SimpleDateFormat("MM/dd");
 			date = formatter.format(due);
 		} else {
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+			SimpleDateFormat formatter = new SimpleDateFormat("MM/dd HH:mm");
 			date = formatter.format(due);
 		}
 		return date;
