@@ -450,20 +450,31 @@ public class MainActivity extends Activity {
 		}
 		return Math.round((dueCal.getTime().getTime()-todayCal.getTime().getTime()) /DAY);
 	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if(requestCode == REQUEST_CREATE_PROJECT && resultCode == RESULT_OK) {
+			Log.v(TAG, "got result");
+			long projectId = data.getLongExtra(Constants.INTENT_EXTRA_NEW_PROJECT_ID, -1);
+			Log.v(TAG, "it is:"+projectId);
+		}
+	}
 
     // FIXME: duplicate notification after registration
     protected void onNewIntent(Intent intent) {
     	super.onNewIntent(intent);
 	 	Uri uri = intent.getData();
-	 	token = uri.getQueryParameter("");
-	    User user = new User(token);
-	    if (dbUtils == null) {
-			dbUtils = new DBUtils(this);
-		}
-		dbUtils.userDelegate.insert(user);
-		dbUtils.close();
-		Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
-	    Log.v(TAG, "[onNewIntent] Token back: "+token);
+	 	if(uri != null) {
+		 	token = uri.getQueryParameter("");
+		    User user = new User(token);
+		    if (dbUtils == null) {
+				dbUtils = new DBUtils(this);
+			}
+			dbUtils.userDelegate.insert(user);
+			dbUtils.close();
+			Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
+		    Log.v(TAG, "[onNewIntent] Token back: "+token);
+	 	}
 	}
     
     @Override
@@ -476,6 +487,9 @@ public class MainActivity extends Activity {
     	if(!users.isEmpty()){
     		update();
     	}
+    	
+    	//XXX: This is UNSAFE!!! project list is sorted by alphabet order
+    	viewFlow.setSelection(position);
     }
     
 	@Override
