@@ -1,12 +1,12 @@
 package tw.jouou.aRoundTable.util;
 
+import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import android.content.ContentValues;
@@ -50,7 +50,10 @@ public class DBUtils extends SQLiteOpenHelper {
 	public final static String FIELD_EVENT_SERVERID = "server_id";
 	public final static String FIELD_EVENT_START = "start_at";
 	public final static String FIELD_EVENT_END = "end_at";
+	public final static String FIELD_EVENT_LOCATION = "location";
 	public final static String FIELD_EVENT_NOTE = "note";
+	
+	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
@@ -80,6 +83,7 @@ public class DBUtils extends SQLiteOpenHelper {
 				+ FIELD_EVENT_SERVERID + " INTEGER, "
 				+ FIELD_EVENT_START + " DATETIME, "
 				+ FIELD_EVENT_END + " DATETIME, "
+				+ FIELD_EVENT_LOCATION + " TEXT, "
 				+ FIELD_EVENT_NOTE + " TEXT )");
 	}
 
@@ -103,7 +107,8 @@ public class DBUtils extends SQLiteOpenHelper {
 	
 	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
-	public TaskEventDelegate taskeventsDelegate = new TaskEventDelegate();
+	public TaskDelegate tasksDelegate = new TaskDelegate();
+	public EventDelegate eventsDelegate = new EventDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -175,11 +180,9 @@ public class DBUtils extends SQLiteOpenHelper {
 	
 		public List<Project> get() {
 			List<Project> projs = new LinkedList<Project>();
-		
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_PROJECTS, null, null, null, null, null,
 					FIELD_PROJECTS_ID + " DESC");
-
 			while (c.moveToNext()) {
 				Project proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECTS_ID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECTS_NAME)),
@@ -194,7 +197,6 @@ public class DBUtils extends SQLiteOpenHelper {
 		
 		public Project get(long projId) {
 			Project proj = null;
-		
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_PROJECTS, null, "_id=" + projId, null, null, null, null);
 			while (c.moveToNext()) {
@@ -209,78 +211,201 @@ public class DBUtils extends SQLiteOpenHelper {
 		}
 	}
 	
-	public class TaskEventDelegate {
-		public void delete(Task taskevent) {
-			if (taskevent.getId() < 0)
+	public class TaskDelegate {
+		public void delete(Task task) {
+			if (task.getId() < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_TASK, "_id = ?", new String[] { String
-					.valueOf(taskevent.getId()) });
+					.valueOf(task.getId()) });
 			db.close();
 		}
 		
-		public void update(Task taskevent) {
+		public void update(Task task) {
 			SQLiteDatabase db = getReadableDatabase();
-			ContentValues values = taskevent.getValues();
+			ContentValues values = task.getValues();
 			db.update(TABLE_TASK, values, "_id = ?", new String[] { String
-					.valueOf(taskevent.getId()) });
+					.valueOf(task.getId()) });
 			db.close();
 		}
 	
-		public long insert(Task taskevent) {
+		public long insert(Task task) {
 			SQLiteDatabase db = getWritableDatabase();
-			long id = db.insert(TABLE_TASK, null, taskevent.getValues());
+			long id = db.insert(TABLE_TASK, null, task.getValues());
 			db.close();
 			return id;
 		}
 	
 		public List<Task> get(long projId) throws ParseException {
-			List<Task> taskevents = new LinkedList<Task>();
-			
+			List<Task> tasks = new LinkedList<Task>();
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASK, null,
+			//c1:select normal tasks ; c2:select undetermined tasks
+			Cursor c1 = db.query(TABLE_TASK, null,
 					"project_id=" + projId + " and finish=0 and due>= Datetime('now','localtime')",
 					null, null, null,
 					"due ASC", null);
-			
-			while (c.moveToNext()) {
-				Task taskevent = new Task(c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_ID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_DUEDATE)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-						c.getInt(c.getColumnIndexOrThrow(FIELD_TASK_FINISHED)));
-				taskevents.add(taskevent);
+			Cursor c2 = db.query(TABLE_TASK, null,
+					"project_id=" + projId + " and finish=0 and due=''",
+					null, null, null, null, null);
+			while (c1.moveToNext()) {
+				Task task = new Task(c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
+							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
+							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+							c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_FINISHED)));
+				tasks.add(task);
 			}
-			c.close();
+			c1.close();
+			while (c2.moveToNext()) {
+				Task task = new Task(c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
+							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+							null,
+							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+							c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_FINISHED)));
+				tasks.add(task);
+			}
+			c2.close();
 			db.close();
-			return taskevents;
+			return tasks;
 		}
 		
 		public List<Task> get() throws ParseException {
-			List<Task> taskevents = new LinkedList<Task>();
-		
+			List<Task> tasks = new LinkedList<Task>();
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASK, null, "finish=0 and due>= Datetime('now','localtime')", null, null, null,
+			Cursor c1 = db.query(TABLE_TASK, null, "finish=0 and due>= Datetime('now','localtime')", null, null, null,
 					"due ASC", null);
-			
-			while (c.moveToNext()) {
-				Task taskevent = new Task(c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_ID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_DUEDATE)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-						c.getInt(c.getColumnIndexOrThrow(FIELD_TASK_FINISHED)));
-				taskevents.add(taskevent);
+			Cursor c2 = db.query(TABLE_TASK, null, "finish=0 and due=''",
+					null, null, null, null, null);
+			while (c1.moveToNext()) {
+				Task task = new Task(c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
+							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
+							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+							c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_FINISHED)));
+				tasks.add(task);
 			}
-
-			c.close();
+			c1.close();
+			while (c2.moveToNext()) {
+				Task task = new Task(c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
+							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+							null,
+							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+							c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_FINISHED)));
+				tasks.add(task);
+			}
+			c2.close();
 			db.close();
-			return taskevents;
+			return tasks;
 		}
 	}
+
+
+	public class EventDelegate {
+		public void delete(Event event) {
+			if (event.getId() < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_EVENT, "_id = ?", new String[] { String
+					.valueOf(event.getId()) });
+			db.close();
+		}
+		
+		public void update(Event event) {
+			SQLiteDatabase db = getReadableDatabase();
+			ContentValues values = event.getValues();
+			db.update(TABLE_EVENT, values, "_id = ?", new String[] { String
+					.valueOf(event.getId()) });
+			db.close();
+		}
 	
+		public long insert(Event event) {
+			SQLiteDatabase db = getWritableDatabase();
+			long id = db.insert(TABLE_EVENT, null, event.getValues());
+			db.close();
+			return id;
+		}
+	
+		public List<Event> get(long projId) throws ParseException {
+			List<Event> events = new LinkedList<Event>();
+			
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c1 = db.query(TABLE_EVENT, null,
+					"project_id=" + projId + " and start_at>= Datetime('now','localtime')",
+					null, null, null,
+					"due ASC", null);
+			Cursor c2 = db.query(TABLE_EVENT, null,
+					"project_id=" + projId + " and start_at=''",
+					null, null, null ,null, null);			
+			while (c1.moveToNext()) {
+				Event event = new Event(c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_START))),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_END))),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NOTE)));
+				events.add(event);
+			}
+			c1.close();
+			while (c2.moveToNext()) {
+				Event event = new Event(c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
+						null,null,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NOTE)));
+				events.add(event);
+			}
+			c2.close();
+			db.close();
+			return events;
+		}
+		
+		public List<Event> get() throws ParseException {
+			List<Event> events = new LinkedList<Event>();
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c1 = db.query(TABLE_EVENT, null, " and start_at>= Datetime('now','localtime')", null, null, null,
+					"due ASC", null);
+			Cursor c2 = db.query(TABLE_EVENT, null, " and start_at=''", null, null, null,
+					"due ASC", null);
+			while (c1.moveToNext()) {
+				Event event = new Event(c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_START))),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_END))),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NOTE)));
+				events.add(event);
+			}
+			c1.close();
+			while (c2.moveToNext()) {
+				Event event = new Event(c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
+						formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_START))),
+						formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_END))),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NOTE)));
+				events.add(event);
+			}
+			c2.close();
+			db.close();
+			return events;
+		}
+	}
 
 }

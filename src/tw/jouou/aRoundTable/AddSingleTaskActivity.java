@@ -24,7 +24,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -105,13 +104,13 @@ public class AddSingleTaskActivity extends Activity {
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
         try {
-    		mTasks = dbUtils.taskeventsDelegate.get(mProj.getId());
+    		mTasks = dbUtils.tasksDelegate.get(mProj.getId());
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse error");
 		}
-        if (mBundle.getInt("type") == 0) {
+        if (mBundle.getInt("addOrEdit") == 0) {
             mProjName = mProj.getName();
             mProjId = mProj.getId();
             mTxCreateUnder.setText(mProjName);
@@ -130,7 +129,7 @@ public class AddSingleTaskActivity extends Activity {
         	mEdTitle.setText(mTask.getName());
         	mTxCreateUnder.setText(mBundle.getString("projname"));
         	mEdRemarks.setText(mTask.getNote());
-        	mTaskDue = mTask.getDue();
+        	mTaskDue = mTask.getDueDate();
         	if(mTaskDue == null) {
         		findUndeterminedView();
         	} else {
@@ -173,14 +172,14 @@ public class AddSingleTaskActivity extends Activity {
         	@Override
       	  	public void onClick(View v) {
         		switch(mDueType) {       		
-        			case 0:
+        			case ASSIGN_DAY_PANEL:
         				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(), 
         							mBtnDatePicker.getText().toString(),
         							mEdRemarks.getText().toString());
         				break;
-        			case 1:
+        			case DEPENDENCY_PANEL:
         				break;
-        			case 2:
+        			case UNDETERMINED_PANEL:
         				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
         							"", mEdRemarks.getText().toString());
         				break;
@@ -411,13 +410,22 @@ public class AddSingleTaskActivity extends Activity {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
-		    	if (mBundle.getInt("type") == 0) {
-		    		mTask = new Task(mProjId, params[0], params[1], params[2], 0);
-					mTask.setId(dbUtils.taskeventsDelegate.insert(mTask));
+		    	if (mBundle.getInt("addOrEdit") == 0) {
+		    		if (!params[1].equals("")) {
+		    			mTask = new Task(mProjId, params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    		} else {
+		    			mTask = new Task(mProjId, params[0], null, params[2], 0);
+		    		}
+					mTask.setId(dbUtils.tasksDelegate.insert(mTask));
 		    	} else {
-		    		Task task = new Task(mTask.getId(), mTask.getProjId(),
-		    				mTask.getServerId(), params[0], params[1], params[2], 0);
-		    		dbUtils.taskeventsDelegate.update(task);
+		    		if (!params[1].equals("")) {
+		    			mTask = new Task(mTask.getId(), mTask.getProjId(),
+			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    		} else {
+		    			mTask = new Task(mTask.getId(), mTask.getProjId(),
+		    				mTask.getServerId(), params[0], null, params[2], 0);
+		    		}
+		    		dbUtils.tasksDelegate.update(mTask);
 		    	}
 				dbUtils.close();
 				/*return ArtApi.getInstance(AddSingleTaskActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr.parse(params[1]), params[2]);
@@ -449,7 +457,7 @@ public class AddSingleTaskActivity extends Activity {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
 		    	mTask.setServerId(taskeventId);
-				dbUtils.taskeventsDelegate.update(mTask);
+				dbUtils.tasksDelegate.update(mTask);
 				dbUtils.close();
 			}else {
 				hasNetwork = false;

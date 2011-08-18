@@ -3,7 +3,6 @@ package tw.jouou.aRoundTable.bean;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.json.JSONException;
@@ -23,33 +22,34 @@ public class Task implements Serializable {
 	private String note;
 	private int done;
 	
-	public Task(long id, long projId, long serverId, String name, String due,
+	public Task(long id, long projId, long serverId, String name, Date due,
 			String note, int done) throws ParseException {
 		this.id = id;
 		this.projId = projId;
 		this.serverId = serverId;
 		this.name = name;
-		if(due.equals("")) {
+		/*if(due.equals("")) {
 			this.due = null;
 		} else {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			this.due = sdf.parse(due);
-		}
-
+		}*/
+		this.due = due;
 		this.note = note;
 		this.done = done;
 	}
 	
-	public Task(long projId, String name, String due,
+	public Task(long projId, String name, Date due,
 			String note, int done) throws ParseException {
 		this.projId = projId;
 		this.name = name;
-		if(due.equals("")) {
+		/*if(due.equals("")) {
 			this.due = null;
 		} else {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/ddE");
 			this.due = sdf.parse(due);
-		}
+		}*/
+		this.due = due;
 		this.note = note;
 		this.done = done;
 	}
@@ -78,7 +78,12 @@ public class Task implements Serializable {
 		return name;
 	}
 	
-	public Date getDue() {
+	public String getDue() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+		return formatter.format(due);
+	}
+	
+	public Date getDueDate() {
 		return due;
 	}
 	

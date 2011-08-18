@@ -103,13 +103,13 @@ public class AddBatchTaskActivity extends Activity {
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
         try {
-    		mTasks = dbUtils.taskeventsDelegate.get(mProj.getId());
+    		mTasks = dbUtils.tasksDelegate.get(mProj.getId());
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse error");
 		}
-        if (mBundle.getInt("type") == 0) {
+        if (mBundle.getInt("addOrEdit") == 0) {
             mProjName = mProj.getName();
             mProjId = mProj.getId();
             mTxCreateUnder.setText(mProjName);
@@ -127,7 +127,7 @@ public class AddBatchTaskActivity extends Activity {
         	}
         	mTxCreateUnder.setText(mBundle.getString("projname"));
         	mEdRemarks.setText(mTask.getNote());
-        	mTaskDue = mTask.getDue();
+        	mTaskDue = mTask.getDueDate();
         	if(mTaskDue == null) {
         		findUndeterminedView();
         	} else {
@@ -431,13 +431,13 @@ public class AddBatchTaskActivity extends Activity {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddBatchTaskActivity.this);
 		    	}
-		    	if (mBundle.getInt("type") == 0) {
-		    		mTask = new Task(mProjId, params[0], params[1], params[2], 0);
-					mTask.setId(dbUtils.taskeventsDelegate.insert(mTask));
+		    	if (mBundle.getInt("addOrEdit") == 0) {
+		    		mTask = new Task(mProjId, params[0], mStrToDate.parse(params[1]), params[2], 0);
+					mTask.setId(dbUtils.tasksDelegate.insert(mTask));
 		    	} else {
 		    		Task task = new Task(mTask.getId(), mTask.getProjId(),
-		    				mTask.getServerId(), params[0], params[1], params[2], 0);
-		    		dbUtils.taskeventsDelegate.update(task);
+		    				mTask.getServerId(), params[0], mStrToDate.parse(params[1]), params[2], 0);
+		    		dbUtils.tasksDelegate.update(task);
 		    	}
 				dbUtils.close();
 				/*return ArtApi.getInstance(AddBatchTaskActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr.parse(params[1]), params[2]);
@@ -469,7 +469,7 @@ public class AddBatchTaskActivity extends Activity {
 		    		dbUtils = new DBUtils(AddBatchTaskActivity.this);
 		    	}
 		    	mTask.setServerId(taskeventId);
-				dbUtils.taskeventsDelegate.update(mTask);
+				dbUtils.tasksDelegate.update(mTask);
 				dbUtils.close();
 			}else {
 				hasNetwork = false;

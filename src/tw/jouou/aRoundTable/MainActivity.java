@@ -132,7 +132,7 @@ public class MainActivity extends Activity {
     		lists[1] = inflater.inflate(R.layout.all_item_list, null);
     		try {
     			List<Task> taskevents;
-        		taskevents = dbUtils.taskeventsDelegate.get();
+        		taskevents = dbUtils.tasksDelegate.get();
         		mAllTasks.add(taskevents);
         		formNotification(lists[0]);
         		formAllItemList(lists[1],taskevents);
@@ -174,6 +174,7 @@ public class MainActivity extends Activity {
     
     private void formNotification(View v) {
     	ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>> ();
+    	//TODO:dummy test data, remove them ASAP
     	String[] notifications = new String[]{"小羽完成了「OR PPT」",
     			"小熊完成了「FI訪談問題」",
     			"洞洞更改了「SA PPT」時間"};
@@ -196,7 +197,6 @@ public class MainActivity extends Activity {
     
     // form all task/event list
     private void formAllItemList(View v, List<Task> taskevents) {
-    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     	ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
     	CheckBox itemDone = null;
 		ListView allItemListView = (ListView) v.findViewById(R.id.all_item_list);
@@ -205,7 +205,7 @@ public class MainActivity extends Activity {
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
 		
 	    for (int i=0; i < taskevents.size(); i++) {
-	    	Date due = taskevents.get(i).getDue();
+	    	Date due = taskevents.get(i).getDueDate();
 	    	Project proj = dbUtils.projectsDelegate.get((int)taskevents.get(i).getProjId());
 	    	HashMap< String, Object > item = new HashMap< String, Object >();
 	    	item.put("checkDone", itemDone);
@@ -225,7 +225,7 @@ public class MainActivity extends Activity {
 	    		} else {
 	    			item.put("today", false);
 	    		}
-	    		item.put("dueDate", formatter.format(due));
+	    		item.put("dueDate", taskevents.get(i).getDue());
 	    	}
 	    	item.put("color", proj.getColor());
 	    	items.add(item);
@@ -266,7 +266,8 @@ public class MainActivity extends Activity {
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
 						Intent additem_intent= new Intent();
-		    	    	additem_intent.putExtra("type", 0); // 0 add, 1 edit
+		    	    	additem_intent.putExtra("addOrEdit", 0); // 0 add, 1 edit
+		    	    	additem_intent.putExtra("type", 0); // 0 task, 1 event
 		    	    	additem_intent.putExtra("proj", projs.get(which));
 		    	    	additem_intent.setClass(MainActivity.this, AddItemActivity.class);
 		    			startActivity(additem_intent);
@@ -289,11 +290,10 @@ public class MainActivity extends Activity {
     // form task/event list belongs to specific project
 	private void formProjLists(View v, Project p){
 		final Project proj = p;
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
 		List<Task> taskevents = null;
     	try {
-    		taskevents = dbUtils.taskeventsDelegate.get(proj.getId());
+    		taskevents = dbUtils.tasksDelegate.get(proj.getId());
     		mAllTasks.add(taskevents);
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
@@ -310,7 +310,7 @@ public class MainActivity extends Activity {
 		ImageView btnChart = (ImageView) v.findViewById(R.id.proj_chart);	
 
 	    for (int i=0; i < taskevents.size(); i++) {
-	    	Date due = taskevents.get(i).getDue();
+	    	Date due = taskevents.get(i).getDueDate();
 	    	HashMap< String, Object > item = new HashMap< String, Object >();
 	    	item.put("checkDone", chkBoxItemDone);
 	    	item.put("itemName", taskevents.get(i).getName());
@@ -328,7 +328,7 @@ public class MainActivity extends Activity {
     			} else {
     				item.put("today", false);
     			}
-    			item.put("dueDate", formatter.format(due));
+    			item.put("dueDate", taskevents.get(i).getDue());
     		}
 	    	item.put("color", proj.getColor());
 	    	items.add(item);
@@ -364,7 +364,8 @@ public class MainActivity extends Activity {
     	    @Override
     	    public void onClick(View arg0) {
     	    	Intent additem_intent= new Intent();
-    	    	additem_intent.putExtra("type", 0); // 0 add, 1 edit
+    	    	additem_intent.putExtra("addOrEdit", 0); // 0 add, 1 edit
+    	    	additem_intent.putExtra("type", 0); // 0 task, 1 event
     	    	additem_intent.putExtra("proj", proj);
     	    	additem_intent.setClass(MainActivity.this, AddItemActivity.class);
     			startActivity(additem_intent);
@@ -392,7 +393,7 @@ public class MainActivity extends Activity {
         		task = ((List<Task>) mAllTasks.get(position)).get(menuInfo.position);
         		Intent additem_intent= new Intent();
         		additem_intent.setClass(MainActivity.this, AddItemActivity.class);
-        		additem_intent.putExtra("type", 1);
+        		additem_intent.putExtra("addOrEdit", 1);
         		additem_intent.putExtra("task", task);
         		additem_intent.putExtra("proj", dbUtils.projectsDelegate.get(task.getProjId()));
     			startActivity(additem_intent);
@@ -400,7 +401,7 @@ public class MainActivity extends Activity {
         	case MENU_DeleteItem:
         		Log.v(TAG, "position: "+position+", menupo: "+menuInfo.position);
         		task = ((List<Task>) mAllTasks.get(position)).get(menuInfo.position);
-        		dbUtils.taskeventsDelegate.delete(task);
+        		dbUtils.tasksDelegate.delete(task);
         		MainActivity.this.update();
         }
     	return super.onContextItemSelected(item); 
@@ -540,7 +541,7 @@ public class MainActivity extends Activity {
 				  Task task = ((List<Task>) mAllTasks.get(MainActivity.this.position))
 							  .get(position);
 				  task.setDone(1);
-				  dbUtils.taskeventsDelegate.update(task);
+				  dbUtils.tasksDelegate.update(task);
 				  update();
 			  }
 		  });
