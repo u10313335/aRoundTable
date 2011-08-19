@@ -1,7 +1,6 @@
 package tw.jouou.aRoundTable;
 
 
-import java.io.IOException;
 import java.util.LinkedList;
 
 import tw.jouou.aRoundTable.bean.Project;
@@ -118,12 +117,11 @@ public class CreateProjectActivity extends Activity {
 				proj = new Project(params[0], Integer.parseInt(params[1]));
 				proj.setId(dbUtils.projectsDelegate.insert(proj));
 				dbUtils.close();
-				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0]);
+				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
 			} catch (ServerException e) {
 				exception = e;				
 				e.printStackTrace();
 			} catch (ConnectionFailException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return null;
@@ -138,7 +136,6 @@ public class CreateProjectActivity extends Activity {
 				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
-			// TODO:need more specific disconnection exception
 			if((projectId != null) && (projectId != -1)) {
 		    	if(dbUtils == null) {
 		    		dbUtils = new DBUtils(CreateProjectActivity.this);

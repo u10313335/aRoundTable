@@ -39,7 +39,7 @@ public class ArtApi {
 	private static final String baseURL = "http://api.hime.loli.tw";
 	private static final String projectsPath = "/projects";	
 	private static final String addMemberPath = "/projects/%d/users";
-	private static final String taskeventPath = "/taskevents/%d";
+	private static final String taskPath = "/tasks/%d";
 	private static final String notificationsPath = "/projects/%d/notifications";
 	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
 	
@@ -128,25 +128,25 @@ public class ArtApi {
 	} 
 	
 	/**
-	 * Create a new task or event
+	 * Create a new task
 	 * @param projectId project belongs to
 	 * @param type 0: task 1: event
 	 * @param name
 	 * @param due
 	 * @param note
-	 * @return newly created taskevent id
+	 * @return newly created task id
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public int createTaskevent(long projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
+	public int createTask(long projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
-		params.put("taskevent[name]", name);
-		params.put("taskevent[type]", String.valueOf(type));
-		params.put("taskevent[due]", due.toString());
-		params.put("taskevent[note]", note);
+		params.put("task[name]", name);
+		params.put("task[type]", String.valueOf(type));
+		params.put("task[due]", due.toString());
+		params.put("task[note]", note);
 		
-		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/taskevents", params);
+		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
 		try{
 			JSONObject projectJson = extractJsonObject(response);
 			return projectJson.getInt("id");
@@ -156,23 +156,23 @@ public class ArtApi {
 	}
 	
 	/**
-	 * Update taskevent attributes	
-	 * @param taskeventId
+	 * Update task attributes	
+	 * @param taskId
 	 * @param name
 	 * @param due
 	 * @param note
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public void updatTaskEvent(int taskeventId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
+	public void updateTask(int taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
-		params.put("taskevent[name]", name);
-		params.put("taskevent[due]", due.toString());
-		params.put("taskevent[note]", note);
-		params.put("taskevent[finished]", (finished)? "1" : "0");
+		params.put("task[name]", name);
+		params.put("task[due]", due.toString());
+		params.put("task[note]", note);
+		params.put("task[finished]", (finished)? "1" : "0");
 		
-		performGet(String.format(taskeventPath, taskeventId), params);
+		performGet(String.format(taskPath, taskId), params);
 	}
 	
 	/**
@@ -183,7 +183,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public int[] getDependencies(int taskeventId) throws ServerException, ConnectionFailException{
-		HttpResponse response = performGet(String.format(taskeventPath, taskeventId), makeTokenHash());
+		HttpResponse response = performGet(String.format(taskPath, taskeventId), makeTokenHash());
 		try {
 			JSONArray jsonArray = extractJsonObject(response).getJSONArray("dependency_ids");
 			int dependencies[] = new int[jsonArray.length()];
@@ -208,24 +208,26 @@ public class ArtApi {
 		for(int id: dependencies){
 			params.put("dependency_id[]", Integer.toString(id));
 		}
-		performGet(String.format(taskeventPath, taskeventId), params);
+		performGet(String.format(taskPath, taskeventId), params);
 		
 		// Update duration, which is part of update API
 		params = makeTokenHash();
-		params.put("taskevent[duration]", Integer.toString(duration));
-		performPost(String.format(taskeventPath, taskeventId), params);
+		params.put("task[duration]", Integer.toString(duration));
+		performPost(String.format(taskPath, taskeventId), params);
 	}
 	
 	/**
 	 * Create a new project with current user
 	 * @param name Name of new project
+	 * @param color Color of new project
 	 * @return new project's id
 	 * @throws ServerException 
 	 * @throws ConnectionFailException 
 	 */
-	public int createProject(String name) throws ServerException, ConnectionFailException{
+	public int createProject(String name, String color) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		params.put("project[name]", name);
+		params.put("project[color]", color);
 		
 		HttpResponse response =  performPost(projectsPath, params);
 		try{
