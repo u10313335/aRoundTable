@@ -110,46 +110,38 @@ public class CreateProjectActivity extends Activity {
 		
 		@Override
 		protected Integer doInBackground(String... params) {
-			try {	
-		    	if (dbUtils == null) {
-		    		dbUtils = new DBUtils(CreateProjectActivity.this);
-		    	}
-				proj = new Project(params[0], Integer.parseInt(params[1]));
-				proj.setId(dbUtils.projectsDelegate.insert(proj));
-				dbUtils.close();
-				return ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
+			try {
+		    	int serverId = ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
+		    	dbUtils = new DBUtils(CreateProjectActivity.this);
+		    	proj = new Project(params[0], Integer.parseInt(params[1]));
+		    	proj.setId(dbUtils.projectsDelegate.insert(proj));
+		    	return serverId;
 			} catch (ServerException e) {
-				exception = e;				
-				e.printStackTrace();
+				exception = e;
 			} catch (ConnectionFailException e) {
-				e.printStackTrace();
+				exception = e;
 			}
 			return null;
 		}
 		
 		@Override
-        protected void onPostExecute(Integer projectId) {
+        protected void onPostExecute(Integer serverId) {
 			dialog.dismiss();
-			boolean hasNetwork = true;
-			
 			if(exception instanceof ServerException) {
 				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
-			if((projectId != null) && (projectId != -1)) {
-		    	if(dbUtils == null) {
-		    		dbUtils = new DBUtils(CreateProjectActivity.this);
-		    	}
-				proj.setServerId(projectId);
-				dbUtils.projectsDelegate.update(proj);
-				dbUtils.close();
-			}else {
-				hasNetwork = false;
+			if(exception instanceof ConnectionFailException) {
+				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				return;
 			}
-			
+			if((serverId != null) && (serverId != -1)) {
+				proj.setServerId(serverId);
+				dbUtils.projectsDelegate.update(proj);
+			}
+			dbUtils.close();
 			Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
 			intent.putExtra("projname", edTxtProjname.getText().toString());
-			intent.putExtra("networkstatus", hasNetwork);
 			startActivity(intent);
 		}
 	}

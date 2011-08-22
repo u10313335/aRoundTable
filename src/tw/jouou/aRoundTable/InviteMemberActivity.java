@@ -24,7 +24,7 @@ public class InviteMemberActivity extends Activity {
 	
 	private Bundle bundle;
 	private String projname;
-	private boolean networkStatus;
+	//private boolean networkStatus;
 	private static String TAG = "InviteMemberActivity";
 	private String[] member_names = new String[]{"jack","michruo","albb","sol","bearRu"};
 	private AutoCompleteTextView member_email;
@@ -43,7 +43,7 @@ public class InviteMemberActivity extends Activity {
         
         bundle = this.getIntent().getExtras();
         projname = bundle.getString("projname");
-        networkStatus = bundle.getBoolean("networkstatus");
+        //networkStatus = bundle.getBoolean("networkstatus");
         projname_display.setText("Project name:"+projname);
         
         ArrayAdapter<String> contactsname = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,member_names);
@@ -71,9 +71,9 @@ public class InviteMemberActivity extends Activity {
     		}
         });
     	
-    	if(!networkStatus) {
+    	/*if(!networkStatus) {
 			Toast.makeText(InviteMemberActivity.this, getString(R.string.internet_connection_problem), Toast.LENGTH_LONG).show();
-    	}
+    	}*/
     }
 
 	private void findViews() {
