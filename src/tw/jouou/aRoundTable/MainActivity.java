@@ -379,7 +379,9 @@ public class MainActivity extends Activity {
 		btnContacts.setOnClickListener(new OnClickListener() {
     	    @Override
     	    public void onClick(View arg0) {
-    	    	// TODO:insert contacts activity here
+    	    	Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
+    	    	intent.putExtra("proj", proj);
+    	    	startActivity(intent);
     	    }
     	});
 		btnChart.setOnClickListener(new OnClickListener() {
@@ -478,10 +480,10 @@ public class MainActivity extends Activity {
 		users = dbUtils.userDelegate.get();
     	if(!users.isEmpty()){
     		update();
+    		
+        	if(viewFlow != null)
+        		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by alphabet order
     	}
-    	
-    	//XXX: This is UNSAFE!!! project list is sorted by alphabet order
-    	viewFlow.setSelection(position);
     }
     
 	@Override

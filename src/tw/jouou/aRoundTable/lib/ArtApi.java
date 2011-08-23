@@ -298,14 +298,14 @@ public class ArtApi {
 	 * @throws ConnectionFailException 
 	 * @throws ServerException 
 	 */
-	public JoinStatus[] addMember(int projectId, String emails[]) throws ServerException, ConnectionFailException{
+	public JoinStatus[] addMember(long projectId, String emails[]) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash(); 
 		
 		for(int i=0; i< emails.length; i++){
 			params.put("email["+i+"]", emails[i]);
 		}
 		
-		HttpResponse response = performPost(baseURL + String.format(addMemberPath, projectId), params);
+		HttpResponse response = performPost(String.format(addMemberPath, projectId), params);
 		
 		try {
 			
@@ -469,6 +469,7 @@ public class ArtApi {
 			else
 				return response;
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new ConnectionFailException();
 		}
 	}
