@@ -3,8 +3,15 @@ package tw.jouou.aRoundTable;
 
 import java.util.ArrayList;
 
+import tw.jouou.aRoundTable.bean.Project;
+import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
+import tw.jouou.aRoundTable.lib.ArtApi.JoinStatus;
+import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,6 +19,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.Contacts;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -21,15 +29,24 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class InviteMemberActivity extends Activity implements OnClickListener {
+	private Project project;
 	private AutoCompleteTextView email_field;
 	private ArrayAdapter<String> arrayAdapter;
 	private ArrayList<String> emailsToInvite;
 	private static final int REQUEST_PICK_EMAIL = 1;
+	private static final String TAG = "InviteMemberActivity";
 
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        if((project = (Project) getIntent().getExtras().get("proj")) == null){
+        	Log.e(TAG, "No project specified, exiting...");
+        	finish();
+        }
+        
         setContentView(R.layout.invite_member);
         
         ListView inviteQueue = (ListView) findViewById(R.id.listview_invite_queue);
@@ -61,7 +78,9 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 			startActivityForResult(new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI), REQUEST_PICK_EMAIL);
 			break;
 		case R.id.actbtn_finish:
-			(new AddMenbersTask()).execute((String[]) emailsToInvite.toArray());
+			String[] emails = new String[emailsToInvite.size()];
+			emailsToInvite.toArray(emails);
+			(new AddMenbersTask()).execute(emails);
 			break;
 		}
 	}
@@ -134,11 +153,61 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 		}
 	}
 	
-	private class AddMenbersTask extends AsyncTask<String, Void, Void>{
+	private class AddMenbersTask extends AsyncTask<String, Void, JoinStatus[]>{
+		private ProgressDialog dialog;
+		private Exception exception;
+		
 		@Override
-		protected Void doInBackground(String... emails) {
-			//ArtApi.getInstance(InviteMemberActivity.this).addMember(projectId, emails)
+		protected void onPreExecute() {
+			dialog = new ProgressDialog(InviteMemberActivity.this);
+			dialog.setMessage(getString(R.string.processing));
+			dialog.show();
+		}
+		
+		@Override
+		protected JoinStatus[] doInBackground(String... emails) {
+			try {
+				return ArtApi.getInstance(InviteMemberActivity.this).addMember(project.getServerId(), emails);
+			} catch (ServerException e) {
+				exception = e;
+			} catch (ConnectionFailException e) {
+				exception = e;
+			}
 			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(JoinStatus[] joinStatus){
+			dialog.dismiss();
+			
+			if(exception != null){
+				if(exception instanceof ServerException){
+					Toast.makeText(InviteMemberActivity.this, "Server exception: "+exception.getMessage(), Toast.LENGTH_SHORT).show();
+				}else if(exception instanceof ConnectionFailException){
+					Toast.makeText(InviteMemberActivity.this, "Network failed, please try later", Toast.LENGTH_SHORT).show();
+					exception.printStackTrace();
+				}
+				return;
+			}
+			
+			//TODO: Better join status display
+			int success=0, invited=0, failed=0;
+			for(JoinStatus j : joinStatus){
+				switch(j){
+				case SUCCESS:
+					success++;
+					break;
+				case INVITED:
+					invited++;
+					break;
+				case FAILED:
+					failed++;
+					break;
+				}
+			}
+			
+			Toast.makeText(InviteMemberActivity.this, "success:"+success+", invited:"+invited+"failed: "+failed, Toast.LENGTH_SHORT).show();
+			finish();
 		}
 	}
 }
