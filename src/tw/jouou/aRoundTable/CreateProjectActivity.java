@@ -130,10 +130,12 @@ public class CreateProjectActivity extends Activity {
 		@Override
         protected void onPostExecute(Integer projectId) {
 			dialog.dismiss();
-			boolean hasNetwork = true;
 			
 			if(exception instanceof ServerException) {
 				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				return;
+			}else if(exception instanceof ConnectionFailException){
+				Toast.makeText(CreateProjectActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
 				return;
 			}
 			if((projectId != null) && (projectId != -1)) {
@@ -143,14 +145,11 @@ public class CreateProjectActivity extends Activity {
 				proj.setServerId(projectId);
 				dbUtils.projectsDelegate.update(proj);
 				dbUtils.close();
-			}else {
-				hasNetwork = false;
+				
+				Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
+				intent.putExtra("proj", proj);
+				startActivity(intent);
 			}
-			
-			Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
-			intent.putExtra("projname", edTxtProjname.getText().toString());
-			intent.putExtra("networkstatus", hasNetwork);
-			startActivity(intent);
 		}
 	}
 }
