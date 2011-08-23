@@ -3,6 +3,8 @@ package tw.jouou.aRoundTable;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Task;
+import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
@@ -184,7 +186,7 @@ public class AddEventActivity extends Activity {
       	  	public void onClick(View v) {
         		switch(mDueType) {       		
         			case ASSIGN_TIME_PANEL:
-        				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
+        				(new CreateEventTask()).execute(mEdTitle.getText().toString(),
         						mBtnFromDatePicker.getText().toString() + " " +
         						mBtnFromTimePicker.getText().toString(),
         						mBtnToDatePicker.getText().toString() + " " +
@@ -196,7 +198,7 @@ public class AddEventActivity extends Activity {
         				// TODO:temporary disable dependency for event
         				break;
         			case UNDETERMINED_PANEL:
-        				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
+        				(new CreateEventTask()).execute(mEdTitle.getText().toString(),
         						"", "", mEdLocation.getText().toString(), mEdRemarks.getText().toString());
         				break;
         		}
@@ -410,8 +412,8 @@ public class AddEventActivity extends Activity {
     	mBtnCancel = (Button)findViewById(R.id.event_additem_cancel);
     }
    
-  	// not tested after add new features
-  	private class CreateItemEventTask extends AsyncTask<String, Void, Integer> {
+
+  	private class CreateEventTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;
 		private Exception exception;
 		
@@ -430,13 +432,19 @@ public class AddEventActivity extends Activity {
 		    	}
 		    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		    	if (mBundle.getInt("addOrEdit") == 0) {
+		    		int serverId;
 		    		if (!params[1].equals("")) {
+		    			serverId = ArtApi.getInstance(AddEventActivity.this)
+						.createEvent(mProjId, params[0], formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4] );
 		    			mEvent = new Event(mProjId, params[0], formatter.parse(params[1]),
 		    					formatter.parse(params[2]), params[3], params[4]);
 		    		} else {
+		    			serverId = ArtApi.getInstance(AddEventActivity.this)
+						.createEvent(mProjId, params[0], null, null, params[3], params[4] );
 		    			mEvent = new Event(mProjId, params[0], null, null, params[3], params[4]);
 		    		}
 		    		mEvent.setId(dbUtils.eventsDelegate.insert(mEvent));
+		    		return serverId;
 		    	} else {
 		    		if (!params[1].equals("")) {
 		    			mEvent = new Event(AddEventActivity.this.mEvent.getId(),
@@ -451,41 +459,35 @@ public class AddEventActivity extends Activity {
 		    		}
 		    		dbUtils.eventsDelegate.update(mEvent);
 		    	}
-				dbUtils.close();
-				/*return ArtApi.getInstance(AddEventActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr.parse(params[1]), params[2]);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (ServerException e) {
-				exception = e;				
-				e.printStackTrace();*/
+				exception = e;		
+			} catch (ConnectionFailException e) {
+				exception = e;
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				exception = e;
 			}
 			return null;
 		}
 		
 		@Override
-        protected void onPostExecute(Integer taskeventId) {
+        protected void onPostExecute(Integer serverId) {
 			dialog.dismiss();
-			boolean hasNetwork = true;
-			
 			if(exception instanceof ServerException) {
 				Toast.makeText(AddEventActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
-			// TODO:need more specific disconnection exception
-			if(taskeventId != null) {
+			if(exception instanceof ConnectionFailException) {
+				Toast.makeText(AddEventActivity.this, "無法新增事件。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				return;
+			}
+			if(serverId != null) {
 		    	if(dbUtils == null) {
 		    		dbUtils = new DBUtils(AddEventActivity.this);
 		    	}
-		    	mEvent.setServerId(taskeventId);
+		    	mEvent.setServerId(serverId);
 				dbUtils.eventsDelegate.update(mEvent);
-				dbUtils.close();
-			}else {
-				hasNetwork = false;
-			}	
+			}
+			dbUtils.close();
 			AddEventActivity.this.finish();
 		}
 	}

@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tw.jouou.aRoundTable.AddBatchTaskActivity;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
@@ -130,7 +131,6 @@ public class ArtApi {
 	/**
 	 * Create a new task
 	 * @param projectId project belongs to
-	 * @param type 0: task 1: event
 	 * @param name
 	 * @param due
 	 * @param note
@@ -157,6 +157,18 @@ public class ArtApi {
 		}
 	}
 	
+    public class Tasks extends Object {
+    	private String [] titles;
+    	private String due;
+    	private String note;
+    	
+    	Tasks(String[] titles, String due, String note) {
+    		this.titles = titles;
+    		this.due = due;
+    		this.note = note;
+    	}
+    }
+	
 	/**
 	 * Update task attributes	
 	 * @param taskId
@@ -175,6 +187,40 @@ public class ArtApi {
 		params.put("task[finished]", (finished)? "1" : "0");
 		
 		performGet(String.format(taskPath, taskId), params);
+	}
+	
+	/**
+	 * Create a new event
+	 * @param projectId project belongs to
+	 * @param name
+	 * @param start_at
+	 * @param end_at
+	 * @param location
+	 * @param note
+	 * @return newly created event id
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public int createEvent(long projectId, String name, Date start_at, Date end_at, String location, String note) throws  ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+
+		params.put("event[name]", name);
+		if(!(start_at == null)) {
+			params.put("event[start_at]", start_at.toString());
+			params.put("event[end_at]", end_at.toString());
+		} else {
+			params.put("event[start_at]", "");
+			params.put("event[end_at]", "");
+		}
+		params.put("event[location]", location);
+		params.put("event[note]", note);
+		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/events", params);
+		try{
+			JSONObject projectJson = extractJsonObject(response);
+			return projectJson.getInt("id");
+		}catch(JSONException je){
+			throw new ServerException("Server returned unexpected data");
+		}
 	}
 	
 	/**

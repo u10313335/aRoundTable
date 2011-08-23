@@ -34,9 +34,10 @@ public class Task implements Serializable {
 		this.done = done;
 	}
 	
-	public Task(long projId, String name, Date due,
+	public Task(long projId, long serverId, String name, Date due,
 			String note, int done) throws ParseException {
 		this.projId = projId;
+		this.serverId = serverId;
 		this.name = name;
 		this.due = due;
 		this.note = note;

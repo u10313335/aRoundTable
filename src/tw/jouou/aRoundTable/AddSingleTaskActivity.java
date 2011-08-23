@@ -174,14 +174,14 @@ public class AddSingleTaskActivity extends Activity {
       	  	public void onClick(View v) {
         		switch(mDueType) {       		
         			case ASSIGN_DAY_PANEL:
-        				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
+        				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
         							mBtnDatePicker.getText().toString(),
         							mEdRemarks.getText().toString());
         				break;
         			case DEPENDENCY_PANEL:
         				break;
         			case UNDETERMINED_PANEL:
-        				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
+        				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
         							"", mEdRemarks.getText().toString());
         				break;
         		}
@@ -393,8 +393,7 @@ public class AddSingleTaskActivity extends Activity {
     }
     
     
-  	// not tested after add new features
-  	private class CreateItemEventTask extends AsyncTask<String, Void, Integer> {
+  	private class CreateTaskTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;
 		private Exception exception;
 		
@@ -416,15 +415,13 @@ public class AddSingleTaskActivity extends Activity {
 		    		if (!params[1].equals("")) {
 						serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 						.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
-		    			mTask = new Task(mProjId, params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    			mTask = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), params[2], 0);
 		    		} else {
 						serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 						.createTask(mProjId, params[0], null, params[2]);
-		    			mTask = new Task(mProjId, params[0], null, params[2], 0);
-		    			return serverId;
+		    			mTask = new Task(mProjId, serverId, params[0], null, params[2], 0);
 		    		}
 					mTask.setId(dbUtils.tasksDelegate.insert(mTask));
-					return serverId;
 		    	} else {
 		    		if (!params[1].equals("")) {
 		    			mTask = new Task(mTask.getId(), mTask.getProjId(),
@@ -442,11 +439,11 @@ public class AddSingleTaskActivity extends Activity {
 			} catch (ParseException e) {
 				exception = e;
 			}
-			return null;
+			return 0;
 		}
 		
 		@Override
-        protected void onPostExecute(Integer serverId) {
+        protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
 				Toast.makeText(AddSingleTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
@@ -455,13 +452,6 @@ public class AddSingleTaskActivity extends Activity {
 			if(exception instanceof ConnectionFailException) {
 				Toast.makeText(AddSingleTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
 				return;
-			}
-			if(serverId != null) {
-		    	if(dbUtils == null) {
-		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
-		    	}
-		    	mTask.setServerId(serverId);
-				dbUtils.tasksDelegate.update(mTask);
 			}
 			dbUtils.close();
 			AddSingleTaskActivity.this.finish();

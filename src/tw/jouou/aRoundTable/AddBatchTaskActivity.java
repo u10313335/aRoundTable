@@ -12,6 +12,8 @@ import java.util.TreeSet;
 
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
+import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import tw.jouou.aRoundTable.widget.NumberPicker;
@@ -109,35 +111,11 @@ public class AddBatchTaskActivity extends Activity {
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse error");
 		}
-        if (mBundle.getInt("addOrEdit") == 0) {
-            mProjName = mProj.getName();
-            mProjId = mProj.getId();
-            mTxCreateUnder.setText(mProjName);
-            findAssignDateView();
-            updateDisplay(mYear, mMonth, mDay);
-        } else {
-        	// remove itself from dependable mTasks when edit
-        	mTask = (Task)mBundle.get("task");
-        	Iterator<Task> irr = mTasks.iterator();
-        	while (irr.hasNext()) {
-        	    Task nextTask = irr.next();
-        	    if(nextTask.getId() == mTask.getId()) {
-        	    	irr.remove();
-        	    }
-        	}
-        	mTxCreateUnder.setText(mBundle.getString("projname"));
-        	mEdRemarks.setText(mTask.getNote());
-        	mTaskDue = mTask.getDueDate();
-        	if(mTaskDue == null) {
-        		findUndeterminedView();
-        	} else {
-        		mCalendar.setTime(mTaskDue);
-        		mYear = mCalendar.get(Calendar.YEAR);
-        		mMonth = mCalendar.get(Calendar.MONTH); // Month is 0 based so add 1
-        		mDay = mCalendar.get(Calendar.DATE);
-        		findAssignDateView();
-        	}
-        }
+        mProjName = mProj.getName();
+        mProjId = mProj.getId();
+        mTxCreateUnder.setText(mProjName);
+        findAssignDateView();
+        updateDisplay(mYear, mMonth, mDay);
         
         mBtnAddBatch.setOnClickListener(new OnClickListener() {
         	@Override
@@ -176,11 +154,16 @@ public class AddBatchTaskActivity extends Activity {
         mBtnFinish.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		switch(mDueType) {       		
+        		switch(mDueType) {
         			case 0:
-        				/*(new CreateItemEventTask()).execute(mEdTitle.getText().toString(), 
+        				String[] titles = getTasksTitle();
+        				Tasks tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
+        				/*for(String title:titles) {
+        					(new CreateTaskTask()).execute(title,
         							mBtnDatePicker.getText().toString(),
-        							mEdRemarks.getText().toString());*/
+        							mEdRemarks.getText().toString());
+        				}*/
+        				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 1:
         				break;
@@ -189,6 +172,7 @@ public class AddBatchTaskActivity extends Activity {
         							"", mEdRemarks.getText().toString());*/
         				break;
         		}
+				//AddBatchTaskActivity.this.finish();
       	  	}
     	});
         
@@ -246,6 +230,7 @@ public class AddBatchTaskActivity extends Activity {
 		title.setText("標題");
 		EditText ed = new EditText(AddBatchTaskActivity.this);
 		ed.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
+		ed.setTag("ed");
 		ImageButton ib = new ImageButton(AddBatchTaskActivity.this);
 		ib.setImageResource(R.drawable.ic_delete);
 		ib.setOnClickListener( new OnClickListener() {
@@ -355,7 +340,6 @@ public class AddBatchTaskActivity extends Activity {
         	public void onClick(View v) {
         		final TableRow tr = new TableRow(AddBatchTaskActivity.this);
         		mDependableTasks.add(tr);
-        		//tr.setTag("tr");
         		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
         		final Spinner sp = new Spinner(AddBatchTaskActivity.this);
         		ArrayAdapter<String> depend_on_adapter = new ArrayAdapter<String>(AddBatchTaskActivity.this
@@ -412,9 +396,28 @@ public class AddBatchTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
+    private String[] getTasksTitle() {
+		Set<String> set = new TreeSet<String>();
+		for (int i=0; i < mTasksTitle.size(); i++) {
+			String taskTitle = ((EditText) mTasksTitle.get(i).findViewWithTag("ed")).getText().toString();
+			set.add(taskTitle);
+		}
+		return set.toArray(new String[set.size()]);
+    }
     
-  	// not tested after add new features
-  	private class CreateItemEventTask extends AsyncTask<String, Void, Integer> {
+    private class Tasks extends Object {
+    	private String [] titles;
+    	private String due;
+    	private String note;
+    	
+    	Tasks(String[] titles, String due, String note) {
+    		this.titles = titles;
+    		this.due = due;
+    		this.note = note;
+    	}
+    }
+    
+  	private class CreateTaskTask extends AsyncTask<Tasks, Void, Integer> {
 		private ProgressDialog dialog;
 		private Exception exception;
 		
@@ -426,54 +429,50 @@ public class AddBatchTaskActivity extends Activity {
 		}
 		
 		@Override
-		protected Integer doInBackground(String... params) {
-			try {	
+		protected Integer doInBackground(Tasks... params) {
+	    	int serverId = 0;
+	    	Task task;	    	
+			try {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddBatchTaskActivity.this);
 		    	}
-		    	if (mBundle.getInt("addOrEdit") == 0) {
-		    		mTask = new Task(mProjId, params[0], mStrToDate.parse(params[1]), params[2], 0);
-					mTask.setId(dbUtils.tasksDelegate.insert(mTask));
+		    	if (!params[0].due.equals("")) {
+		    		for(int i=0; i < mTasksTitle.size(); i++) {
+		    			serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
+								.createTask(mProjId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note);
+		    			task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note, 0);
+		    			dbUtils.tasksDelegate.insert(task);
+		    		}
 		    	} else {
-		    		Task task = new Task(mTask.getId(), mTask.getProjId(),
-		    				mTask.getServerId(), params[0], mStrToDate.parse(params[1]), params[2], 0);
-		    		dbUtils.tasksDelegate.update(task);
+		    		for(int i=0; i < mTasksTitle.size(); i++) {
+		    			serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
+								.createTask(mProjId, params[0].titles[i], null, params[0].note);
+		    			task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].note, 0);
+		    			dbUtils.tasksDelegate.insert(task);
+		    		}
 		    	}
-				dbUtils.close();
-				/*return ArtApi.getInstance(AddBatchTaskActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr.parse(params[1]), params[2]);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (ServerException e) {
-				exception = e;				
-				e.printStackTrace();*/
+				exception = e;
+			} catch (ConnectionFailException e) {
+				exception = e;
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				exception = e;
 			}
-			return null;
+	    	return 0;
 		}
 		
 		@Override
-        protected void onPostExecute(Integer taskeventId) {
+		protected void onPostExecute(Integer i) {
 			dialog.dismiss();
-			boolean hasNetwork = true;
-			
 			if(exception instanceof ServerException) {
 				Toast.makeText(AddBatchTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
-			// TODO:need more specific disconnection exception
-			if(taskeventId != null) {
-		    	if(dbUtils == null) {
-		    		dbUtils = new DBUtils(AddBatchTaskActivity.this);
-		    	}
-		    	mTask.setServerId(taskeventId);
-				dbUtils.tasksDelegate.update(mTask);
-				dbUtils.close();
-			}else {
-				hasNetwork = false;
-			}	
+			if(exception instanceof ConnectionFailException) {
+				Toast.makeText(AddBatchTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				return;
+			}
+			dbUtils.close();
 			AddBatchTaskActivity.this.finish();
 		}
 	}
