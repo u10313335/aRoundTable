@@ -1,6 +1,8 @@
 package tw.jouou.aRoundTable;
 
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -23,6 +25,7 @@ import android.widget.ListView;
 public class InviteMemberActivity extends Activity implements OnClickListener {
 	private AutoCompleteTextView email_field;
 	private ArrayAdapter<String> arrayAdapter;
+	private ArrayList<String> emailsToInvite;
 	private static final int REQUEST_PICK_EMAIL = 1;
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -30,12 +33,15 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
         setContentView(R.layout.invite_member);
         
         ListView inviteQueue = (ListView) findViewById(R.id.listview_invite_queue);
-        inviteQueue.setAdapter(arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1));
+        emailsToInvite = new ArrayList<String>();
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, emailsToInvite);
+        inviteQueue.setAdapter(arrayAdapter);
         registerForContextMenu(inviteQueue);
         
         findViewById(R.id.btn_invite).setOnClickListener(this);
         findViewById(R.id.btn_from_contacts).setOnClickListener(this);
         findViewById(R.id.actbtn_clear).setOnClickListener(this);
+        findViewById(R.id.actbtn_finish).setOnClickListener(this);
         email_field = (AutoCompleteTextView) findViewById(R.id.email_field);
         (new PrepareCursorTask()).execute((Void[]) null);
 	}
@@ -53,6 +59,9 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 			break;
 		case R.id.btn_from_contacts:
 			startActivityForResult(new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI), REQUEST_PICK_EMAIL);
+			break;
+		case R.id.actbtn_finish:
+			(new AddMenbersTask()).execute((String[]) emailsToInvite.toArray());
 			break;
 		}
 	}
@@ -75,27 +84,28 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 		case REQUEST_PICK_EMAIL:
 			if (resultCode == Activity.RESULT_OK) {
 				Cursor cursor =  getContentResolver().query(data.getData(), new String[] {Contacts._ID}, null,null, null);
-				if(cursor.moveToNext()) {
-					String id = cursor.getString(0);
-					cursor = getContentResolver().query(Email.CONTENT_URI, new String[] {Email.DATA}, Email.CONTACT_ID + " = ?", new String[] {id}, null);
-					int count = cursor.getCount();
-					if(count == 1){
-						cursor.moveToFirst();
-						arrayAdapter.add(cursor.getString(0));
-					}else if (count > 1){
-						final String emails[] = new String[count];
-						int i = 0;
-						while(cursor.moveToNext()){
-							emails[i++] = cursor.getString(0);
-						}
-						(new AlertDialog.Builder(InviteMemberActivity.this)).setItems(emails, new DialogInterface.OnClickListener() {
-							
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								arrayAdapter.add(emails[which]);
-							}
-						}).show();
+				if(!cursor.moveToNext())
+					return;
+				
+				String id = cursor.getString(0);
+				cursor = getContentResolver().query(Email.CONTENT_URI, new String[] {Email.DATA}, Email.CONTACT_ID + " = ?", new String[] {id}, null);
+				int count = cursor.getCount();
+				if(count == 1){
+					cursor.moveToFirst();
+					arrayAdapter.add(cursor.getString(0));
+				}else if (count > 1){
+					final String emails[] = new String[count];
+					int i = 0;
+					while(cursor.moveToNext()){
+						emails[i++] = cursor.getString(0);
 					}
+					(new AlertDialog.Builder(InviteMemberActivity.this)).setItems(emails, new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							arrayAdapter.add(emails[which]);
+						}
+					}).show();
 				}
 			}
 			break;
@@ -121,6 +131,14 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 			
 			((AutoCompleteTextView) findViewById(R.id.email_field))
 				.setAdapter(new ArrayAdapter<String>(InviteMemberActivity.this, R.layout.email_autocomplete_item, 	emails));
+		}
+	}
+	
+	private class AddMenbersTask extends AsyncTask<String, Void, Void>{
+		@Override
+		protected Void doInBackground(String... emails) {
+			//ArtApi.getInstance(InviteMemberActivity.this).addMember(projectId, emails)
+			return null;
 		}
 	}
 }
