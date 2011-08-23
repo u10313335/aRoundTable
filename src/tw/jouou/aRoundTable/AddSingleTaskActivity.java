@@ -1,6 +1,5 @@
 package tw.jouou.aRoundTable;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -411,26 +410,28 @@ public class AddSingleTaskActivity extends Activity {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
 		    	if (mBundle.getInt("addOrEdit") == 0) {
-		    		int serverId;
 		    		if (!params[1].equals("")) {
-						serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
+						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 						.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
-		    			mTask = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    			dbUtils.tasksDelegate.insert(task);
 		    		} else {
-						serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
+		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 						.createTask(mProjId, params[0], null, params[2]);
-		    			mTask = new Task(mProjId, serverId, params[0], null, params[2], 0);
-		    		}
-					mTask.setId(dbUtils.tasksDelegate.insert(mTask));
+						Task task = new Task(mProjId, serverId, params[0], null, params[2], 0);
+						dbUtils.tasksDelegate.insert(task);
+		    		}	
 		    	} else {
 		    		if (!params[1].equals("")) {
-		    			mTask = new Task(mTask.getId(), mTask.getProjId(),
+		    			Task task = new Task(mTask.getId(), mTask.getProjId(),
 			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    			dbUtils.tasksDelegate.update(task);
+		    			
 		    		} else {
-		    			mTask = new Task(mTask.getId(), mTask.getProjId(),
+		    			Task task = new Task(mTask.getId(), mTask.getProjId(),
 		    				mTask.getServerId(), params[0], null, params[2], 0);
+		    			dbUtils.tasksDelegate.update(task);
 		    		}
-		    		dbUtils.tasksDelegate.update(mTask);
 		    	}
 			} catch (ServerException e) {
 				exception = e;

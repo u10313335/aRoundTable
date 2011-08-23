@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -53,11 +52,9 @@ public class AddBatchTaskActivity extends Activity {
     private static final int UNDETERMINED_PANEL = 2;
     private static String TAG = "AddBatchTaskActivity";
 	private DBUtils dbUtils;
-	private Task mTask;
 	private Bundle mBundle;
 	private String mProjName;
 	private Project mProj;
-	private Date mTaskDue;
 	private int mDueType = ASSIGN_DAY_PANEL;
 	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
@@ -158,11 +155,6 @@ public class AddBatchTaskActivity extends Activity {
         			case 0:
         				String[] titles = getTasksTitle();
         				Tasks tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
-        				/*for(String title:titles) {
-        					(new CreateTaskTask()).execute(title,
-        							mBtnDatePicker.getText().toString(),
-        							mEdRemarks.getText().toString());
-        				}*/
         				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 1:
@@ -429,25 +421,23 @@ public class AddBatchTaskActivity extends Activity {
 		}
 		
 		@Override
-		protected Integer doInBackground(Tasks... params) {
-	    	int serverId = 0;
-	    	Task task;	    	
+		protected Integer doInBackground(Tasks... params) { 	
 			try {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddBatchTaskActivity.this);
 		    	}
 		    	if (!params[0].due.equals("")) {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
-		    			serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
+		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note);
-		    			task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note, 0);
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note, 0);
 		    			dbUtils.tasksDelegate.insert(task);
 		    		}
 		    	} else {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
-		    			serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
+		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], null, params[0].note);
-		    			task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].note, 0);
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].note, 0);
 		    			dbUtils.tasksDelegate.insert(task);
 		    		}
 		    	}

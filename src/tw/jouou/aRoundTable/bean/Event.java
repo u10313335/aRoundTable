@@ -16,7 +16,7 @@ public class Event implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private long id;
 	private long projId;
-	private long serverId = 0;
+	private long serverId;
 	private String name;
 	private Date start_at, end_at;
 	private String location, note;
@@ -34,9 +34,10 @@ public class Event implements Serializable {
 		this.note = note;
 	}
 	
-	public Event(long projId, String name, Date start_at, Date end_at, String location,
+	public Event(long projId, long serverId, String name, Date start_at, Date end_at, String location,
 			String note) throws ParseException {
 		this.projId = projId;
+		this.serverId = serverId;
 		this.name = name;
 		this.start_at = start_at;
 		this.end_at = end_at;

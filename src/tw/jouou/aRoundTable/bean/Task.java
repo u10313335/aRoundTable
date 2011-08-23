@@ -16,7 +16,7 @@ public class Task implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private long id;
 	private long projId;
-	private long serverId = 0;
+	private long serverId;
 	private String name;
 	private Date due;
 	private String note;

@@ -432,32 +432,32 @@ public class AddEventActivity extends Activity {
 		    	}
 		    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		    	if (mBundle.getInt("addOrEdit") == 0) {
-		    		int serverId;
 		    		if (!params[1].equals("")) {
-		    			serverId = ArtApi.getInstance(AddEventActivity.this)
+		    			int serverId = ArtApi.getInstance(AddEventActivity.this)
 						.createEvent(mProjId, params[0], formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4] );
-		    			mEvent = new Event(mProjId, params[0], formatter.parse(params[1]),
+		    			Event event = new Event(mProjId, serverId, params[0], formatter.parse(params[1]),
 		    					formatter.parse(params[2]), params[3], params[4]);
+		    			dbUtils.eventsDelegate.insert(event);
 		    		} else {
-		    			serverId = ArtApi.getInstance(AddEventActivity.this)
+		    			int serverId = ArtApi.getInstance(AddEventActivity.this)
 						.createEvent(mProjId, params[0], null, null, params[3], params[4] );
-		    			mEvent = new Event(mProjId, params[0], null, null, params[3], params[4]);
+		    			Event event = new Event(mProjId, serverId, params[0], null, null, params[3], params[4]);
+		    			dbUtils.eventsDelegate.insert(event);
 		    		}
-		    		mEvent.setId(dbUtils.eventsDelegate.insert(mEvent));
-		    		return serverId;
 		    	} else {
 		    		if (!params[1].equals("")) {
-		    			mEvent = new Event(AddEventActivity.this.mEvent.getId(),
+		    			Event event = new Event(AddEventActivity.this.mEvent.getId(),
 		    					AddEventActivity.this.mEvent.getProjId(),
 		    					AddEventActivity.this.mEvent.getServerId(), params[0],
 		    					formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4]);
+		    			dbUtils.eventsDelegate.update(event);
 		    		} else {
-		    			mEvent = new Event(AddEventActivity.this.mEvent.getId(),
+		    			Event event = new Event(AddEventActivity.this.mEvent.getId(),
 		    					AddEventActivity.this.mEvent.getProjId(),
 		    					AddEventActivity.this.mEvent.getServerId(),
 		    					params[0], null, null, params[3], params[4]);
+		    			dbUtils.eventsDelegate.update(event);
 		    		}
-		    		dbUtils.eventsDelegate.update(mEvent);
 		    	}
 			} catch (ServerException e) {
 				exception = e;		
@@ -466,11 +466,11 @@ public class AddEventActivity extends Activity {
 			} catch (ParseException e) {
 				exception = e;
 			}
-			return null;
+			return 0;
 		}
 		
 		@Override
-        protected void onPostExecute(Integer serverId) {
+        protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
 				Toast.makeText(AddEventActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
@@ -479,13 +479,6 @@ public class AddEventActivity extends Activity {
 			if(exception instanceof ConnectionFailException) {
 				Toast.makeText(AddEventActivity.this, "無法新增事件。（沒有網路連接）", Toast.LENGTH_LONG).show();
 				return;
-			}
-			if(serverId != null) {
-		    	if(dbUtils == null) {
-		    		dbUtils = new DBUtils(AddEventActivity.this);
-		    	}
-		    	mEvent.setServerId(serverId);
-				dbUtils.eventsDelegate.update(mEvent);
 			}
 			dbUtils.close();
 			AddEventActivity.this.finish();
