@@ -2,11 +2,14 @@ package tw.jouou.aRoundTable;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.Contacts;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -43,7 +46,7 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 				arrayAdapter.add(email);
 			break;
 		case R.id.btn_from_contacts:
-			startActivityForResult(new Intent(Intent.ACTION_PICK, Email.CONTENT_URI), REQUEST_PICK_EMAIL);
+			startActivityForResult(new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI), REQUEST_PICK_EMAIL);
 			break;
 		}
 	}
@@ -53,10 +56,28 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 		switch (reqCode) {
 		case REQUEST_PICK_EMAIL:
 			if (resultCode == Activity.RESULT_OK) {
-				Cursor cursor =  getContentResolver().query(data.getData(), null, null,null, null);
+				Cursor cursor =  getContentResolver().query(data.getData(), new String[] {Contacts._ID}, null,null, null);
 				if(cursor.moveToNext()) {
-					String email = cursor.getString(cursor.getColumnIndex(Email.DATA));
-					arrayAdapter.add(email);
+					String id = cursor.getString(0);
+					cursor = getContentResolver().query(Email.CONTENT_URI, new String[] {Email.DATA}, Email.CONTACT_ID + " = ?", new String[] {id}, null);
+					int count = cursor.getCount();
+					if(count == 1){
+						cursor.moveToFirst();
+						arrayAdapter.add(cursor.getString(0));
+					}else if (count > 1){
+						final String emails[] = new String[count];
+						int i = 0;
+						while(cursor.moveToNext()){
+							emails[i++] = cursor.getString(0);
+						}
+						(new AlertDialog.Builder(InviteMemberActivity.this)).setItems(emails, new DialogInterface.OnClickListener() {
+							
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								arrayAdapter.add(emails[which]);
+							}
+						}).show();
+					}
 				}
 			}
 			break;
@@ -81,7 +102,7 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 			}
 			
 			((AutoCompleteTextView) findViewById(R.id.email_field))
-				.setAdapter(new ArrayAdapter<String>(InviteMemberActivity.this, R.layout.email_autocomplete_item, emails));
+				.setAdapter(new ArrayAdapter<String>(InviteMemberActivity.this, R.layout.email_autocomplete_item, 	emails));
 		}
 	}
 }
