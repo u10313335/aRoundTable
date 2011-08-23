@@ -165,7 +165,7 @@ public class DBUtils extends SQLiteOpenHelper {
 			if (proj.getId() < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_USERS, "_id = ?", new String[] { String
+			db.delete(TABLE_PROJECTS, "_id = ?", new String[] { String
 					.valueOf(proj.getId()) });
 			db.close();
 		}
@@ -225,6 +225,15 @@ public class DBUtils extends SQLiteOpenHelper {
 			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_TASK, "_id = ?", new String[] { String
 					.valueOf(id) });
+			db.close();
+		}
+		
+		public void deleteUnderProj(long projId) {
+			if (projId < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_TASK, "project_id = ?", new String[] { String
+					.valueOf(projId) });
 			db.close();
 		}
 		
@@ -347,6 +356,15 @@ public class DBUtils extends SQLiteOpenHelper {
 			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_EVENT, "_id = ?", new String[] { String
 					.valueOf(id) });
+			db.close();
+		}
+		
+		public void deleteUnderProj(long projId) {
+			if (projId < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_EVENT, "project_id = ?", new String[] { String
+					.valueOf(projId) });
 			db.close();
 		}
 		

@@ -11,10 +11,15 @@
     <string name="processing">正在處理中</string>
     <string name="internet_connection_problem">伺服器連線異常，稍後重試上傳</string>
     <string name="confirm">確認</string>
+    <string name="edit_project">編輯專案</string>
+    <string name="quit_project">退出專案</string>
+    <string name="confirm_quit_project">確認退出專案</string>
+    <string name="quit_project_prompt">退出專案會刪除所有此專案下的工作與事件。確定要這麼做？</string>
     <string name="settings">設定</string>
     <string name="feedbacks">回報</string>
     <string name="about">關於</string>
     <string name="done">完成</string>
+    <string name="okay">確定</string>
     <string name="cancel">取消</string>
     <string name="setting_days">設定天數</string>
     <string name="dayafter">天後</string>
@@ -32,7 +37,7 @@
     <string name="add_task">單一工作</string>
     <string name="add_batch">多個工作</string>
     <string name="add_event">事件</string>
-    <string name="all_item_event">所有專案時限</string>
+    <string name="all_item_event">我的項目</string>
     <string name="notification">所有動態</string>
     <string name="feedback_mail_title">[aRoundTable] Feedback</string>
 </resources>

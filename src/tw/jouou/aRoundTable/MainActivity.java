@@ -8,6 +8,7 @@ import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
+import tw.jouou.aRoundTable.widget.NumberPicker;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -24,6 +25,7 @@ import org.taptwo.android.widget.ViewFlow;
 import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
@@ -49,6 +51,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -69,6 +72,7 @@ public class MainActivity extends Activity {
 	private DBUtils dbUtils;
 	private List<User> users;
 	private List<Project> projs;
+	private LayoutInflater mInflater;
 	private View lists[]; //list[0] is "notifications", list[1] is "all task/events list",
     private View mainView; // the followings(lists[2]~) are "project list"
     private TextView txTitle;
@@ -78,9 +82,11 @@ public class MainActivity extends Activity {
 	private int position = 1;  // screen position
 	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423",
 			"#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
-    protected static final int MENU_Settings = Menu.FIRST;
-    protected static final int MENU_Feedbacks = Menu.FIRST+1;
-    protected static final int MENU_About = Menu.FIRST+2;
+	protected static final int MENU_EditProj = Menu.FIRST;
+	protected static final int MENU_QuitProj = Menu.FIRST+1;
+    protected static final int MENU_Settings = Menu.FIRST+2;
+    protected static final int MENU_Feedbacks = Menu.FIRST+3;
+    protected static final int MENU_About = Menu.FIRST+4;
     protected static final int MENU_EditItem = Menu.FIRST;
     protected static final int MENU_DeleteItem = Menu.FIRST+1;
     private static final int TASK = 0;
@@ -102,6 +108,7 @@ public class MainActivity extends Activity {
  
     	if(!users.isEmpty()) {
     		token = users.get(0).getToken();
+    		mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
          	update();
     	}else {
     		Builder dialog = new Builder(MainActivity.this);
@@ -127,12 +134,11 @@ public class MainActivity extends Activity {
     	if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     	projs = dbUtils.projectsDelegate.get();
     	if(!projs.isEmpty()) {
     		lists = new View[(projs.size())+2];
-    		lists[0] = inflater.inflate(R.layout.notification, null);
-    		lists[1] = inflater.inflate(R.layout.all_item_list, null);
+    		lists[0] = mInflater.inflate(R.layout.notification, null);
+    		lists[1] = mInflater.inflate(R.layout.all_item_list, null);
     		try {
     			List<TaskEvent> taskevents;
         		taskevents = dbUtils.taskEventDelegate.get();
@@ -144,10 +150,10 @@ public class MainActivity extends Activity {
     		}
 
     		for (int i=2; i < (projs.size())+2; i++) {
-    			lists[i] = inflater.inflate(R.layout.project_list, null);
+    			lists[i] = mInflater.inflate(R.layout.project_list, null);
     			formProjLists(lists[i], projs.get(i-2));
     		}
-    		mainView = inflater.inflate(R.layout.main, null);
+    		mainView = mInflater.inflate(R.layout.main, null);
     		txTitle = (TextView) mainView.findViewById(R.id.main_title);
     		setContentView(mainView);
     		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
@@ -195,8 +201,6 @@ public class MainActivity extends Activity {
                 new String[] {"notifications"}, 
                 new int[] {R.id.notificaton_context}));
     }
-    
-    
     
     // form all task/event list
     private void formAllItemList(View v, List<TaskEvent> taskevents) {
@@ -506,6 +510,8 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		menu.add(0,MENU_EditProj, 0, R.string.edit_project).setIcon(android.R.drawable.ic_menu_edit);
+		menu.add(0,MENU_QuitProj, 0, R.string.quit_project).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
 		menu.add(0,MENU_Settings, 0, R.string.settings).setIcon(android.R.drawable.ic_menu_preferences);
 		menu.add(0,MENU_Feedbacks, 0, R.string.feedbacks).setIcon(android.R.drawable.ic_menu_send);
 		menu.add(0,MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
@@ -514,8 +520,68 @@ public class MainActivity extends Activity {
 	}
 	
 	@Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+		if(position==0 || position==1) {
+			menu.findItem(MENU_EditProj).setVisible(false);
+			menu.findItem(MENU_QuitProj).setVisible(false);
+		} else {
+			menu.findItem(MENU_EditProj).setVisible(true);
+			menu.findItem(MENU_QuitProj).setVisible(true);
+		}
+        return super.onPrepareOptionsMenu(menu);
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
+			case MENU_EditProj:
+				AlertDialog.Builder editDialog = new AlertDialog.Builder(this);
+				editDialog.setTitle(getString(R.string.edit_project));
+				View view = mInflater.inflate(R.layout.edit_project_dialog, null);
+				editDialog.setView(view);
+				final EditText edProjName = (EditText) view.findViewById(R.id.edit_projname_input);
+				edProjName.setText(projs.get(position-2).getName());
+				editDialog.setIcon(android.R.drawable.ic_input_get);
+				editDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					Project proj = new Project(projs.get(position-2).getId(),
+    							edProjName.getText().toString(), projs.get(position-2).getServerId(),
+    							projs.get(position-2).getColor());
+    					dbUtils.projectsDelegate.update(proj);
+    					update();
+    				}
+                });
+				editDialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dialog.dismiss();
+    				}
+                });
+				editDialog.show();
+				break;
+			case MENU_QuitProj:
+				AlertDialog.Builder delDialog = new AlertDialog.Builder(this);
+				delDialog.setTitle(getString(R.string.confirm_quit_project));
+				delDialog.setIcon(android.R.drawable.ic_dialog_alert);
+				delDialog.setMessage(getString(R.string.quit_project_prompt));
+				delDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dbUtils.projectsDelegate.delete(projs.get(position-2));
+    					dbUtils.tasksDelegate.deleteUnderProj(projs.get(position-2).getId());
+    					dbUtils.eventsDelegate.deleteUnderProj(projs.get(position-2).getId());
+    					update();
+    				}
+                });
+				delDialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dialog.dismiss();
+    				}
+                });
+				delDialog.show();
+				break;
 			case MENU_Settings:
 				break;
 			case MENU_Feedbacks:
