@@ -77,11 +77,11 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 			int i = 0;
 			
 			while(cursor.moveToNext()) {
-				emails[i] = cursor.getString(0);
+				emails[i++] = cursor.getString(0);
 			}
 			
 			((AutoCompleteTextView) findViewById(R.id.email_field))
-				.setAdapter(new ArrayAdapter<String>(InviteMemberActivity.this,android.R.layout.simple_spinner_item,emails));
+				.setAdapter(new ArrayAdapter<String>(InviteMemberActivity.this, R.layout.email_autocomplete_item, emails));
 		}
 	}
 }
