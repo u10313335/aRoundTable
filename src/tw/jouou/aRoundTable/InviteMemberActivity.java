@@ -1,114 +1,87 @@
 package tw.jouou.aRoundTable;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import tw.jouou.aRoundTable.bean.User;
-import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
-import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
-public class InviteMemberActivity extends Activity {
-	
-	private Bundle bundle;
-	private String projname;
-	private boolean networkStatus;
-	private static String TAG = "InviteMemberActivity";
-	private String[] member_names = new String[]{"jack","michruo","albb","sol","bearRu"};
-	private AutoCompleteTextView member_email;
-	private TextView projname_display;
-	private TextView invite;
-	private ListView memberlist;
-	private ImageButton add_member;
-	private Button confirm;
-	private Button cancel;
+public class InviteMemberActivity extends Activity implements OnClickListener {
+	private AutoCompleteTextView email_field;
+	private ArrayAdapter<String> arrayAdapter;
+	private static final int REQUEST_PICK_EMAIL = 1;
 
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.invitemember);
+        setContentView(R.layout.invite_member);
+        
+        ((ListView) findViewById(R.id.listview_invite_queue)).setAdapter(arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1));
+        
+        findViewById(R.id.btn_invite).setOnClickListener(this);
+        findViewById(R.id.btn_from_contacts).setOnClickListener(this);
+        findViewById(R.id.actbtn_clear).setOnClickListener(this);
+        email_field = (AutoCompleteTextView) findViewById(R.id.email_field);
+        (new PrepareCursorTask()).execute((Void[]) null);
+	}
 
-        findViews();
-        
-        bundle = this.getIntent().getExtras();
-        projname = bundle.getString("projname");
-        networkStatus = bundle.getBoolean("networkstatus");
-        projname_display.setText("Project name:"+projname);
-        
-        ArrayAdapter<String> contactsname = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,member_names);
-        
-    	memberlist.setAdapter(contactsname);
-        
-    	// email auto-complete
-    	// TODO:make it much more faster
-    	/*ArrayAdapter<String> member_email_adapter = new ArrayAdapter<String> (
-    				this, android.R.layout.simple_spinner_item, getContactsName());
-    	member_email_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-	    member_email.setAdapter(member_email_adapter);*/
-    	
-    	cancel.setOnClickListener(new OnClickListener(){
-    		@Override
-    		public void onClick(View arg0) {
-    			InviteMemberActivity.this.finish();
-    		}
-        });
-    	
-    	confirm.setOnClickListener(new OnClickListener(){
-    		@Override
-    		public void onClick(View arg0) {
-    			// TODO:insert invite memeber here
-    		}
-        });
-    	
-    	if(!networkStatus) {
-			Toast.makeText(InviteMemberActivity.this, getString(R.string.internet_connection_problem), Toast.LENGTH_LONG).show();
-    	}
-    }
-
-	private void findViews() {
-		projname_display = (TextView)findViewById(R.id.projname_display);
-		invite = (TextView)findViewById(R.id.invite);
-		member_email = (AutoCompleteTextView)findViewById(R.id.member_email);
-		add_member = (ImageButton)findViewById(R.id.add_member);
-		memberlist = (ListView)findViewById(R.id.memberlist);
-		confirm = (Button)findViewById(R.id.confirm);
-		cancel = (Button)findViewById(R.id.cancel);
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()) {
+		case R.id.actbtn_clear:
+			arrayAdapter.clear();
+			break;
+		case R.id.btn_invite:
+			String email = email_field.getText().toString();
+			if(arrayAdapter.getPosition(email) == -1)
+				arrayAdapter.add(email);
+			break;
+		case R.id.btn_from_contacts:
+			startActivityForResult(new Intent(Intent.ACTION_PICK, Email.CONTENT_URI), REQUEST_PICK_EMAIL);
+			break;
+		}
 	}
 	
-	//TODO:get user's phone contacts, need polish
-	/*public List<String> getContactsName() {
-        int i = 0;
-        List<String> contactsName = new ArrayList<String>();
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query (ContactsContract.Contacts.CONTENT_URI,
-        		null, null, null, null);
-    
-        if (cur.getCount() > 0) {
-        	while (cur.moveToNext()) {
-        		String id = cur.getString (
-        				cur.getColumnIndex(ContactsContract.Contacts._ID));
-        		Cursor emailCur = cr.query (
-        				ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
-        				ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", 
-        				new String[]{id}, null);
-        		while (emailCur.moveToNext()) { 
-        			contactsName.add(emailCur.getString(
-        				emailCur.getColumnIndex( ContactsContract.CommonDataKinds.Email.DATA ) ) );
-        				i++;
-        		}
-        	}
-        }   
-    	return contactsName;  
-    }*/
+	@Override
+	public void onActivityResult(int reqCode, int resultCode, Intent data) {
+		switch (reqCode) {
+		case REQUEST_PICK_EMAIL:
+			if (resultCode == Activity.RESULT_OK) {
+				Cursor cursor =  getContentResolver().query(data.getData(), null, null,null, null);
+				if(cursor.moveToNext()) {
+					String email = cursor.getString(cursor.getColumnIndex(Email.DATA));
+					arrayAdapter.add(email);
+				}
+			}
+			break;
+		}
+	}
+	
+	private class PrepareCursorTask extends AsyncTask<Void, Void, Cursor>{
+
+		@Override
+		protected Cursor doInBackground(Void... params) {
+			Cursor cursor = InviteMemberActivity.this.getContentResolver().query(Email.CONTENT_URI, new String[] {Email.DATA}, null, null, null);
+			return cursor;
+		}
+		
+		@Override
+		protected void onPostExecute(Cursor cursor) {
+			String[] emails = new String[cursor.getCount()];
+			int i = 0;
+			
+			while(cursor.moveToNext()) {
+				emails[i] = cursor.getString(0);
+			}
+			
+			((AutoCompleteTextView) findViewById(R.id.email_field))
+				.setAdapter(new ArrayAdapter<String>(InviteMemberActivity.this,android.R.layout.simple_spinner_item,emails));
+		}
+	}
 }

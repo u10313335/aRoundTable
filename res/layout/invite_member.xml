@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout 	xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="fill_parent"
+			  	android:layout_height="fill_parent"
+			  	android:orientation="vertical">
+			  	
+	<LinearLayout 	style="@style/ActionBarCompat">
+		<TextView	style="@style/ActionBarCompatText"
+					android:text="@string/invite_member" />
+					
+		<View 		style="@style/ActionBarCompatSeparator" />
+		<ImageButton	android:id="@+id/actbtn_clear"
+						android:src="@android:drawable/ic_delete"
+						style="@style/ActionBarCompatButton"/>
+						
+		<View 		style="@style/ActionBarCompatSeparator" />
+		<ImageButton	android:id="@+id/actbtn_finish"
+						android:src="@android:drawable/ic_media_play"
+						style="@style/ActionBarCompatButton"/>
+	</LinearLayout>
+	
+	<LinearLayout	android:orientation="horizontal"
+					android:layout_marginTop="5dp"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content">
+		<ImageButton	android:id="@+id/btn_from_contacts"
+						android:src="@android:drawable/ic_menu_search"
+						android:layout_width="wrap_content"
+						android:layout_height="fill_parent"
+						android:scaleType="center" />
+		 <AutoCompleteTextView	android:id="@+id/email_field"
+		 						android:hint="@string/email_to_invite"
+		 						android:layout_width="0dp"
+         						android:layout_height="wrap_content"
+         						android:layout_weight="1"
+         						android:inputType="textEmailAddress"  />
+         <Button 	android:id="@+id/btn_invite"
+         			android:text="@string/invite"
+					android:layout_width="wrap_content"
+					android:layout_height="fill_parent" />
+	</LinearLayout>
+	
+	<ListView	android:id="@+id/listview_invite_queue"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent" />
+</LinearLayout>
