@@ -132,7 +132,7 @@ public class CreateProjectActivity extends Activity {
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(CreateProjectActivity.this, "無法新增專案。（沒有網路連接）", Toast.LENGTH_LONG).show();
 				return;
 			}
 			if((serverId != null) && (serverId != -1)) {

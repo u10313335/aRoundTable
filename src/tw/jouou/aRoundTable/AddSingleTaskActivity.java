@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import tw.jouou.aRoundTable.widget.NumberPicker;
@@ -173,7 +174,7 @@ public class AddSingleTaskActivity extends Activity {
       	  	public void onClick(View v) {
         		switch(mDueType) {       		
         			case ASSIGN_DAY_PANEL:
-        				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(), 
+        				(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
         							mBtnDatePicker.getText().toString(),
         							mEdRemarks.getText().toString());
         				break;
@@ -406,17 +407,24 @@ public class AddSingleTaskActivity extends Activity {
 		
 		@Override
 		protected Integer doInBackground(String... params) {
-			try {	
+			try {
 		    	if (dbUtils == null) {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
 		    	if (mBundle.getInt("addOrEdit") == 0) {
+		    		int serverId;
 		    		if (!params[1].equals("")) {
+						serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
+						.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
 		    			mTask = new Task(mProjId, params[0], mDateToStr.parse(params[1]), params[2], 0);
 		    		} else {
+						serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
+						.createTask(mProjId, params[0], null, params[2]);
 		    			mTask = new Task(mProjId, params[0], null, params[2], 0);
+		    			return serverId;
 		    		}
 					mTask.setId(dbUtils.tasksDelegate.insert(mTask));
+					return serverId;
 		    	} else {
 		    		if (!params[1].equals("")) {
 		    			mTask = new Task(mTask.getId(), mTask.getProjId(),
@@ -427,41 +435,35 @@ public class AddSingleTaskActivity extends Activity {
 		    		}
 		    		dbUtils.tasksDelegate.update(mTask);
 		    	}
-				dbUtils.close();
-				/*return ArtApi.getInstance(AddSingleTaskActivity.this).createTaskevent(projServerId, 0, params[0], mDateToStr.parse(params[1]), params[2]);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (ServerException e) {
-				exception = e;				
-				e.printStackTrace();*/
+				exception = e;
+			} catch (ConnectionFailException e) {
+				exception = e;
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				exception = e;
 			}
 			return null;
 		}
 		
 		@Override
-        protected void onPostExecute(Integer taskeventId) {
+        protected void onPostExecute(Integer serverId) {
 			dialog.dismiss();
-			boolean hasNetwork = true;
-			
 			if(exception instanceof ServerException) {
 				Toast.makeText(AddSingleTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
-			// TODO:need more specific disconnection exception
-			if(taskeventId != null) {
+			if(exception instanceof ConnectionFailException) {
+				Toast.makeText(AddSingleTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				return;
+			}
+			if(serverId != null) {
 		    	if(dbUtils == null) {
 		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
 		    	}
-		    	mTask.setServerId(taskeventId);
+		    	mTask.setServerId(serverId);
 				dbUtils.tasksDelegate.update(mTask);
-				dbUtils.close();
-			}else {
-				hasNetwork = false;
-			}	
+			}
+			dbUtils.close();
 			AddSingleTaskActivity.this.finish();
 		}
 	}

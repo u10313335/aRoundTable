@@ -138,14 +138,16 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public int createTask(long projectId, int type, String name, Date due, String note) throws  ServerException, ConnectionFailException{
+	public int createTask(long projectId, String name, Date due, String note) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("task[name]", name);
-		params.put("task[type]", String.valueOf(type));
-		params.put("task[due]", due.toString());
+		if(!(due == null)) {
+			params.put("task[due]", due.toString());
+		} else {
+			params.put("task[due]", "");
+		}
 		params.put("task[note]", note);
-		
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
 		try{
 			JSONObject projectJson = extractJsonObject(response);
