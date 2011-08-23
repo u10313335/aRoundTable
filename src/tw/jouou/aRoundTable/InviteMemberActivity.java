@@ -10,8 +10,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.Contacts;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ListView;
@@ -25,7 +29,9 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.invite_member);
         
-        ((ListView) findViewById(R.id.listview_invite_queue)).setAdapter(arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1));
+        ListView inviteQueue = (ListView) findViewById(R.id.listview_invite_queue);
+        inviteQueue.setAdapter(arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1));
+        registerForContextMenu(inviteQueue);
         
         findViewById(R.id.btn_invite).setOnClickListener(this);
         findViewById(R.id.btn_from_contacts).setOnClickListener(this);
@@ -50,6 +56,18 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 			break;
 		}
 	}
+	
+	@Override
+	 public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		menu.add("Delete");
+	 }
+	
+	@Override
+	 public boolean onContextItemSelected(MenuItem item) {
+		int position = ((AdapterContextMenuInfo) item.getMenuInfo()).position;
+		arrayAdapter.remove(arrayAdapter.getItem(position));
+		return true;
+	 }
 	
 	@Override
 	public void onActivityResult(int reqCode, int resultCode, Intent data) {
