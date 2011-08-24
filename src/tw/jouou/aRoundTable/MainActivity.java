@@ -103,10 +103,11 @@ public class MainActivity extends Activity {
     	}
         
     	users = dbUtils.userDelegate.get();
+    	
+    	mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
  
     	if(!users.isEmpty()) {
     		token = users.get(0).getToken();
-    		mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
          	update();
     	}else {
     		Builder dialog = new Builder(MainActivity.this);
@@ -135,6 +136,7 @@ public class MainActivity extends Activity {
     	projs = dbUtils.projectsDelegate.get();
     	if(!projs.isEmpty()) {
     		lists = new View[(projs.size())+2];
+    		
     		lists[0] = mInflater.inflate(R.layout.notification, null);
     		lists[1] = mInflater.inflate(R.layout.all_item_list, null);
     		try {
