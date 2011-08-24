@@ -12,6 +12,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -286,6 +287,11 @@ public class ArtApi {
 		}
 	}
 	
+	public void quitProject(long projectId) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		performDelete(projectsPath + "/" + projectId, params);
+	}
+	
 	public enum JoinStatus{
 		SUCCESS, INVITED, FAILED
 	}
@@ -487,6 +493,24 @@ public class ArtApi {
 			throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
 		else
 			return response;
+	}
+	
+	private HttpResponse performDelete(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
+		HttpDelete delete = new HttpDelete(baseURL + path + "?" + URLEncodedUtils.format(prepareParams(params), "UTF-8"));
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		HttpResponse response;
+		
+		try {
+			response = httpClient.execute(delete);
+			
+			if(response.getStatusLine().getStatusCode() == 200)
+				return response;
+			else
+				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+			
+		} catch (IOException e) {
+			throw new ConnectionFailException();
+		}
 	}
 	
 	private List<NameValuePair> prepareParams(HashMap<String, String> params){		
