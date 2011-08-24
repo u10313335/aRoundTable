@@ -527,6 +527,47 @@ public class DBUtils extends SQLiteOpenHelper {
 			return taskevents;
 		}
 		
+		public List<TaskEvent> getFinished(long projId) throws ParseException {
+			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
+			
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c1 = db.rawQuery("select _id,name,project_id,due,finish,type" +
+					" from task where project_id=" + projId +
+					" and due>= Datetime('now','localtime') and finish=1" +
+					" union all select _id,name,project_id,start_at,_id,type" +
+					" from event where project_id=" + projId + 
+					" and start_at>= Datetime('now','localtime')" +
+					" order by due ASC", null);
+			Cursor c2 = db.rawQuery("select _id,name,project_id,due,finish,type" +
+					" from task where project_id=" + projId +
+					" and due='' and finish=1" +
+					" union all select _id,name,project_id,start_at,_id,type" +
+					" from event where project_id=" + projId +
+					" and start_at=''", null);
+			while (c1.moveToNext()) {
+				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("_id")),
+						c1.getString(c1.getColumnIndexOrThrow("name")),
+						c1.getLong(c1.getColumnIndexOrThrow("project_id")),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("due"))),
+						c1.getInt(c1.getColumnIndexOrThrow("finish")),
+						c1.getInt(c1.getColumnIndexOrThrow("type")));
+				taskevents.add(taskevent);
+			}
+			c1.close();
+			while (c2.moveToNext()) {
+				TaskEvent taskevent = new TaskEvent(c2.getLong(c2.getColumnIndexOrThrow("_id")),
+						c2.getString(c2.getColumnIndexOrThrow("name")),
+						c2.getLong(c2.getColumnIndexOrThrow("project_id")),
+						null,
+						c2.getInt(c2.getColumnIndexOrThrow("finish")),
+						c2.getInt(c2.getColumnIndexOrThrow("type")));
+				taskevents.add(taskevent);
+			}
+			c2.close();
+			db.close();
+			return taskevents;
+		}		
+		
 		public List<TaskEvent> get() throws ParseException {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		

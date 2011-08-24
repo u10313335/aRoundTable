@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent" 
+	android:orientation="horizontal">
+	
+	<LinearLayout android:id="@+id/finished_item_color_layout"
+				  android:layout_height="wrap_content" 
+				  android:layout_width="wrap_content"
+				  android:layout_centerVertical="true">
+				  
+    	<TextView android:id="@+id/finished_item_color"
+              	  android:layout_width="wrap_content" 
+              	  android:layout_height="35dip"
+              	  android:gravity="left"
+              	  android:layout_marginLeft="10dip"
+              	  android:layout_marginTop="6dip"
+              	  android:background="#FFFF00"
+              	  android:text=" "/>
+				  
+  	</LinearLayout>
+  	
+  	<LinearLayout android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_toRightOf="@id/finished_item_color_layout"
+                  android:orientation="vertical">
+                  
+    	<TextView android:id="@+id/finished_item_name"
+              	  android:layout_width="wrap_content" 
+              	  android:layout_height="wrap_content"
+              	  android:gravity="left"
+              	  android:layout_marginLeft="6dip"
+              	  android:layout_marginTop="6dip" 
+              	  android:textAppearance="?android:attr/textAppearanceLarge"/>
+              	  
+     	<TextView android:id="@+id/finished_item_owner" 
+                  android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_marginLeft="6dip"
+                  android:textAppearance="?android:attr/textAppearanceSmall"/>
+                  
+    </LinearLayout>
+    
+    <LinearLayout android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:gravity="right"
+                  android:layout_alignParentRight="true"
+                  android:orientation="vertical">
+                  
+    	<TextView android:id="@+id/finished_item_duedate" 
+              	  android:layout_width="wrap_content" 
+              	  android:layout_height="wrap_content" 
+              	  android:layout_marginRight="10dip"
+              	  android:layout_marginTop="6dip" 
+              	  android:textAppearance="?android:attr/textAppearanceLarge"/>
+              	                 
+     </LinearLayout>
+     
+</RelativeLayout>
