@@ -82,9 +82,10 @@ public class MainActivity extends Activity {
 			"#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
 	protected static final int MENU_EditProj = Menu.FIRST;
 	protected static final int MENU_QuitProj = Menu.FIRST+1;
-    protected static final int MENU_Settings = Menu.FIRST+2;
-    protected static final int MENU_Feedbacks = Menu.FIRST+3;
-    protected static final int MENU_About = Menu.FIRST+4;
+	protected static final int MENU_ViewFinished = Menu.FIRST+2;
+    protected static final int MENU_Settings = Menu.FIRST+3;
+    protected static final int MENU_Feedbacks = Menu.FIRST+4;
+    protected static final int MENU_About = Menu.FIRST+5;
     protected static final int MENU_EditItem = Menu.FIRST;
     protected static final int MENU_DeleteItem = Menu.FIRST+1;
     private static final int TASK = 0;
@@ -510,11 +511,12 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		menu.add(0,MENU_EditProj, 0, R.string.edit_project).setIcon(android.R.drawable.ic_menu_edit);
-		menu.add(0,MENU_QuitProj, 0, R.string.quit_project).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
-		menu.add(0,MENU_Settings, 0, R.string.settings).setIcon(android.R.drawable.ic_menu_preferences);
-		menu.add(0,MENU_Feedbacks, 0, R.string.feedbacks).setIcon(android.R.drawable.ic_menu_send);
-		menu.add(0,MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
+		menu.add(0, MENU_EditProj, 0, R.string.edit_project).setIcon(android.R.drawable.ic_menu_edit);
+		menu.add(0, MENU_QuitProj, 0, R.string.quit_project).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
+		menu.add(0, MENU_ViewFinished, 0, R.string.view_finished_items).setIcon(android.R.drawable.ic_menu_agenda);
+		menu.add(0, MENU_Settings, 0, R.string.settings).setIcon(android.R.drawable.ic_menu_preferences);
+		menu.add(0, MENU_Feedbacks, 0, R.string.feedbacks).setIcon(android.R.drawable.ic_menu_send);
+		menu.add(0, MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
 		this.openOptionsMenu();
 		return super.onCreateOptionsMenu(menu);
 	}
@@ -524,9 +526,11 @@ public class MainActivity extends Activity {
 		if(position==0 || position==1) {
 			menu.findItem(MENU_EditProj).setVisible(false);
 			menu.findItem(MENU_QuitProj).setVisible(false);
+			menu.findItem(MENU_ViewFinished).setVisible(false);
 		} else {
 			menu.findItem(MENU_EditProj).setVisible(true);
 			menu.findItem(MENU_QuitProj).setVisible(true);
+			menu.findItem(MENU_ViewFinished).setVisible(true);
 		}
         return super.onPrepareOptionsMenu(menu);
 	}
@@ -581,6 +585,12 @@ public class MainActivity extends Activity {
     				}
                 });
 				delDialog.show();
+				break;
+			case MENU_ViewFinished:
+				Intent viewFinished = new Intent();
+				viewFinished.setClass(MainActivity.this, ViewFinishedItemsActivity.class);
+				viewFinished.putExtra("proj", projs.get(position-2));
+    			startActivity(viewFinished);
 				break;
 			case MENU_Settings:
 				break;

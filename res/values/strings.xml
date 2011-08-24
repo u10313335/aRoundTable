@@ -15,6 +15,7 @@
     <string name="quit_project">退出專案</string>
     <string name="confirm_quit_project">確認退出專案</string>
     <string name="quit_project_prompt">退出專案會刪除所有此專案下的工作與事件。確定要這麼做？</string>
+    <string name="view_finished_items">查看完成項目</string>
     <string name="settings">設定</string>
     <string name="feedbacks">回報</string>
     <string name="about">關於</string>
