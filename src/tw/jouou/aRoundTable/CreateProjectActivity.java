@@ -127,8 +127,12 @@ public class CreateProjectActivity extends Activity {
 		@Override
         protected void onPostExecute(Integer serverId) {
 			dialog.dismiss();
+
 			if(exception instanceof ServerException) {
 				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				return;
+			}else if(exception instanceof ConnectionFailException){
+				Toast.makeText(CreateProjectActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
@@ -138,11 +142,12 @@ public class CreateProjectActivity extends Activity {
 			if((serverId != null) && (serverId != -1)) {
 				proj.setServerId(serverId);
 				dbUtils.projectsDelegate.update(proj);
+				dbUtils.close();
+				
+				Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
+				intent.putExtra("proj", proj);
+				startActivity(intent);
 			}
-			dbUtils.close();
-			Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
-			intent.putExtra("projname", edTxtProjname.getText().toString());
-			startActivity(intent);
 		}
 	}
 }

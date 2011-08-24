@@ -40,4 +40,8 @@
     <string name="all_item_event">我的項目</string>
     <string name="notification">所有動態</string>
     <string name="feedback_mail_title">[aRoundTable] Feedback</string>
+    <string name="contacts">成員列表</string>
+    <string name="email_to_invite">電子郵件地址</string>
+    <string name="invite_member">邀請成員</string>
+    <string name="invite">邀請</string>
 </resources>

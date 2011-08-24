@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout	xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent">
+	<LinearLayout 	style="@style/ActionBarCompat">
+		<TextView	style="@style/ActionBarCompatText"
+					android:text="@string/contacts" />
+		<View 		style="@style/ActionBarCompatSeparator" />
+		<ImageButton	android:id="@+id/actbtn_add_member"
+						android:src="@android:drawable/ic_menu_add"
+						style="@style/ActionBarCompatButton"/>
+	</LinearLayout>
+</LinearLayout>
