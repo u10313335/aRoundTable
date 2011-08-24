@@ -165,10 +165,13 @@ public class MainActivity extends Activity {
     		        MainActivity.this.position = position;
     		        if(position==0) {
     		        	txTitle.setText(getString(R.string.notification));
+    		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else if(position==1) {
     		        	txTitle.setText(getString(R.string.all_item_event));
+    		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else {
     		        	txTitle.setText(projs.get(position-2).getName());
+    		        	txTitle.setTextColor(Color.parseColor(colors[projs.get(position-2).getColor()]));
     		        }
     		    }
     		});
