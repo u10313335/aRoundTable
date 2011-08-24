@@ -157,19 +157,7 @@ public class ArtApi {
 			throw new ServerException("Server returned unexpected data");
 		}
 	}
-	
-    public class Tasks extends Object {
-    	private String [] titles;
-    	private String due;
-    	private String note;
-    	
-    	Tasks(String[] titles, String due, String note) {
-    		this.titles = titles;
-    		this.due = due;
-    		this.note = note;
-    	}
-    }
-	
+		
 	/**
 	 * Update task attributes	
 	 * @param taskId
