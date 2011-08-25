@@ -135,10 +135,6 @@ public class CreateProjectActivity extends Activity {
 				Toast.makeText(CreateProjectActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
 				return;
 			}
-			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(CreateProjectActivity.this, "無法新增專案。（沒有網路連接）", Toast.LENGTH_LONG).show();
-				return;
-			}
 			if((serverId != null) && (serverId != -1)) {
 				proj.setServerId(serverId);
 				dbUtils.projectsDelegate.update(proj);

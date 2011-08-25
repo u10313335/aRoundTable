@@ -274,7 +274,14 @@ public class ArtApi {
 			throw new ServerException("Server returned unexpected data");
 		}
 	}
-	
+
+	/**
+	 * Quit a project
+	 * @param projectId project's id
+	 * @return 
+	 * @throws ServerException 
+	 * @throws ConnectionFailException 
+	 */
 	public void quitProject(long projectId) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		performDelete(projectsPath + "/" + projectId, params);

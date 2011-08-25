@@ -6,6 +6,7 @@ import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 
@@ -577,10 +578,17 @@ public class MainActivity extends Activity {
 				delDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
-    					dbUtils.projectsDelegate.delete(projs.get(position-2));
-    					dbUtils.tasksDelegate.deleteUnderProj(projs.get(position-2).getId());
-    					dbUtils.eventsDelegate.deleteUnderProj(projs.get(position-2).getId());
-    					update();
+    					try {
+							ArtApi.getInstance(MainActivity.this).quitProject(projs.get(position-2).getServerId());
+		   					dbUtils.projectsDelegate.delete(projs.get(position-2));
+	    					dbUtils.tasksDelegate.deleteUnderProj(projs.get(position-2).getId());
+	    					dbUtils.eventsDelegate.deleteUnderProj(projs.get(position-2).getId());
+	    					update();
+						} catch (ServerException e) {
+							Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+						} catch (ConnectionFailException e) {
+							Toast.makeText(MainActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
+						}
     				}
                 });
 				delDialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
