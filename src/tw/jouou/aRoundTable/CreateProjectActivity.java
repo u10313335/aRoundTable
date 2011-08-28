@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable;
 
 
+import java.util.Date;
 import java.util.LinkedList;
 
 import tw.jouou.aRoundTable.bean.Project;
@@ -113,21 +114,19 @@ public class CreateProjectActivity extends Activity {
 			try {
 		    	int serverId = ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
 		    	dbUtils = new DBUtils(CreateProjectActivity.this);
-		    	proj = new Project(params[0], Integer.parseInt(params[1]));
-		    	proj.setId(dbUtils.projectsDelegate.insert(proj));
-		    	return serverId;
+		    	proj = new Project(params[0], serverId, Integer.parseInt(params[1]), new Date());
+		    	dbUtils.projectsDelegate.insert(proj);
 			} catch (ServerException e) {
 				exception = e;
 			} catch (ConnectionFailException e) {
 				exception = e;
 			}
-			return null;
+			return 0;
 		}
 		
 		@Override
         protected void onPostExecute(Integer serverId) {
 			dialog.dismiss();
-
 			if(exception instanceof ServerException) {
 				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
@@ -135,15 +134,11 @@ public class CreateProjectActivity extends Activity {
 				Toast.makeText(CreateProjectActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
 				return;
 			}
-			if((serverId != null) && (serverId != -1)) {
-				proj.setServerId(serverId);
-				dbUtils.projectsDelegate.update(proj);
-				dbUtils.close();
-				
+
+				dbUtils.close();				
 				Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
 				intent.putExtra("proj", proj);
 				startActivity(intent);
-			}
 		}
 	}
 }

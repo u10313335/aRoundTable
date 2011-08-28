@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
@@ -24,6 +25,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -104,7 +106,7 @@ public class AddSingleTaskActivity extends Activity {
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
         try {
-    		mTasks = dbUtils.tasksDelegate.get(mProj.getId());
+    		mTasks = dbUtils.tasksDelegate.get(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
@@ -112,7 +114,7 @@ public class AddSingleTaskActivity extends Activity {
 		}
         if (mBundle.getInt("addOrEdit") == 0) {
             mProjName = mProj.getName();
-            mProjId = mProj.getId();
+            mProjId = mProj.getServerId();
             mTxCreateUnder.setText(mProjName);
             findAssignDateView();
             updateDisplay(mYear, mMonth, mDay);
@@ -122,7 +124,7 @@ public class AddSingleTaskActivity extends Activity {
         	Iterator<Task> irr = mTasks.iterator();
         	while (irr.hasNext()) {
         		Task nextTask = irr.next();
-        		if((nextTask.getId() == mTask.getId()) || (nextTask.getDueDate() == null)) {
+        		if((nextTask.getServerId() == mTask.getServerId()) || (nextTask.getDueDate() == null)) {
         			irr.remove();
         		}
         	}
@@ -385,7 +387,7 @@ public class AddSingleTaskActivity extends Activity {
 		Set<Long> set = new TreeSet<Long>();
 		for (int i=0; i < mDependableTasks.size(); i++) {
 			Long taskEventId = mTasks.get((int)((Spinner) mDependableTasks.get(i).findViewWithTag("sp"))
-					.getSelectedItemId()).getId();
+					.getSelectedItemId()).getServerId();
 			set.add(taskEventId);
 		}
 		return set.toArray(new Long[set.size()]);
@@ -413,25 +415,26 @@ public class AddSingleTaskActivity extends Activity {
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 						.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
-		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 						.createTask(mProjId, params[0], null, params[2]);
-						Task task = new Task(mProjId, serverId, params[0], null, params[2], 0);
+						Task task = new Task(mProjId, serverId, params[0], null, params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
 		    		}	
 		    	} else {
 		    		if (!params[1].equals("")) {
-		    			Task task = new Task(mTask.getId(), mTask.getProjId(),
-			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), params[2], 0);
+		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
+			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.update(task);
-		    			
 		    		} else {
-		    			Task task = new Task(mTask.getId(), mTask.getProjId(),
-		    				mTask.getServerId(), params[0], null, params[2], 0);
+		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
+		    				mTask.getServerId(), params[0], null, params[2], false, new Date());
 		    			dbUtils.tasksDelegate.update(task);
 		    		}
+		    		Intent syncIntent = new Intent(AddSingleTaskActivity.this, SyncService.class);
+		    		startService(syncIntent);
 		    	}
 			} catch (ServerException e) {
 				exception = e;

@@ -2,7 +2,6 @@ package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -23,13 +23,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tw.jouou.aRoundTable.AddBatchTaskActivity;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
-import android.graphics.Color;
 
 /**
  * Interface for around-table API
@@ -40,8 +38,10 @@ public class ArtApi {
 	private static ArtApi instance;
 	private static final String baseURL = "http://api.hime.loli.tw";
 	private static final String projectsPath = "/projects";	
-	private static final String addMemberPath = "/projects/%d/users";
+	private static final String tasksPath = "/tasks";	
+	private static final String projectPath = "/projects/%d";
 	private static final String taskPath = "/tasks/%d";
+	private static final String addMemberPath = "/projects/%d/users";
 	private static final String notificationsPath = "/projects/%d/notifications";
 	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
 	
@@ -66,7 +66,6 @@ public class ArtApi {
         return instance = new ArtApi(users.get(0).getToken());
 	}
 	
-	/* XXX: NOT tested yet. */
 	public Project[] getProjectList() throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		Project r[];
@@ -83,8 +82,7 @@ public class ArtApi {
 					System.out.println("1");
 				if(project == null)
 					System.out.println("2");
-				//FIXME: Color is mocked up
-				r[i] = new Project(project.getLong("id"), project.getString("name"), Color.BLACK); 
+				r[i] = new Project(project); 
 			}
 			return r;
 		} catch (JSONException e) {
@@ -92,42 +90,64 @@ public class ArtApi {
 		}
 	}
 	
-	/* XXX: NOT tested yet. */
-	public Project getProject(int projectId) throws  ServerException, ConnectionFailException{
+	public Project getProject(long projectId) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(projectsPath + "/" + projectId, params);
 		
 		JSONObject projectJson = extractJsonObject(response);
 		try {
 			return new Project(projectJson);
-		} catch (ParseException e) {
-			throw new ServerException("Server returned unexpected data");
 		} catch (JSONException e) {
 			throw new ServerException("Server returned unexpected data");
 		}
 	}
 	
-	/* XXX: not tested yet. */
-	public Task[] getTaskeventList(int projectId) throws ServerException, ConnectionFailException{
+	/**
+	 * Update project attributes
+	 * @param projectId
+	 * @param name
+	 * @param color
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public void updateProject(long projectId, String name, String color) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(projectsPath + "/" + projectId + "/taskevents", params);
-		Task[] taskEvents;
-		JSONObject taskEventJson = null;
+		
+		params.put("project[name]", name);
+		params.put("project[color]", color);
+		
+		performPut(String.format(projectPath, projectId), params);
+	}
+	
+	public Task[] getTaskList(long projectId) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(projectsPath + "/" + projectId + "/tasks", params);
+		Task[] tasks;
 
 		try {
-			JSONArray taskEventsJson = extractJsonArray(response);
+			JSONArray tasksJson = extractJsonArray(response);
 
-			taskEvents = new Task[taskEventsJson.length()];
-			for(int i=0; i < taskEventsJson.length(); taskEventJson = taskEventsJson.getJSONObject(i)){			
-				taskEvents[i] = new Task(taskEventJson); 
+			tasks = new Task[tasksJson.length()];
+			for(int i=0; i < tasksJson.length(); i++ ){
+				tasks[i] = new Task(tasksJson.getJSONObject(i)); 
 			}
-			return taskEvents;
+			return tasks;
 		} catch (JSONException e) {
 			throw new ServerException("Server returned unexpected data");
-		} catch (ParseException e) {
+		}
+	}
+	
+	public Task getTask(long taskId) throws  ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(tasksPath + "/" + taskId, params);
+		
+		JSONObject taskJson = extractJsonObject(response);
+		try {
+			return new Task(taskJson);
+		} catch (JSONException e) {
 			throw new ServerException("Server returned unexpected data");
-		}	
-	} 
+		}
+	}
 	
 	/**
 	 * Create a new task
@@ -167,7 +187,7 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public void updateTask(int taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
+	public void updateTask(long taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("task[name]", name);
@@ -175,7 +195,19 @@ public class ArtApi {
 		params.put("task[note]", note);
 		params.put("task[finished]", (finished)? "1" : "0");
 		
-		performGet(String.format(taskPath, taskId), params);
+		performPut(String.format(taskPath, taskId), params);
+	}
+	
+	/**
+	 * Delete a task
+	 * @param taskId task's id
+	 * @return 
+	 * @throws ServerException 
+	 * @throws ConnectionFailException 
+	 */
+	public void deleteTask(long taskId) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		performDelete(tasksPath + "/" + taskId, params);
 	}
 	
 	/**
@@ -465,6 +497,37 @@ public class ArtApi {
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		try {
 			HttpResponse response = httpClient.execute(post);
+			if(response.getStatusLine().getStatusCode() != 200)
+				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+			else
+				return response;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ConnectionFailException();
+		}
+	}
+	
+	/**
+	 * Perform HTTP PUT Request
+	 * @param path path to API endpoint
+	 * @param params HTTP Parameters
+	 * @return HttpResponse object
+	 * @throws ClientProtocolException 
+	 * @throws IOException
+	 */
+	private HttpResponse performPut(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
+		HttpPut put = new HttpPut(baseURL + path);
+		
+		// Perform request
+		try {
+			put.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		try {
+			HttpResponse response = httpClient.execute(put);
 			if(response.getStatusLine().getStatusCode() != 200)
 				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
 			else

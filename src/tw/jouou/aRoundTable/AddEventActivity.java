@@ -124,7 +124,7 @@ public class AddEventActivity extends Activity {
         mProj = (Project)mBundle.get("proj");      
         if (mBundle.getInt("addOrEdit") == 0) {
             mProjName = mProj.getName();
-            mProjId = mProj.getId();
+            mProjId = mProj.getServerId();
             mTxCreateUnder.setText(mProjName);
             findAssignTimeView();
             updateDate(FROM_DATE_CHOOSER, mStartAtYear, mStartAtMonth, mStartAtDay);
@@ -446,13 +446,13 @@ public class AddEventActivity extends Activity {
 		    		}
 		    	} else {
 		    		if (!params[1].equals("")) {
-		    			Event event = new Event(AddEventActivity.this.mEvent.getId(),
+		    			Event event = new Event(AddEventActivity.this.mEvent.getServerId(),
 		    					AddEventActivity.this.mEvent.getProjId(),
 		    					AddEventActivity.this.mEvent.getServerId(), params[0],
 		    					formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4]);
 		    			dbUtils.eventsDelegate.update(event);
 		    		} else {
-		    			Event event = new Event(AddEventActivity.this.mEvent.getId(),
+		    			Event event = new Event(AddEventActivity.this.mEvent.getServerId(),
 		    					AddEventActivity.this.mEvent.getProjId(),
 		    					AddEventActivity.this.mEvent.getServerId(),
 		    					params[0], null, null, params[3], params[4]);

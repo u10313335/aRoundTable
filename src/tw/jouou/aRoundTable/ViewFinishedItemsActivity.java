@@ -45,7 +45,7 @@ public class ViewFinishedItemsActivity extends Activity {
 		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
 		List<TaskEvent> taskevents = null;
     	try {
-    		taskevents = dbUtils.taskEventDelegate.getFinished(mProj.getId());
+    		taskevents = dbUtils.taskEventDelegate.getFinished(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
@@ -59,7 +59,6 @@ public class ViewFinishedItemsActivity extends Activity {
 	    	HashMap< String, Object > item = new HashMap< String, Object >();
 	    	item.put("itemName", taskevents.get(i).getName());
 	    	item.put("itemOwner", itemOwners[0]);
-	    	item.put("taskEventId", taskevents.get(i).getId());
     		if (due==null) {
 				item.put("dueDate", "");
     		} else {

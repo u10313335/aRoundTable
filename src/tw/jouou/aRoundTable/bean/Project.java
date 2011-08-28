@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,14 +17,23 @@ public class Project implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;
 	private long id;
-	private long serverId = 0;
+	private long serverId;
 	private int color;
 	private Date updateAt;
 	
-	public Project(long id, String name, int color) {
+	public Project(long id, String name, int color, Date updateAt) {
 		this.id = id;
 		this.name = name;
 		this.color = color;
+		this.updateAt = updateAt;
+	}
+	
+	public Project(long id, String name, long serverId, int color, Date updateAt) {
+		this.id = id;
+		this.name = name;
+		this.serverId = serverId;
+		this.color = color;
+		this.updateAt = updateAt;
 	}
 	
 	public Project(long id, String name, long serverId, int color) {
@@ -33,16 +43,24 @@ public class Project implements Serializable {
 		this.color = color;
 	}
 	
-	public Project(String name, int color){
+	public Project(String name, long serverId, int color, Date updateAt){
+		this.serverId = serverId;
 		this.name = name;
 		this.color = color;
+		this.updateAt = updateAt;
 	}
 	
-	public Project(JSONObject projectJson) throws JSONException, ParseException {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		this.name = projectJson.getString("name");
-		this.id = projectJson.getInt("id");
-		this.updateAt = sdf.parse(projectJson.getString("updated_at"));
+	public Project(JSONObject projectJson) throws JSONException {
+		try {
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+			this.name = projectJson.getString("name");
+			this.serverId = projectJson.getLong("id");
+			this.updateAt = formatter.parse(projectJson.getString("updated_at"));
+			this.color = Integer.parseInt(projectJson.getString("color"));
+		} catch (ParseException e) {
+			System.out.println("Parse error");
+		}
 	}
 	
 	public String getName() {
@@ -73,15 +91,26 @@ public class Project implements Serializable {
 		this.color = color;
 	}
 	
+	/*public String getUpdateAt() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return formatter.format(updateAt);
+	}*/
+	
+	public void setUpdateAt(Date updateAt) {
+		this.updateAt = updateAt;
+	}
+	
 	public Date getUpdateAt() {
 		return updateAt;
 	}
 	
 	public ContentValues getValues() {
 		ContentValues values = new ContentValues();
-		values.put(DBUtils.FIELD_PROJECTS_NAME, name);
-		values.put(DBUtils.FIELD_PROJECTS_SERVERID, serverId);
-		values.put(DBUtils.FIELD_PROJECTS_COLOR, color);
+		values.put(DBUtils.FIELD_PROJECT_NAME, name);
+		values.put(DBUtils.FIELD_PROJECT_SERVERID, serverId);
+		values.put(DBUtils.FIELD_PROJECT_COLOR, color);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		values.put(DBUtils.FIELD_PROJECT_UPDATED_AT, sdf.format(updateAt));
 		return values;
 	}
 }

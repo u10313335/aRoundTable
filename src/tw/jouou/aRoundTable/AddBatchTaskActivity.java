@@ -102,14 +102,14 @@ public class AddBatchTaskActivity extends Activity {
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
         try {
-    		mTasks = dbUtils.tasksDelegate.get(mProj.getId());
+    		mTasks = dbUtils.tasksDelegate.get(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse error");
 		}
         mProjName = mProj.getName();
-        mProjId = mProj.getId();
+        mProjId = mProj.getServerId();
         mTxCreateUnder.setText(mProjName);
         findAssignDateView();
         updateDisplay(mYear, mMonth, mDay);
@@ -382,7 +382,7 @@ public class AddBatchTaskActivity extends Activity {
 		Set<Long> set = new TreeSet<Long>();
 		for (int i=0; i < mDependableTasks.size(); i++) {
 			Long taskEventId = mTasks.get((int)((Spinner) mDependableTasks.get(i).findViewWithTag("sp"))
-					.getSelectedItemId()).getId();
+					.getSelectedItemId()).getServerId();
 			set.add(taskEventId);
 		}
 		return set.toArray(new Long[set.size()]);
@@ -430,14 +430,14 @@ public class AddBatchTaskActivity extends Activity {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note);
-		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note, 0);
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    		}
 		    	} else {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], null, params[0].note);
-		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].note, 0);
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    		}
 		    	}

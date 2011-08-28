@@ -7,24 +7,24 @@ import java.util.Date;
 public class TaskEvent implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	private long id;
+	private long serverId;
 	private String name;
 	private long projId;
 	private Date due;
 	private int done;
 	private int type;
 
-	public TaskEvent(long id, String name, long projId, Date due, int done, int type) {
-		this.id = id;
+	public TaskEvent(long serverId, String name, long projId, Date due, int done, int type) {
+		this.serverId = serverId;
 		this.name = name;
 		this.projId = projId;
 		this.due = due;
 		this.done = done;
 		this.type = type;
 	}
-
-	public long getId(){
-		return id;	
+	
+	public long getServerId() {
+		return serverId;
 	}
 	
 	public String getName() {

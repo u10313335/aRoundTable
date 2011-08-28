@@ -24,6 +24,19 @@
 			  android:cacheColorHint="@android:color/transparent"
 			  android:layout_weight="1"/>
 			  
+	<LinearLayout android:layout_width="fill_parent"
+				  android:layout_height="20dp"
+				  android:orientation="horizontal"
+				  android:background="#AFAFAE">
+				  
+		<TextView android:id="@+id/last_update"
+				  android:layout_width="fill_parent"
+				  android:layout_height="fill_parent"
+				  android:textColor="#F6F6F7"
+				  android:gravity="center"/>
+				   
+	</LinearLayout>
+			  
 	<LinearLayout android:id="@+id/all_item_menu"
 				  android:layout_width="fill_parent"
 				  android:layout_height="50dp"

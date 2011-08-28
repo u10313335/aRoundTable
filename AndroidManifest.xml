@@ -61,6 +61,10 @@
         
         <activity android:name="ContactsActivity">
         </activity>
+        
+        <service android:name="tw.jouou.aRoundTable.lib.SyncService"
+        		 android:exported="true">
+        </service>
 
     </application>
 </manifest>

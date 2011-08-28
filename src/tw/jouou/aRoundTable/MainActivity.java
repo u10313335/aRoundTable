@@ -8,6 +8,7 @@ import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
+import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
 
 import java.text.ParseException;
@@ -25,16 +26,18 @@ import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
+import android.app.PendingIntent;
+import android.app.AlarmManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -75,6 +78,7 @@ public class MainActivity extends Activity {
 	private View lists[]; //list[0] is "notifications", list[1] is "all task/events list",
     private View mainView; // the followings(lists[2]~) are "project list"
     private TextView txTitle;
+    private TextView txLastUpdate;
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
 	private ArrayList<List<TaskEvent>> mAllTaskEvents = new ArrayList<List<TaskEvent>>();
@@ -125,9 +129,6 @@ public class MainActivity extends Activity {
         	);
         	dialog.show();
     	}
-
-    	//TODO:get project list from server, used when sync
-    	//new GetProjectListTask().execute();
     }
     
     protected void update() {
@@ -135,7 +136,11 @@ public class MainActivity extends Activity {
     	if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
-    	projs = dbUtils.projectsDelegate.get();
+    	try {
+			projs = dbUtils.projectsDelegate.get();
+		} catch (ParseException e) {
+			Log.v(TAG, "Parse error");
+		}
     	if(!projs.isEmpty()) {
     		lists = new View[(projs.size())+2];
     		
@@ -178,6 +183,7 @@ public class MainActivity extends Activity {
     		        }
     		    }
     		});
+    		getLastUpdate();
 			viewFlow.setSelection(MainActivity.this.position);
     	}else {
             Intent addgroup_intent= new Intent();
@@ -215,6 +221,7 @@ public class MainActivity extends Activity {
 		ImageView btnRefresh = (ImageView) v.findViewById(R.id.all_item_refresh);
 		ImageView btnAddItem = (ImageView) v.findViewById(R.id.all_item_add);
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
+		txLastUpdate = (TextView) v.findViewById(R.id.last_update);
 		
 	    for (int i=0; i < taskevents.size(); i++) {
 	    	Date due = taskevents.get(i).getDueDate();
@@ -223,7 +230,6 @@ public class MainActivity extends Activity {
 	    	item.put("checkDone", itemDone);
 	    	item.put("itemName", taskevents.get(i).getName());
 	    	item.put("itemProj", proj.getName());
-	    	item.put("taskEventId", taskevents.get(i).getId());
 
 	    	if (due==null) {
 	    		item.put("dueRelateDay", getString(R.string.undetermined));
@@ -261,9 +267,15 @@ public class MainActivity extends Activity {
     	
     	btnRefresh.setOnClickListener(new OnClickListener() {
     		@Override
-    		public void onClick(View arg0) {
-    			update();
-    	    }
+    		public void onClick(View arg0) {	
+    			Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+    			PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
+    			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+    			long firstTime = SystemClock.elapsedRealtime();
+    			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+    				firstTime, 15*60*1000, pendingIntent);
+    			Toast.makeText(MainActivity.this, "Start Sync", Toast.LENGTH_LONG).show();  			
+    		}
     	});
     	
     	btnAddItem.setOnClickListener(new OnClickListener() {
@@ -306,7 +318,7 @@ public class MainActivity extends Activity {
 		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
 		List<TaskEvent> taskevents = null;
     	try {
-    		taskevents = dbUtils.taskEventDelegate.get(proj.getId());
+    		taskevents = dbUtils.taskEventDelegate.get(proj.getServerId());
     		mAllTaskEvents.add(taskevents);
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
@@ -328,7 +340,7 @@ public class MainActivity extends Activity {
 	    	item.put("checkDone", chkBoxItemDone);
 	    	item.put("itemName", taskevents.get(i).getName());
 	    	item.put("itemOwner", itemOwners[0]);
-	    	item.put("taskEventId", taskevents.get(i).getId());
+	    	
     		if (due==null) {
     			item.put("dueRelateDay", getString(R.string.undetermined));
 				item.put("today", false);
@@ -401,6 +413,14 @@ public class MainActivity extends Activity {
     	});
 	}
 	
+	private void getLastUpdate() {
+        SharedPreferences settings = getSharedPreferences(SyncService.PREF, 0);
+        String prefLastUpdate = settings.getString(SyncService.PREF_LAST_UPDATE, "");
+        if(! "".equals(prefLastUpdate)) {
+        		txLastUpdate.setText("Last Update: " + prefLastUpdate);
+        }
+    }
+	
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo)item.getMenuInfo();
         TaskEvent taskevent;
@@ -412,7 +432,7 @@ public class MainActivity extends Activity {
         			case 0:
         				Task task;
         				try {
-        					task = dbUtils.tasksDelegate.getTask(taskevent.getId());
+        					task = dbUtils.tasksDelegate.getTask(taskevent.getServerId());
             				additem_intent.putExtra("item", task);
             				additem_intent.putExtra("type", TASK);
         				} catch (ParseException e) {
@@ -422,7 +442,7 @@ public class MainActivity extends Activity {
         			case 1:
         				Event event;
         				try {
-        					event = dbUtils.eventsDelegate.getEvent(taskevent.getId());
+        					event = dbUtils.eventsDelegate.getEvent(taskevent.getServerId());
             				additem_intent.putExtra("item", event);
             				additem_intent.putExtra("type", EVENT);
         				} catch (ParseException e) {
@@ -437,10 +457,10 @@ public class MainActivity extends Activity {
         	case MENU_DeleteItem:
         		switch(taskevent.getType()) {
     				case 0:
-    					dbUtils.tasksDelegate.delete(taskevent.getId());
+    					dbUtils.tasksDelegate.delete(taskevent.getServerId());
     					break;
     				case 1:
-    					dbUtils.eventsDelegate.delete(taskevent.getId());
+    					dbUtils.eventsDelegate.delete(taskevent.getServerId());
         		}
         		MainActivity.this.update();
         }
@@ -555,9 +575,9 @@ public class MainActivity extends Activity {
 				editDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
-    					Project proj = new Project(projs.get(position-2).getId(),
+    					Project proj = new Project(projs.get(position-2).getServerId(),
     							edProjName.getText().toString(), projs.get(position-2).getServerId(),
-    							projs.get(position-2).getColor());
+    							projs.get(position-2).getColor(), new Date());
     					dbUtils.projectsDelegate.update(proj);
     					update();
     				}
@@ -581,8 +601,8 @@ public class MainActivity extends Activity {
     					try {
 							ArtApi.getInstance(MainActivity.this).quitProject(projs.get(position-2).getServerId());
 		   					dbUtils.projectsDelegate.delete(projs.get(position-2));
-	    					dbUtils.tasksDelegate.deleteUnderProj(projs.get(position-2).getId());
-	    					dbUtils.eventsDelegate.deleteUnderProj(projs.get(position-2).getId());
+	    					dbUtils.tasksDelegate.deleteUnderProj(projs.get(position-2).getServerId());
+	    					dbUtils.eventsDelegate.deleteUnderProj(projs.get(position-2).getServerId());
 	    					update();
 						} catch (ServerException e) {
 							Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -676,10 +696,13 @@ public class MainActivity extends Activity {
 						  get(MainActivity.this.position-1)).get(position);
 				  try {
 					  	Task task;
-      					task = dbUtils.tasksDelegate.getTask(taskevent.getId());
-      					task.setDone(1);
+      					task = dbUtils.tasksDelegate.getTask(taskevent.getServerId());
+      					task.setDone(true);
+      					task.setUpdateAt(new Date());
       					dbUtils.tasksDelegate.update(task);
       					update();
+    		    		Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+    		    		startService(syncIntent);
 				  } catch (ParseException e) {
       					Log.v(TAG, "Parse error");
 				  }
@@ -691,10 +714,10 @@ public class MainActivity extends Activity {
 
 	
 	private class DiffAdapter extends BaseAdapter {
-		private LayoutInflater mInflater;
+		
 
 		public DiffAdapter(Context context) {
-			mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			//LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		}
 
 		@Override
@@ -725,54 +748,5 @@ public class MainActivity extends Activity {
 			convertView = lists[position];
 			return convertView;
 		}
-
 	}
-
-
-	//TODO:get project list from server, used when sync
-/*	private class GetProjectListTask extends AsyncTask<Void, Void, Project[]> {
-		private Dialog dialog;
-		private Exception exception;
-		
-		@Override
-		protected void onPreExecute() {
-			dialog = new ProgressDialog(MainActivity.this);
-			dialog.show();
-		}
-		
-		@Override
-		protected Project[] doInBackground(Void... params) {
-			try {				
-				return ArtApi.getInstance(MainActivity.this).getProjectList();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ServerException e) {
-				exception = e;				
-				e.printStackTrace();
-			}
-			return null;
-		}
-		
-		@Override
-        protected void onPostExecute(Project[] projects) {
-			dialog.dismiss();
-			
-			if(exception instanceof ServerException) {
-				Toast.makeText(MainActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
-				return;
-			}
-			
-			if(projects == null)
-				return;
-			
-			projName = new String[projects.length];
-			
-			for(int i=0; i < projects.length; i++) {
-				projName[i] = projects[i].getName();
-			}
-			// Set project name on top
-			projNameView.setText(projName[0]);
-		}
-	}*/
 }
