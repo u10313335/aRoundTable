@@ -5,25 +5,8 @@
 	android:layout_width="fill_parent" 
 	android:orientation="horizontal">
 	
-	<LinearLayout android:id="@+id/finished_item_color_layout"
-				  android:layout_height="wrap_content" 
-				  android:layout_width="wrap_content"
-				  android:layout_centerVertical="true">
-				  
-    	<TextView android:id="@+id/finished_item_color"
-              	  android:layout_width="wrap_content" 
-              	  android:layout_height="35dip"
-              	  android:gravity="left"
-              	  android:layout_marginLeft="10dip"
-              	  android:layout_marginTop="6dip"
-              	  android:background="#FFFF00"
-              	  android:text=" "/>
-				  
-  	</LinearLayout>
-  	
   	<LinearLayout android:layout_height="wrap_content"
                   android:layout_width="wrap_content"
-                  android:layout_toRightOf="@id/finished_item_color_layout"
                   android:orientation="vertical">
                   
     	<TextView android:id="@+id/finished_item_name"

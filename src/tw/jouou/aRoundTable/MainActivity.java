@@ -27,8 +27,11 @@ import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.AlarmManager;
+import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -114,6 +117,14 @@ public class MainActivity extends Activity {
  
     	if(!users.isEmpty()) {
     		token = users.get(0).getToken();
+    		if(SyncService.getService() == null) {
+    			Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+    			PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
+    			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+    			long firstTime = SystemClock.elapsedRealtime();
+    			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+    				firstTime, 15*60*1000, pendingIntent);
+    		}
          	update();
     	}else {
     		Builder dialog = new Builder(MainActivity.this);
@@ -267,14 +278,10 @@ public class MainActivity extends Activity {
     	
     	btnRefresh.setOnClickListener(new OnClickListener() {
     		@Override
-    		public void onClick(View arg0) {	
-    			Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
-    			PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
-    			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-    			long firstTime = SystemClock.elapsedRealtime();
-    			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-    				firstTime, 15*60*1000, pendingIntent);
-    			Toast.makeText(MainActivity.this, "Start Sync", Toast.LENGTH_LONG).show();  			
+    		public void onClick(View arg0) {
+	    		Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+	    		startService(syncIntent);
+	    		update();
     		}
     	});
     	
@@ -682,8 +689,14 @@ public class MainActivity extends Activity {
 		  if((Integer)items.get(position).get("type") == 1) {
 			  done.setVisibility(View.GONE);
 			  color.setVisibility(View.INVISIBLE);
-			  if(txOwner!=null) {
+			  if(txOwner != null) {
 				  txOwner.setVisibility(View.INVISIBLE);
+			  }
+		  } else {
+			  done.setVisibility(View.VISIBLE);
+			  color.setVisibility(View.VISIBLE);
+			  if(txOwner != null) {
+				  txOwner.setVisibility(View.VISIBLE);
 			  }
 		  }
 		  

@@ -23,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
@@ -38,9 +39,11 @@ public class ArtApi {
 	private static ArtApi instance;
 	private static final String baseURL = "http://api.hime.loli.tw";
 	private static final String projectsPath = "/projects";	
-	private static final String tasksPath = "/tasks";	
+	private static final String tasksPath = "/tasks";
+	private static final String eventsPath = "/events";
 	private static final String projectPath = "/projects/%d";
 	private static final String taskPath = "/tasks/%d";
+	private static final String eventPath = "/events/%d";
 	private static final String addMemberPath = "/projects/%d/users";
 	private static final String notificationsPath = "/projects/%d/notifications";
 	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
@@ -209,6 +212,36 @@ public class ArtApi {
 		HashMap<String, String> params = makeTokenHash();
 		performDelete(tasksPath + "/" + taskId, params);
 	}
+
+	public Event[] getEventList(long projectId) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(projectsPath + "/" + projectId + "/events", params);
+		Event[] events;
+
+		try {
+			JSONArray eventsJson = extractJsonArray(response);
+
+			events = new Event[eventsJson.length()];
+			for(int i=0; i < eventsJson.length(); i++ ){
+				events[i] = new Event(eventsJson.getJSONObject(i)); 
+			}
+			return events;
+		} catch (JSONException e) {
+			throw new ServerException("Server returned unexpected data");
+		}
+	}
+	
+	public Event getEvent(long eventId) throws  ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(eventsPath + "/" + eventId, params);
+		
+		JSONObject eventsJson = extractJsonObject(response);
+		try {
+			return new Event(eventsJson);
+		} catch (JSONException e) {
+			throw new ServerException("Server returned unexpected data");
+		}
+	}
 	
 	/**
 	 * Create a new event
@@ -242,6 +275,39 @@ public class ArtApi {
 		}catch(JSONException je){
 			throw new ServerException("Server returned unexpected data");
 		}
+	}
+
+	/**
+	 * Update event attributes	
+	 * @param eventId
+	 * @param name
+	 * @param due
+	 * @param note
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public void updateEvent(long eventId, String name, Date start_at, Date end_at, String location, String note) throws  ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+
+		params.put("event[name]", name);
+		params.put("event[start_at]", start_at.toString());
+		params.put("event[end_at]", end_at.toString());
+		params.put("event[location]", location);
+		params.put("event[note]", note);
+		
+		performPut(String.format(eventPath, eventId), params);
+	}
+	
+	/**
+	 * Delete a event
+	 * @param eventId event's id
+	 * @return 
+	 * @throws ServerException 
+	 * @throws ConnectionFailException 
+	 */
+	public void deleteEvent(long eventId) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		performDelete(eventsPath + "/" + eventId, params);
 	}
 	
 	/**

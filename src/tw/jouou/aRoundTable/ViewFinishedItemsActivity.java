@@ -7,11 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -27,8 +26,6 @@ public class ViewFinishedItemsActivity extends Activity {
 	private DBUtils dbUtils;
 	private Bundle mBundle;
 	private Project mProj;
-	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423",
-			"#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
 	private static String TAG = "ViewFinishedItemsActivity";
 
 	@Override
@@ -43,9 +40,9 @@ public class ViewFinishedItemsActivity extends Activity {
         txProjName.setText("\"" + mProj.getName() + "\"專案下已完成項目：");
         
 		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
-		List<TaskEvent> taskevents = null;
+		List<Task> tasks = null;
     	try {
-    		taskevents = dbUtils.taskEventDelegate.getFinished(mProj.getServerId());
+    		tasks = dbUtils.tasksDelegate.getFinished(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
 			Log.v(TAG, "IllegalArgument");
 		} catch (ParseException e) {
@@ -54,18 +51,16 @@ public class ViewFinishedItemsActivity extends Activity {
     	
 		ListView finishedItemListView = (ListView) findViewById(R.id.finished_item_list);
 
-	    for (int i=0; i < taskevents.size(); i++) {
-	    	Date due = taskevents.get(i).getDueDate();
+	    for (int i=0; i < tasks.size(); i++) {
+	    	Date due = tasks.get(i).getDueDate();
 	    	HashMap< String, Object > item = new HashMap< String, Object >();
-	    	item.put("itemName", taskevents.get(i).getName());
+	    	item.put("itemName", tasks.get(i).getName());
 	    	item.put("itemOwner", itemOwners[0]);
     		if (due==null) {
-				item.put("dueDate", "");
+				item.put("dueDate", getString(R.string.undetermined));
     		} else {
-    			item.put("dueDate", taskevents.get(i).getDue());
+    			item.put("dueDate", tasks.get(i).getDue());
     		}
-    		item.put("type", taskevents.get(i).getType());
-	    	item.put("color", mProj.getColor());
 	    	items.add(item);
 	    }
 	    
@@ -96,16 +91,7 @@ public class ViewFinishedItemsActivity extends Activity {
 
 		@Override
 		public View getView(final int position, View convertView, ViewGroup parent) {
-		  View view = super.getView(position, convertView, parent);
-		  TextView txOwner = (TextView) view.findViewById(R.id.finished_item_owner);
-		  TextView color = (TextView) view.findViewById(R.id.finished_item_color);
-		  if((Integer)items.get(position).get("type") == 1) {
-			  color.setVisibility(View.INVISIBLE);
-			  if(txOwner!=null) {
-				  txOwner.setVisibility(View.INVISIBLE);
-			  }
-		  }
-		  color.setBackgroundColor(Color.parseColor(colors[(Integer)items.get(position).get("color")])); 		  
+		  View view = super.getView(position, convertView, parent);  
 		  return view;
 		}
 	}

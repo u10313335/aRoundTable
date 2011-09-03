@@ -2,29 +2,25 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Event;
-import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -436,12 +432,12 @@ public class AddEventActivity extends Activity {
 		    			int serverId = ArtApi.getInstance(AddEventActivity.this)
 						.createEvent(mProjId, params[0], formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4] );
 		    			Event event = new Event(mProjId, serverId, params[0], formatter.parse(params[1]),
-		    					formatter.parse(params[2]), params[3], params[4]);
+		    					formatter.parse(params[2]), params[3], params[4], new Date());
 		    			dbUtils.eventsDelegate.insert(event);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddEventActivity.this)
 						.createEvent(mProjId, params[0], null, null, params[3], params[4] );
-		    			Event event = new Event(mProjId, serverId, params[0], null, null, params[3], params[4]);
+		    			Event event = new Event(mProjId, serverId, params[0], null, null, params[3], params[4], new Date());
 		    			dbUtils.eventsDelegate.insert(event);
 		    		}
 		    	} else {
@@ -449,15 +445,17 @@ public class AddEventActivity extends Activity {
 		    			Event event = new Event(AddEventActivity.this.mEvent.getServerId(),
 		    					AddEventActivity.this.mEvent.getProjId(),
 		    					AddEventActivity.this.mEvent.getServerId(), params[0],
-		    					formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4]);
+		    					formatter.parse(params[1]), formatter.parse(params[2]), params[3], params[4], new Date());
 		    			dbUtils.eventsDelegate.update(event);
 		    		} else {
 		    			Event event = new Event(AddEventActivity.this.mEvent.getServerId(),
 		    					AddEventActivity.this.mEvent.getProjId(),
 		    					AddEventActivity.this.mEvent.getServerId(),
-		    					params[0], null, null, params[3], params[4]);
+		    					params[0], null, null, params[3], params[4], new Date());
 		    			dbUtils.eventsDelegate.update(event);
 		    		}
+		    		Intent syncIntent = new Intent(AddEventActivity.this, SyncService.class);
+		    		startService(syncIntent);
 		    	}
 			} catch (ServerException e) {
 				exception = e;		

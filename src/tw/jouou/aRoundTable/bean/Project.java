@@ -91,11 +91,6 @@ public class Project implements Serializable {
 		this.color = color;
 	}
 	
-	/*public String getUpdateAt() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return formatter.format(updateAt);
-	}*/
-	
 	public void setUpdateAt(Date updateAt) {
 		this.updateAt = updateAt;
 	}

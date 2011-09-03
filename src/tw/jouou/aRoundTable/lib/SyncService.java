@@ -5,11 +5,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import tw.jouou.aRoundTable.MainActivity;
+import tw.jouou.aRoundTable.R;
+import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,20 +25,41 @@ import android.util.Log;
 public class SyncService extends Service {
 	
 	
+	private static SyncService SYNC_SERVICE = null;
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 	public static final String PREF = "SYNC_PREF";
-    public static final String PREF_LAST_UPDATE = "Sync_Last_Update";
+    public static final String PREF_LAST_UPDATE = "SYNC_LAST_UPDATE";
 	private static String TAG = "SyncService";
 	
-	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		SYNC_SERVICE = this;
+	}
+
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return null;
+	}
+	
+	public static Service getService() {
+		return SYNC_SERVICE;
 	}
 
 	@Override
 	public void onStart(Intent intent, int startId) {
 		super.onStart(intent, startId);
+        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        Intent notifyIntent = new Intent(this, MainActivity.class); 
+        notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent appIntent = PendingIntent.getActivity(this, 0, notifyIntent,0);
+        Notification notification = new Notification();
+        notification.flags = Notification.FLAG_AUTO_CANCEL;
+        notification.icon = R.drawable.notification;
+        notification.tickerText = "正在同步項目";
+        notification.setLatestEventInfo(this, "正在同步項目", "", appIntent);
+        notificationManager.notify(0, notification);
+        notificationManager.cancelAll();
 		try {
 			Date now = new Date();
 			formatter.format(now);
@@ -44,7 +71,8 @@ public class SyncService extends Service {
 			int projDiff = remoteProjs.length - localProjs.size();
 			if(projDiff == 0) {
 				for (int i=0 ; i<localProjs.size() ; i++) {
-					Project proj = localProjs.get(i);				
+					Project proj = dbUtils.projectsDelegate.get(remoteProjs[i].getServerId());
+					Log.v(TAG, "[project] local: " + proj.getServerId() + " remote: " + remoteProjs[i].getServerId());
 					if (!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
 						if(proj.getUpdateAt().after(remoteProjs[i].getUpdateAt())) {
 							Log.v(TAG, "project: " + proj.getServerId() + " local update to server (push)");
@@ -71,14 +99,14 @@ public class SyncService extends Service {
 			localProjs = dbUtils.projectsDelegate.get();
 			for (int i=0 ; i<localProjs.size() ; i++) {
 				Task remoteTasks[] = ArtApi.getInstance(SyncService.this).getTaskList(localProjs.get(i).getServerId());
-				List<Task> localTasks = dbUtils.tasksDelegate.getAll(localProjs.get(i).getServerId());
-				int taskDiff = remoteTasks.length - localTasks.size();
+				int taskDiff = remoteTasks.length - dbUtils.tasksDelegate.count(localProjs.get(i).getServerId());
 				if(taskDiff == 0) {
-					for (int j=0 ; j<localTasks.size() ; j++) {
-						Task task = localTasks.get(j);				
+					for (int j=0 ; j<remoteTasks.length ; j++) {
+						Task task = dbUtils.tasksDelegate.getTask(remoteTasks[j].getServerId());
+						Log.v(TAG, "[task] local: " + task.getServerId() + " remote: " + remoteTasks[j].getServerId());
 						if (!(task.getUpdateAt().compareTo(remoteTasks[j].getUpdateAt())==0)) {
 							if(task.getUpdateAt().after(remoteTasks[j].getUpdateAt())) {
-								Log.v(TAG, "task: " + task.getServerId() + " local update to server (push)");
+								Log.v(TAG, "task: " + task.getServerId() + " local update to server (push)" + remoteTasks[j].getServerId());
 								ArtApi.getInstance(SyncService.this).updateTask(task.getServerId(), task.getName(), task.getDueDate(), task.getNote(), task.getDone());
 								task.setUpdateAt(ArtApi.getInstance(SyncService.this).getTask(task.getServerId()).getUpdateAt());
 								dbUtils.tasksDelegate.update(task);
@@ -97,6 +125,37 @@ public class SyncService extends Service {
 					for (int j=0 ; j < remoteTasks.length ; j++) {
 						Task task = new Task(remoteTasks[j].getProjId(), remoteTasks[j].getServerId(), remoteTasks[j].getName(), remoteTasks[j].getDueDate(), remoteTasks[j].getNote(), remoteTasks[j].getDone(), remoteTasks[j].getUpdateAt());
 						dbUtils.tasksDelegate.insert(task);
+					}
+				}
+			}
+			for (int i=0 ; i<localProjs.size() ; i++) {
+				Event remoteEvents[] = ArtApi.getInstance(SyncService.this).getEventList(localProjs.get(i).getServerId());
+				int taskDiff = remoteEvents.length - dbUtils.eventsDelegate.count(localProjs.get(i).getServerId());
+				if(taskDiff == 0) {
+					for (int j=0 ; j<remoteEvents.length ; j++) {
+						Event event = dbUtils.eventsDelegate.getEvent(remoteEvents[j].getServerId());
+						Log.v(TAG, "[event] local: " + event.getServerId() + " remote: " + remoteEvents[j].getServerId());
+						if (!(event.getUpdateAt().compareTo(remoteEvents[j].getUpdateAt())==0)) {
+							if(event.getUpdateAt().after(remoteEvents[j].getUpdateAt())) {
+								Log.v(TAG, "event: " + event.getServerId() + " local update to server (push)");
+								ArtApi.getInstance(SyncService.this).updateEvent(event.getServerId(), event.getName(), event.getStartAt(), event.getEndAt(), event.getLocation(), event.getNote());
+								event.setUpdateAt(ArtApi.getInstance(SyncService.this).getEvent(event.getServerId()).getUpdateAt());
+								dbUtils.eventsDelegate.update(event);
+							} else {
+								Log.v(TAG, "event: " + event.getServerId() + " server update to local (pull)");
+								dbUtils.eventsDelegate.update(ArtApi.getInstance(SyncService.this).getEvent(event.getServerId()));
+							}
+						} else {
+							Log.v(TAG, "event: " + event.getServerId() + " nothing changed");
+							continue;
+						}
+					}
+				} else {
+					Log.v(TAG, "event numbers vary, rebuild events db...");
+					dbUtils.tasksDelegate.deleteAll(localProjs.get(i).getServerId());
+					for (int j=0 ; j < remoteEvents.length ; j++) {
+						Event event = new Event(remoteEvents[j].getProjId(), remoteEvents[j].getServerId(), remoteEvents[j].getName(), remoteEvents[j].getStartAt(), remoteEvents[j].getEndAt(), remoteEvents[j].getLocation(), remoteEvents[j].getNote(), remoteEvents[j].getUpdateAt());
+						dbUtils.eventsDelegate.insert(event);
 					}
 				}
 			}

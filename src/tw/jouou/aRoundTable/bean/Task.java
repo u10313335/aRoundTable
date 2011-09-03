@@ -19,7 +19,7 @@ public class Task implements Serializable {
 	private long projId;
 	private long serverId;
 	private String name;
-	private Date due;
+	private Date due=null;
 	private String note;
 	private boolean done;
 	private Date updateAt;
@@ -55,14 +55,15 @@ public class Task implements Serializable {
 			this.name = taskJson.getString("name");
 			this.serverId = taskJson.getLong("id");
 			this.projId = taskJson.getLong("project_id");
-			this.due = formatter.parse(taskJson.getString("due"));
+			if(!(taskJson.getString("due").equals("null"))) {
+				this.due = formatter.parse(taskJson.getString("due"));
+			}
 			this.note = taskJson.getString("note");
 			this.done = (taskJson.getString("finished").equals("1")) ? true : false;
 			this.updateAt = formatter.parse(taskJson.getString("updated_at"));
 		} catch (ParseException e) {
 			System.out.println("Parse error");
 		}
-
 	}
 	
 	public long getId(){
