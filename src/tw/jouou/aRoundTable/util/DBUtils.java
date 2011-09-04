@@ -248,6 +248,33 @@ public class DBUtils extends SQLiteOpenHelper {
 			db.close();
 		}
 		
+		public List<Long> getDeleted(long projId) throws ParseException {
+			List<Long> deletedServerIds = new LinkedList<Long>();
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASK, new String[] { "server_id" },
+					"project_id=" + projId + " and type=2",
+					null, null, null,
+					null, null);
+			while (c.moveToNext()) {
+				long deletedServerId = c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_SERVERID));
+				deletedServerIds.add(deletedServerId);
+			}
+			c.close();
+			db.close();
+			return deletedServerIds;
+		}
+		
+		public void setDelete(long id) {
+			if (id < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			ContentValues values = new ContentValues();
+			values.put(DBUtils.FIELD_TASK_TYPE, 2);
+			db.update(TABLE_TASK, values, "server_id = ?", new String[] { String
+					.valueOf(id) });
+			db.close();
+		}
+		
 		public void deleteAll(long projId) {
 			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_TASK, "project_id = ?", null);
@@ -281,7 +308,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		public int count(long projId) throws ParseException {
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_TASK, null,
-					"project_id=" + projId, null, null, null, null, null);
+					"project_id=" + projId + " and type<>2", null, null, null, null, null);
 			int numbers = c.getCount();
 			c.close();
 			db.close();
@@ -439,6 +466,39 @@ public class DBUtils extends SQLiteOpenHelper {
 			db.close();
 		}
 		
+		public List<Long> getDeleted(long projId) throws ParseException {
+			List<Long> deletedServerIds = new LinkedList<Long>();
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_EVENT, new String[] { "server_id" },
+					"project_id=" + projId + " and type=2",
+					null, null, null,
+					null, null);
+			while (c.moveToNext()) {
+				long deletedServerId = c.getLong(c.getColumnIndexOrThrow(FIELD_EVENT_SERVERID));
+				deletedServerIds.add(deletedServerId);
+			}
+			c.close();
+			db.close();
+			return deletedServerIds;
+		}
+		
+		public void setDelete(long id) {
+			if (id < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			ContentValues values = new ContentValues();
+			values.put(DBUtils.FIELD_EVENT_TYPE, 2);
+			db.update(TABLE_EVENT, values, "server_id = ?", new String[] { String
+					.valueOf(id) });
+			db.close();
+		}
+		
+		public void deleteAll(long projId) {
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_EVENT, "project_id = ?", null);
+			db.close();
+		}
+		
 		public void deleteUnderProj(long projId) {
 			if (projId < 0)
 				return;
@@ -466,7 +526,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		public int count(long projId) throws ParseException {
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_EVENT, null,
-					"project_id=" + projId, null, null, null, null, null);
+					"project_id=" + projId + " and type<>2", null, null, null, null, null);
 			int numbers = c.getCount();
 			c.close();
 			db.close();
@@ -587,17 +647,17 @@ public class DBUtils extends SQLiteOpenHelper {
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c1 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
 					" from task where project_id=" + projId +
-					" and due>= Datetime('now','localtime') and finish=0" +
+					" and due>= Datetime('now','localtime') and finish=0 and type<>2" +
 					" union all select server_id,name,project_id,start_at,server_id,type" +
 					" from event where project_id=" + projId + 
-					" and start_at>= Datetime('now','localtime')" +
+					" and start_at>= Datetime('now','localtime') and type<>2" +
 					" order by due ASC", null);
 			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
 					" from task where project_id=" + projId +
-					" and due='' and finish=0" +
+					" and due='' and finish=0 and type<>2" +
 					" union all select server_id,name,project_id,start_at,server_id,type" +
 					" from event where project_id=" + projId +
-					" and start_at=''", null);		
+					" and start_at='' and type<>2", null);		
 			while (c1.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
 						c1.getString(c1.getColumnIndexOrThrow("name")),
@@ -627,14 +687,14 @@ public class DBUtils extends SQLiteOpenHelper {
 		
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c1 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
-					" from task where due>= Datetime('now','localtime') and finish=0" +
+					" from task where due>= Datetime('now','localtime') and finish=0 and type<>2" +
 					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at>= Datetime('now','localtime')" +
+					" from event where start_at>= Datetime('now','localtime') and type<>2" +
 					" order by due ASC", null);
 			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish," +
-					" type from task where due='' and finish=0" +
+					" type from task where due='' and finish=0 and type<>2" +
 					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at=''", null);	
+					" from event where start_at='' and type<>2", null);	
 			while (c1.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
 						c1.getString(c1.getColumnIndexOrThrow("name")),

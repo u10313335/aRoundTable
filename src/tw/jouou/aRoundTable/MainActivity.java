@@ -27,11 +27,8 @@ import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.AlarmManager;
-import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -464,11 +461,13 @@ public class MainActivity extends Activity {
         	case MENU_DeleteItem:
         		switch(taskevent.getType()) {
     				case 0:
-    					dbUtils.tasksDelegate.delete(taskevent.getServerId());
+    					dbUtils.tasksDelegate.setDelete(taskevent.getServerId());
     					break;
     				case 1:
-    					dbUtils.eventsDelegate.delete(taskevent.getServerId());
+    					dbUtils.eventsDelegate.setDelete(taskevent.getServerId());
         		}
+	    		Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+	    		startService(syncIntent);
         		MainActivity.this.update();
         }
     	return super.onContextItemSelected(item); 

@@ -121,9 +121,15 @@ public class SyncService extends Service {
 					}
 				} else {
 					Log.v(TAG, "task numbers vary, rebuild tasks db...");
+					List<Long> deletedTasks = dbUtils.tasksDelegate.getDeleted(localProjs.get(i).getServerId());
+					for (int j=0 ; j < deletedTasks.size() ; j++) {
+						ArtApi.getInstance(SyncService.this).deleteTask(deletedTasks.get(j));
+						dbUtils.tasksDelegate.delete(deletedTasks.get(j));
+					}
 					dbUtils.tasksDelegate.deleteAll(localProjs.get(i).getServerId());
-					for (int j=0 ; j < remoteTasks.length ; j++) {
-						Task task = new Task(remoteTasks[j].getProjId(), remoteTasks[j].getServerId(), remoteTasks[j].getName(), remoteTasks[j].getDueDate(), remoteTasks[j].getNote(), remoteTasks[j].getDone(), remoteTasks[j].getUpdateAt());
+					remoteTasks = ArtApi.getInstance(SyncService.this).getTaskList(localProjs.get(i).getServerId());
+					for (int k=0 ; k < remoteTasks.length ; k++) {
+						Task task = new Task(remoteTasks[k].getProjId(), remoteTasks[k].getServerId(), remoteTasks[k].getName(), remoteTasks[k].getDueDate(), remoteTasks[k].getNote(), remoteTasks[k].getDone(), remoteTasks[k].getUpdateAt());
 						dbUtils.tasksDelegate.insert(task);
 					}
 				}
@@ -152,9 +158,15 @@ public class SyncService extends Service {
 					}
 				} else {
 					Log.v(TAG, "event numbers vary, rebuild events db...");
-					dbUtils.tasksDelegate.deleteAll(localProjs.get(i).getServerId());
-					for (int j=0 ; j < remoteEvents.length ; j++) {
-						Event event = new Event(remoteEvents[j].getProjId(), remoteEvents[j].getServerId(), remoteEvents[j].getName(), remoteEvents[j].getStartAt(), remoteEvents[j].getEndAt(), remoteEvents[j].getLocation(), remoteEvents[j].getNote(), remoteEvents[j].getUpdateAt());
+					List<Long> deletedEvents = dbUtils.eventsDelegate.getDeleted(localProjs.get(i).getServerId());
+					for (int j=0 ; j < deletedEvents.size() ; j++) {
+						ArtApi.getInstance(SyncService.this).deleteEvent(deletedEvents.get(j));
+						dbUtils.eventsDelegate.delete(deletedEvents.get(j));
+					}
+					dbUtils.eventsDelegate.deleteAll(localProjs.get(i).getServerId());
+					remoteEvents = ArtApi.getInstance(SyncService.this).getEventList(localProjs.get(i).getServerId());
+					for (int k=0 ; k < remoteEvents.length ; k++) {
+						Event event = new Event(remoteEvents[k].getProjId(), remoteEvents[k].getServerId(), remoteEvents[k].getName(), remoteEvents[k].getStartAt(), remoteEvents[k].getEndAt(), remoteEvents[k].getLocation(), remoteEvents[k].getNote(), remoteEvents[k].getUpdateAt());
 						dbUtils.eventsDelegate.insert(event);
 					}
 				}

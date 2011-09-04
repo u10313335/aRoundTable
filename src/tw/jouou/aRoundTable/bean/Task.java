@@ -19,7 +19,7 @@ public class Task implements Serializable {
 	private long projId;
 	private long serverId;
 	private String name;
-	private Date due=null;
+	private Date due;
 	private String note;
 	private boolean done;
 	private Date updateAt;
