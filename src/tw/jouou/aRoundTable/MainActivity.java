@@ -97,6 +97,7 @@ public class MainActivity extends Activity {
     private static final int EVENT = 1;
     private static final int ADD_ITEM = 0;
     private static final int EDIT_ITEM = 1;
+    private static final int REQUEST_AUTH = 1;
 	private static String TAG = "MainActivity";
 
 	
@@ -131,12 +132,24 @@ public class MainActivity extends Activity {
         		new DialogInterface.OnClickListener() {
         	    	public void onClick(DialogInterface dialoginterface, int i) {
         	    		dialoginterface.dismiss();
-        	    		initAcc();
+        	    		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
         	    	}
         	    }
         	);
         	dialog.show();
     	}
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) { 
+    	switch (requestCode) {
+		case REQUEST_AUTH:
+			if(resultCode == RESULT_CANCELED)
+				finish();
+			break;
+		default:
+			break;
+		}
     }
     
     protected void update() {
@@ -489,23 +502,6 @@ public class MainActivity extends Activity {
 		return Math.round((dueCal.getTime().getTime()-todayCal.getTime().getTime()) /DAY);
 	}
 
-    // FIXME: duplicate notification after registration
-    protected void onNewIntent(Intent intent) {
-    	super.onNewIntent(intent);
-	 	Uri uri = intent.getData();
-	 	if(uri != null) {
-		 	token = uri.getQueryParameter("");
-		    User user = new User(token);
-		    if (dbUtils == null) {
-				dbUtils = new DBUtils(this);
-			}
-			dbUtils.userDelegate.insert(user);
-			dbUtils.close();
-			Toast.makeText(this, R.string.register_finished, Toast.LENGTH_SHORT).show();
-		    Log.v(TAG, "[onNewIntent] Token back: "+token);
-	 	}
-	}
-    
     @Override
 	public void onResume() {
 		super.onResume();
@@ -529,12 +525,6 @@ public class MainActivity extends Activity {
 			dbUtils = null;
 		}
 	}
- 
-    public void initAcc(){
-		Uri uri = Uri.parse(ArtApi.getLoginUrl());
-    	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-    	startActivity(intent);
-    }
     
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
