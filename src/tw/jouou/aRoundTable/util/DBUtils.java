@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable.util;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
@@ -26,9 +27,9 @@ public class DBUtils extends SQLiteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
 	public final static int DB_VERSION = 1;
 	
-	public final static String TABLE_USERS = "user";
-	public final static String FIELD_USERS_ID = "_id";
-	public final static String FIELD_USERS_TOKEN = "token";
+	public final static String TABLE_USER = "user";
+	public final static String FIELD_USER_ID = "_id";
+	public final static String FIELD_USER_TOKEN = "token";
 	
 	public final static String TABLE_PROJECT = "project";
 	public final static String FIELD_PROJECT_ID = "_id";
@@ -59,14 +60,21 @@ public class DBUtils extends SQLiteOpenHelper {
 	public final static String FIELD_EVENT_NOTE = "note";
 	public final static String FIELD_EVENT_UPDATED_AT = "updated_at";
 	public final static String FIELD_EVENT_TYPE = "type";
+	
+	public final static String TABLE_NOTIFICATION = "notification";
+	public final static String FIELD_NOTIFICATION_ID = "_id";
+	public final static String FIELD_NOTIFICATION_MEMBERID = "member_id";
+	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
+	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
+	public final static String FIELD_NOTIFICATION_READ = "read";
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE " + TABLE_USERS
-				+ "( " + FIELD_USERS_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_USERS_TOKEN + " TEXT )");
+		db.execSQL("CREATE TABLE " + TABLE_USER
+				+ "( " + FIELD_USER_ID + " INTEGER PRIMARY KEY, "
+				+ FIELD_USER_TOKEN + " TEXT )");
 	
 		db.execSQL( "CREATE TABLE " + TABLE_PROJECT
 				+ "( " + FIELD_PROJECT_ID + " INTEGER PRIMARY KEY, "
@@ -97,24 +105,19 @@ public class DBUtils extends SQLiteOpenHelper {
 				+ FIELD_EVENT_NOTE + " TEXT, "
 				+ FIELD_EVENT_UPDATED_AT + " DATETIME, "
 				+ FIELD_EVENT_TYPE + " INTEGER )");
+		
+		db.execSQL( "CREATE TABLE " + TABLE_NOTIFICATION
+				+ "( " + FIELD_NOTIFICATION_ID + " INTEGER PRIMARY KEY, "
+				+ FIELD_NOTIFICATION_MESSAGE + " TEXT, "
+				+ FIELD_NOTIFICATION_MEMBERID + " INTEGER, "
+				+ FIELD_NOTIFICATION_SERVERID + " INTEGER )");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// TODO Auto-generated method stub
-/*		switch (oldVersion) {
-		case 1:			
-			db.execSQL( "CREATE TABLE " + TABLE_TASK
-					+ " (_id INTEGER PRIMARY KEY, "
-					+ FIELD_TASK_NAME + " TEXT, "
-					+ FIELD_TASK_PROJECTID + " INTEGER, "
-					+ FIELD_TASK_SERVERID + " INTEGER, "
-					+ FIELD_TASK_DUEDATE + " DATE, "
-					+ FIELD_TASK_NOTE + " TEXT, "
-					+ FIELD_TASK_TYPE + " INTEGER, "
-					+ FIELD_TASK_FINISHED + " INTEGER )");
-		}
-*/
+		/*switch (oldVersion) {
+		case 2:
+		}*/
 	}
 	
 	public UsersDelegate userDelegate = new UsersDelegate();
@@ -122,6 +125,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	public TaskDelegate tasksDelegate = new TaskDelegate();
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
+	public NotificationDelegate notificationDelegate = new NotificationDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -129,7 +133,7 @@ public class DBUtils extends SQLiteOpenHelper {
 				return;
 
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_USERS, "_id = ?", new String[] { String
+			db.delete(TABLE_USER, "_id = ?", new String[] { String
 					.valueOf(user.getId()) });
 			db.close();	
 		}
@@ -137,14 +141,14 @@ public class DBUtils extends SQLiteOpenHelper {
 		public void update(User user) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = user.getValues();
-			db.update(TABLE_USERS, values, "_id = ?", new String[] { String
+			db.update(TABLE_USER, values, "_id = ?", new String[] { String
 					.valueOf(user.getId()) });
 			db.close();
 		}
 	
 		public void insert(User user) {
 			SQLiteDatabase db = getWritableDatabase();
-			db.insert(TABLE_USERS, null, user.getValues());
+			db.insert(TABLE_USER, null, user.getValues());
 			db.close();
 		}
 	
@@ -152,12 +156,12 @@ public class DBUtils extends SQLiteOpenHelper {
 			List<User> users = new LinkedList<User>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_USERS, null, null, null, null, null,
-					FIELD_USERS_ID + " ASC");
+			Cursor c = db.query(TABLE_USER, null, null, null, null, null,
+					FIELD_USER_ID + " ASC");
 
 			while (c.moveToNext()) {
-				User user = new User(c.getLong(c.getColumnIndexOrThrow(FIELD_USERS_ID)), 
-						c.getString(c.getColumnIndexOrThrow(FIELD_USERS_TOKEN)));		
+				User user = new User(c.getLong(c.getColumnIndexOrThrow(FIELD_USER_ID)), 
+						c.getString(c.getColumnIndexOrThrow(FIELD_USER_TOKEN)));		
 				users.add(user);
 			}
 			c.close();
@@ -718,6 +722,34 @@ public class DBUtils extends SQLiteOpenHelper {
 			db.close();
 			return taskevents;
 		}
-	}	
+	}
+	
+	public class NotificationDelegate {
+		public void insert(Notification notification) {
+			SQLiteDatabase db = getWritableDatabase();
+			db.insert(TABLE_NOTIFICATION, null, notification.getValues());
+			db.close();
+		}
+
+		public List<Notification> get() {
+			List<Notification> notifications = new LinkedList<Notification>();
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_NOTIFICATION, null, null, null, null, null,
+					FIELD_NOTIFICATION_ID + " DESC");
+
+			while (c.moveToNext()) {
+				Notification notification = new Notification(c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_ID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_MEMBERID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_SERVERID)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_MESSAGE)),
+						(c.getInt(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_READ)) == 1)? true : false);
+				notifications.add(notification);
+			}
+			c.close();
+			db.close();
+			return notifications;
+		}
+	}
 	
 }

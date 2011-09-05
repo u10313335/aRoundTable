@@ -6,9 +6,9 @@
 	android:orientation="horizontal">
     
 	<LinearLayout android:id="@+id/notification_icon"
-				  android:layout_height="wrap_content" 
+				  android:layout_height="wrap_content"
 				  android:layout_width="wrap_content"
-				  android:layout_centerVertical="true">
+				  android:layout_marginTop="10dip">
     
 		<ImageView android:id="@+id/picture"
     			   android:layout_width="48dip" 
@@ -20,11 +20,10 @@
     </LinearLayout>
     
     <LinearLayout android:id="@+id/notification_main"
-    			  android:layout_height="60dip"
+    			  android:layout_height="wrap_content"
                   android:layout_width="fill_parent"
-                  android:layout_marginTop="20dip"
+                  android:layout_marginTop="10dip"
                   android:layout_toRightOf="@id/notification_icon"
-                  android:layout_centerVertical="true"
                   android:orientation="vertical">
     
     	<TextView android:id="@+id/notificaton_context"
@@ -43,12 +42,14 @@
     
     		<Button android:id="@+id/reply"
     				android:layout_width="wrap_content" 
-    				android:layout_height="wrap_content"
+    				android:layout_height="35dip"
+    				android:focusable="false"
     				android:text="Reply"/>
     
     		<Button android:id="@+id/like"
     				android:layout_width="wrap_content" 
-    				android:layout_height="wrap_content"
+    				android:layout_height="35dip"
+    				android:focusable="false"
     				android:text="Like"/>
     			
     	</LinearLayout>

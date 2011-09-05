@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
@@ -54,9 +55,11 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,6 +74,7 @@ public class MainActivity extends Activity {
 	//TODO:dummy test data, remove them ASAP
 	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
 	private String token;
+	private int mUnReadCount;
 	private DBUtils dbUtils;
 	private List<User> users;
 	private List<Project> projs;
@@ -78,6 +82,8 @@ public class MainActivity extends Activity {
 	private View lists[]; //list[0] is "notifications", list[1] is "all task/events list",
     private View mainView; // the followings(lists[2]~) are "project list"
     private TextView txTitle;
+    private ImageView ivUnreadIndicator;
+    private TextView txUnread;
     private TextView txLastUpdate;
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
@@ -114,14 +120,6 @@ public class MainActivity extends Activity {
  
     	if(!users.isEmpty()) {
     		token = users.get(0).getToken();
-    		if(SyncService.getService() == null) {
-    			Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
-    			PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
-    			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-    			long firstTime = SystemClock.elapsedRealtime();
-    			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-    				firstTime, 15*60*1000, pendingIntent);
-    		}
          	update();
     	}else {
     		Builder dialog = new Builder(MainActivity.this);
@@ -140,6 +138,14 @@ public class MainActivity extends Activity {
     }
     
     protected void update() {
+		if(SyncService.getService() == null) {
+			Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+			PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
+			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+			long firstTime = SystemClock.elapsedRealtime();
+			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+				firstTime, 15*60*1000, pendingIntent);
+		}
     	mAllTaskEvents.clear();
     	if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
@@ -151,7 +157,6 @@ public class MainActivity extends Activity {
 		}
     	if(!projs.isEmpty()) {
     		lists = new View[(projs.size())+2];
-    		
     		lists[0] = mInflater.inflate(R.layout.notification, null);
     		lists[1] = mInflater.inflate(R.layout.all_item_list, null);
     		try {
@@ -170,6 +175,12 @@ public class MainActivity extends Activity {
     		}
     		mainView = mInflater.inflate(R.layout.main, null);
     		txTitle = (TextView) mainView.findViewById(R.id.main_title);
+    		ivUnreadIndicator = (ImageView) mainView.findViewById(R.id.main_unread_indicator);
+    		txUnread = (TextView) mainView.findViewById(R.id.main_unread_count);
+    		if(mUnReadCount > 0) {
+    			txUnread.setText(""+mUnReadCount);
+    			ivUnreadIndicator.setImageResource(R.drawable.has_unread);
+    		}
     		setContentView(mainView);
     		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
             adapter = new DiffAdapter(this);
@@ -201,24 +212,27 @@ public class MainActivity extends Activity {
     }
     
     private void formNotification(View v) {
-    	ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>> ();
-    	//TODO:dummy test data, remove them ASAP
-    	String[] notifications = new String[]{"小羽完成了「OR PPT」",
-    			"小熊完成了「FI訪談問題」",
-    			"洞洞更改了「SA PPT」時間"};
-    	ListView notificationView = (ListView) v.findViewById(R.id.dynamic_issue_list);
+    	ExpandableListView notificationView = (ExpandableListView) v.findViewById(R.id.dynamic_issue_list);
+    	List<Notification> notifications = dbUtils.notificationDelegate.get();
+    	mUnReadCount = 0;
+    	List<HashMap <String, String>> groups = new ArrayList<HashMap <String, String>>();
+    	List<List <HashMap<String, String>>> childs = new ArrayList<List <HashMap<String, String>>>();
+	    for (int i=0; i < notifications.size(); i++) {
+	    	HashMap<String, String> group = new HashMap<String, String>();
+	    	group.put("g", notifications.get(i).getMessage());
+	    	if(!notifications.get(i).getRead()) {
+	    		mUnReadCount+=1;
+	    	}
+	    	groups.add(group);
+	        List<HashMap <String, String>> child = new ArrayList<HashMap <String, String>>();
+	        HashMap<String, String> childdata = new HashMap<String, String>();
+	        childdata.put("c", "回應");
+	        child.add(childdata);
+	        childs.add(child);
+	    }
+        SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(this, groups, R.layout.notification_item, new String[] { "g" }, new int[] { R.id.notificaton_context }, childs, android.R.layout.simple_expandable_list_item_2, new String[] { "c" }, new int[] { android.R.id.text1});
+        notificationView.setAdapter(adapter);
         
-        for(int i=0;i<notifications.length;i++)
-        {
-        	HashMap<String, Object> map = new HashMap<String, Object>();
-        	map.put("notifications",notifications[i]);
-        	listItem.add(map);
-        }
-        
-        notificationView.setAdapter(new SimpleAdapter(this,listItem, 
-                R.layout.notification_item,
-                new String[] {"notifications"}, 
-                new int[] {R.id.notificaton_context}));
     }
     
     // form all task/event list
@@ -377,8 +391,7 @@ public class MainActivity extends Activity {
 				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
 				menu.setHeaderTitle(getString(R.string.item_operations));
 			}
-    	});
-    	
+    	});   	
 		btnIssue.setOnClickListener(new OnClickListener() {
     		@Override
     	    public void onClick(View arg0) {
@@ -517,7 +530,7 @@ public class MainActivity extends Activity {
     		update();
     		
         	if(viewFlow != null)
-        		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by alphabet order
+        		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
     	}
     }
     
