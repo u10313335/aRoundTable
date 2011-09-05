@@ -140,8 +140,8 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	}
 	
 	@Override
-	public void onUpgrade(SQLiteDatabase arg0, ConnectionSource oldVersion, int newVersion,
-			int arg3) {
+	public void onUpgrade(SQLiteDatabase db, ConnectionSource cs, int oldVersion,
+			int newVersion) {
 	}	
 
 	public UsersDelegate userDelegate = new UsersDelegate();
