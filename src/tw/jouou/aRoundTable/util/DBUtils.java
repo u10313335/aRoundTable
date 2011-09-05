@@ -2,6 +2,7 @@ package tw.jouou.aRoundTable.util;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
@@ -16,7 +17,6 @@ import java.util.List;
 
 import com.j256.ormlite.android.AndroidConnectionSource;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
-import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
@@ -26,15 +26,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
 	public final static int DB_VERSION = 1;
 	
-	public final static String TABLE_USERS = "user";
-	public final static String FIELD_USERS_ID = "_id";
-	public final static String FIELD_USERS_TOKEN = "token";
+	public final static String TABLE_USER = "user";
+	public final static String FIELD_USER_ID = "_id";
+	public final static String FIELD_USER_TOKEN = "token";
 	
 	public final static String TABLE_PROJECT = "project";
 	public final static String FIELD_PROJECT_ID = "_id";
@@ -65,6 +64,13 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_EVENT_NOTE = "note";
 	public final static String FIELD_EVENT_UPDATED_AT = "updated_at";
 	public final static String FIELD_EVENT_TYPE = "type";
+	
+	public final static String TABLE_NOTIFICATION = "notification";
+	public final static String FIELD_NOTIFICATION_ID = "_id";
+	public final static String FIELD_NOTIFICATION_MEMBERID = "member_id";
+	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
+	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
+	public final static String FIELD_NOTIFICATION_READ = "read";
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -86,10 +92,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db, ConnectionSource conn) {
-		db.execSQL("CREATE TABLE " + TABLE_USERS
-				+ "( " + FIELD_USERS_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_USERS_TOKEN + " TEXT )");
-	
+		db.execSQL("CREATE TABLE " + TABLE_USER
+				+ "( " + FIELD_USER_ID + " INTEGER PRIMARY KEY, "
+				+ FIELD_USER_TOKEN + " TEXT )");
+
 		db.execSQL( "CREATE TABLE " + TABLE_PROJECT
 				+ "( " + FIELD_PROJECT_ID + " INTEGER PRIMARY KEY, "
 				+ FIELD_PROJECT_NAME + " TEXT, "
@@ -120,6 +126,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_EVENT_UPDATED_AT + " DATETIME, "
 				+ FIELD_EVENT_TYPE + " INTEGER )");
 		
+		db.execSQL( "CREATE TABLE " + TABLE_NOTIFICATION
+				+ "( " + FIELD_NOTIFICATION_ID + " INTEGER PRIMARY KEY, "
+				+ FIELD_NOTIFICATION_MESSAGE + " TEXT, "
+				+ FIELD_NOTIFICATION_MEMBERID + " INTEGER, "
+				+ FIELD_NOTIFICATION_SERVERID + " INTEGER )");
+		
 		try {
 			TableUtils.createTable(conn, Member.class);
 		} catch (SQLException e) {
@@ -128,17 +140,16 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	}
 	
 	@Override
-	public void onUpgrade(SQLiteDatabase arg0, ConnectionSource arg1, int arg2,
+	public void onUpgrade(SQLiteDatabase arg0, ConnectionSource oldVersion, int newVersion,
 			int arg3) {
-		// TODO Auto-generated method stub
-		
 	}	
-	
+
 	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
 	public TaskDelegate tasksDelegate = new TaskDelegate();
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
+	public NotificationDelegate notificationDelegate = new NotificationDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -146,7 +157,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				return;
 
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_USERS, "_id = ?", new String[] { String
+			db.delete(TABLE_USER, "_id = ?", new String[] { String
 					.valueOf(user.getId()) });
 			db.close();	
 		}
@@ -154,27 +165,25 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		public void update(User user) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = user.getValues();
-			db.update(TABLE_USERS, values, "_id = ?", new String[] { String
+			db.update(TABLE_USER, values, "_id = ?", new String[] { String
 					.valueOf(user.getId()) });
 			db.close();
 		}
 	
 		public void insert(User user) {
 			SQLiteDatabase db = getWritableDatabase();
-			db.insert(TABLE_USERS, null, user.getValues());
+			db.insert(TABLE_USER, null, user.getValues());
 			db.close();
 		}
 	
 		public List<User> get() {
 			List<User> users = new LinkedList<User>();
-		
-				SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_USERS, null, null, null, null, null,
-					FIELD_USERS_ID + " ASC");
-
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_USER, null, null, null, null, null,
+					FIELD_USER_ID + " ASC");
 			while (c.moveToNext()) {
-				User user = new User(c.getLong(c.getColumnIndexOrThrow(FIELD_USERS_ID)), 
-						c.getString(c.getColumnIndexOrThrow(FIELD_USERS_TOKEN)));		
+				User user = new User(c.getLong(c.getColumnIndexOrThrow(FIELD_USER_ID)), 
+						c.getString(c.getColumnIndexOrThrow(FIELD_USER_TOKEN)));		
 				users.add(user);
 			}
 			c.close();
@@ -734,6 +743,34 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			c2.close();
 			db.close();
 			return taskevents;
+		}
+	}
+	
+	public class NotificationDelegate {
+		public void insert(Notification notification) {
+			SQLiteDatabase db = getWritableDatabase();
+			db.insert(TABLE_NOTIFICATION, null, notification.getValues());
+			db.close();
+		}
+
+		public List<Notification> get() {
+			List<Notification> notifications = new LinkedList<Notification>();
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_NOTIFICATION, null, null, null, null, null,
+					FIELD_NOTIFICATION_ID + " DESC");
+
+			while (c.moveToNext()) {
+				Notification notification = new Notification(c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_ID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_MEMBERID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_SERVERID)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_MESSAGE)),
+						(c.getInt(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_READ)) == 1)? true : false);
+				notifications.add(notification);
+			}
+			c.close();
+			db.close();
+			return notifications;
 		}
 	}
 }

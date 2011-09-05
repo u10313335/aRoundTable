@@ -15,9 +15,10 @@
 				  
 	</LinearLayout>
 	
-	<ListView android:id="@+id/dynamic_issue_list"
+	<ExpandableListView android:id="@+id/dynamic_issue_list"
     		  android:layout_width="fill_parent" 
     		  android:layout_height="wrap_content"
+    		  android:groupIndicator="@null"
     		  android:divider="@drawable/divider"
 			  android:dividerHeight="0.5dp"
     		  android:scrollbars="vertical"

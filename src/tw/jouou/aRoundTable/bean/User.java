@@ -33,7 +33,7 @@ public class User implements Serializable {
 
 	public ContentValues getValues() {
 		ContentValues values = new ContentValues();
-		values.put(DBUtils.FIELD_USERS_TOKEN, token);
+		values.put(DBUtils.FIELD_USER_TOKEN, token);
 		return values;
 	}
 

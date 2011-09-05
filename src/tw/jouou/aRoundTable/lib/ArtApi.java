@@ -2,10 +2,12 @@ package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -25,6 +27,7 @@ import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
@@ -193,9 +196,11 @@ public class ArtApi {
 	 */
 	public void updateTask(long taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 		params.put("task[name]", name);
-		params.put("task[due]", due.toString());
+		params.put("task[due]", formatter.format(due));
 		params.put("task[note]", note);
 		params.put("task[finished]", (finished)? "1" : "0");
 		
@@ -447,18 +452,7 @@ public class ArtApi {
 		}
 		return result;
 	}
-	
-	public class Notification{
-		public int projectId;
-		public int userId;
-		public String message;
-		public Notification(int projectId, int userId, String message){
-			this.projectId = projectId;
-			this.userId = userId;
-			this.message = message;
-		}
-	}
-	
+
 	/**
 	 * Get notification list of project
 	 * @param projectId
@@ -466,19 +460,21 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public Notification[] getNotifications(int projectId) throws ServerException, ConnectionFailException{
+	public Notification[] getNotifications(long projectId) throws ServerException, ConnectionFailException{
 		HttpResponse response = performGet(String.format(notificationsPath, projectId), makeTokenHash());
-		JSONArray json = extractJsonArray(response);
-		Notification notifications[] = new Notification[json.length()];
-		for(int i=0; i<notifications.length; i++){
+		
+		Notification[] notifications;
 			try {
-				JSONObject jsonNotification = json.getJSONObject(i);
-				notifications[i] = new Notification(projectId, jsonNotification.getInt("user_id"), jsonNotification.getString("message"));
+				JSONArray notificationJson = extractJsonArray(response);
+				notifications = new Notification[notificationJson.length()];
+				for(int i=0; i < notificationJson.length(); i++ ){
+					notifications[i] = new Notification(notificationJson.getJSONObject(i)); 
+				}
+				return notifications;
+				//notifications[i] = new Notification(projectId, jsonNotification.getInt("user_id"), jsonNotification.getString("message"));
 			} catch (JSONException e) {
 				throw new ServerException("Server return invalid json");
 			}
-		}
-		return notifications;
 	}
 	
 	class NotificationResponse{
