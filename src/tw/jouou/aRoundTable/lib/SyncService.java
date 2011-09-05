@@ -1,13 +1,17 @@
 package tw.jouou.aRoundTable.lib;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.j256.ormlite.stmt.DeleteBuilder;
+
 import tw.jouou.aRoundTable.MainActivity;
 import tw.jouou.aRoundTable.R;
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
@@ -24,7 +28,7 @@ import android.util.Log;
 
 public class SyncService extends Service {
 	
-	
+	private ArtApi artApi;
 	private static SyncService SYNC_SERVICE = null;
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 	public static final String PREF = "SYNC_PREF";
@@ -35,6 +39,7 @@ public class SyncService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		SYNC_SERVICE = this;
+		artApi = ArtApi.getInstance(this);
 	}
 
 	@Override
@@ -171,6 +176,7 @@ public class SyncService extends Service {
 					}
 				}
 			}
+			syncMembers(dbUtils, localProjs);
 		} catch (ServerException e) {
 			Log.v(TAG, e.getMessage());
 		} catch (ConnectionFailException e) {
@@ -179,5 +185,22 @@ public class SyncService extends Service {
 			Log.v(TAG, "Parse Error");
 		}
 	}
-
+	
+	private void syncMembers(DBUtils dbUtils, List<Project> projects) throws ServerException, ConnectionFailException {
+		for(Project project : projects) {
+			try {
+				// Delete all member of project
+				DeleteBuilder<Member, Integer> del = dbUtils.memberDao.deleteBuilder();
+				del.where().eq("project_id", project.getServerId());
+				dbUtils.memberDao.delete(del.prepare());
+				
+				// Add new version
+				for(Member member: artApi.getMembers(project.getServerId())) {
+					dbUtils.memberDao.create(member);
+				}	
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

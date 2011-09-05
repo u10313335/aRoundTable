@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LinearLayout	xmlns:android="http://schemas.android.com/apk/res/android"
 				android:layout_width="fill_parent"
-				android:layout_height="fill_parent">
+				android:layout_height="fill_parent"
+				android:orientation="vertical">
 	<LinearLayout 	style="@style/ActionBarCompat">
 		<TextView	style="@style/ActionBarCompatText"
 					android:text="@string/contacts" />
@@ -10,4 +11,7 @@
 						android:src="@android:drawable/ic_menu_add"
 						style="@style/ActionBarCompatButton"/>
 	</LinearLayout>
+	<ListView 	android:id="@+id/members_list"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent" />
 </LinearLayout>

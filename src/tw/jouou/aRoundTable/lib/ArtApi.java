@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
@@ -430,6 +431,21 @@ public class ArtApi {
 		}
 		
 		return null;
+	}
+	
+	public Member[] getMembers(long projectId) throws ServerException, ConnectionFailException {
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(String.format(addMemberPath, projectId), params);
+		JSONArray respArr = extractJsonArray(response);
+		Member[] result = new Member[respArr.length()];
+		try {
+			for(int i=0; i<respArr.length(); i++){
+				result[i] = new Member(projectId, respArr.getJSONObject(i));
+			}
+		}catch(JSONException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 	
 	public class Notification{

@@ -1,28 +1,34 @@
 package tw.jouou.aRoundTable.util;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.j256.ormlite.android.AndroidConnectionSource;
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.BaseDaoImpl;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class DBUtils extends SQLiteOpenHelper {
-
-	public DBUtils(Context context) {
-		super(context, DB_NAME, null, DB_VERSION);
-	}
-	
+public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
 	public final static int DB_VERSION = 1;
 	
@@ -61,9 +67,25 @@ public class DBUtils extends SQLiteOpenHelper {
 	public final static String FIELD_EVENT_TYPE = "type";
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
+	// This is for ORM Lite
+	private ConnectionSource connectionSource;
+	public Dao<Member, Integer> memberDao;
+
+
+	public DBUtils(Context context) {
+		super(context, DB_NAME, null, DB_VERSION);
+		connectionSource =  new AndroidConnectionSource(this);
+		try {
+			memberDao = DaoManager.createDao(connectionSource, Member.class);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 
 	@Override
-	public void onCreate(SQLiteDatabase db) {
+	public void onCreate(SQLiteDatabase db, ConnectionSource conn) {
 		db.execSQL("CREATE TABLE " + TABLE_USERS
 				+ "( " + FIELD_USERS_ID + " INTEGER PRIMARY KEY, "
 				+ FIELD_USERS_TOKEN + " TEXT )");
@@ -97,25 +119,20 @@ public class DBUtils extends SQLiteOpenHelper {
 				+ FIELD_EVENT_NOTE + " TEXT, "
 				+ FIELD_EVENT_UPDATED_AT + " DATETIME, "
 				+ FIELD_EVENT_TYPE + " INTEGER )");
-	}
-
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// TODO Auto-generated method stub
-/*		switch (oldVersion) {
-		case 1:			
-			db.execSQL( "CREATE TABLE " + TABLE_TASK
-					+ " (_id INTEGER PRIMARY KEY, "
-					+ FIELD_TASK_NAME + " TEXT, "
-					+ FIELD_TASK_PROJECTID + " INTEGER, "
-					+ FIELD_TASK_SERVERID + " INTEGER, "
-					+ FIELD_TASK_DUEDATE + " DATE, "
-					+ FIELD_TASK_NOTE + " TEXT, "
-					+ FIELD_TASK_TYPE + " INTEGER, "
-					+ FIELD_TASK_FINISHED + " INTEGER )");
+		
+		try {
+			TableUtils.createTable(conn, Member.class);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-*/
 	}
+	
+	@Override
+	public void onUpgrade(SQLiteDatabase arg0, ConnectionSource arg1, int arg2,
+			int arg3) {
+		// TODO Auto-generated method stub
+		
+	}	
 	
 	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
@@ -151,7 +168,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		public List<User> get() {
 			List<User> users = new LinkedList<User>();
 		
-			SQLiteDatabase db = getReadableDatabase();
+				SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_USERS, null, null, null, null, null,
 					FIELD_USERS_ID + " ASC");
 
@@ -718,6 +735,5 @@ public class DBUtils extends SQLiteOpenHelper {
 			db.close();
 			return taskevents;
 		}
-	}	
-	
+	}
 }
