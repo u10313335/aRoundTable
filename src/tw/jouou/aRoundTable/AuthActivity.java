@@ -13,6 +13,8 @@ public class AuthActivity extends Activity {
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState){
+		super.onCreate(savedInstanceState);
+		
 		 WebView webview = new WebView(this);
 		 setContentView(webview);
 		 webview.loadUrl(ArtApi.getLoginUrl());
