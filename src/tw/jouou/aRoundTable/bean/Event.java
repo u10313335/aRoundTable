@@ -58,7 +58,11 @@ public class Event implements Serializable {
 			this.projId = eventJson.getLong("project_id");
 			if(!(eventJson.getString("start_at").equals("null"))) {
 				this.start_at = formatter.parse(eventJson.getString("start_at"));
-				this.end_at = formatter.parse(eventJson.getString("end_at"));
+				if(eventJson.getString("end_at").equals("null")) {
+					this.end_at = formatter.parse(eventJson.getString("start_at"));
+				} else {
+					this.end_at = formatter.parse(eventJson.getString("end_at"));
+				}
 			}
 			this.location = eventJson.getString("location");
 			this.note = eventJson.getString("note");
@@ -124,9 +128,12 @@ public class Event implements Serializable {
 		values.put(DBUtils.FIELD_EVENT_SERVERID, serverId);
 		if (start_at==null) {
 			values.put(DBUtils.FIELD_EVENT_START, "");
-			values.put(DBUtils.FIELD_EVENT_END, "");
 		} else {
 			values.put(DBUtils.FIELD_EVENT_START, sdf.format(start_at));
+		}
+		if (end_at==null) {
+			values.put(DBUtils.FIELD_EVENT_END, "");
+		} else {
 			values.put(DBUtils.FIELD_EVENT_END, sdf.format(end_at));
 		}
 		values.put(DBUtils.FIELD_EVENT_LOCATION, location);
