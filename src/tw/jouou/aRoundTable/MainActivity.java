@@ -183,7 +183,7 @@ public class MainActivity extends Activity {
     		}
 
     		for (int i=2; i < (projs.size())+2; i++) {
-    			lists[i] = mInflater.inflate(R.layout.project_list, null);
+    			lists[i] = mInflater.inflate(R.layout.project, null);
     			formProjLists(lists[i], projs.get(i-2));
     		}
     		mainView = mInflater.inflate(R.layout.main, null);
