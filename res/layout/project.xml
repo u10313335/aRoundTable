@@ -4,14 +4,14 @@
 			  android:layout_width="fill_parent"
 		 	  android:layout_height="fill_parent">
 		 	  	
-    <ListView android:id="@+id/proj_item_list"
-			  android:layout_width="fill_parent"
-			  android:layout_height="wrap_content"
-			  android:divider="@drawable/divider"
-			  android:dividerHeight="1dp"
-			  android:scrollbars="vertical"
-			  android:cacheColorHint="@android:color/transparent"
-			  android:layout_weight="1"/>
+    <ExpandableListView android:id="@+id/proj_item_list"
+			  			android:layout_width="fill_parent"
+			  			android:layout_height="wrap_content"
+			  			android:divider="@drawable/divider"
+			  			android:dividerHeight="1dp"
+			  			android:scrollbars="vertical"
+			  			android:cacheColorHint="@android:color/transparent"
+			  			android:layout_weight="1"/>
 			  
 	<LinearLayout android:id="@+id/project_menu"
 				  android:layout_width="fill_parent"
