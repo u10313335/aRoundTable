@@ -29,15 +29,6 @@
 				  android:layout_height="50dp"
 				  android:orientation="horizontal"
 				  android:background="#26FFFFFF">
-				 
-			<ImageView android:id="@+id/proj_issue_tracker" 
-					   android:layout_width="wrap_content"
-					   android:layout_height="wrap_content"
-					   android:layout_gravity="center"
-					   android:layout_weight="1"
-					   android:src="@drawable/issue"/>
-					   
-			<View  style="@style/vertical_divider"/>
 					   
 			<ImageView android:id="@+id/proj_docs"
 					   android:layout_width="wrap_content"
@@ -62,16 +53,7 @@
 					   android:layout_height="wrap_content"
 					   android:layout_gravity="center"
 					   android:layout_weight="1"
-					   android:src="@drawable/contacts"/>
-					   
-			<View  style="@style/vertical_divider"/>
-			
-			<ImageView android:id="@+id/proj_chart" 
-					   android:layout_width="wrap_content"
-					   android:layout_height="wrap_content"
-					   android:layout_gravity="center" 
-					   android:layout_weight="1"
-					   android:src="@drawable/chart"/>				
+					   android:src="@drawable/contacts"/>		
 
 	</LinearLayout>
 	
