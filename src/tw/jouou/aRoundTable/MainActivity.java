@@ -729,10 +729,7 @@ public class MainActivity extends Activity {
 
 	
 	private class DiffAdapter extends BaseAdapter {
-		
-
 		public DiffAdapter(Context context) {
-			//LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		}
 
 		@Override
@@ -757,9 +754,6 @@ public class MainActivity extends Activity {
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			if (convertView == null) {
-				convertView = lists[0];
-			} 
 			convertView = lists[position];
 			return convertView;
 		}
