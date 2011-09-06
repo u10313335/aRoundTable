@@ -389,7 +389,7 @@ public class MainActivity extends Activity {
 	    	items.add(item);
 	    }
 		
-		projItemListView.setAdapter(new TaskEventsAdapter(taskevents));
+		projItemListView.setAdapter(new TaskEventsAdapter(items));
 
 		projItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override
@@ -646,8 +646,8 @@ public class MainActivity extends Activity {
 	
 	//FIXME: storing all items in memory might not be a good idea
 	private class TaskEventsAdapter extends BaseExpandableListAdapter{
-		private List<TaskEvent> taskevents;
-		public TaskEventsAdapter(List<TaskEvent> taskevents) {
+		private List<HashMap <String, Object>> taskevents;
+		public TaskEventsAdapter(List<HashMap <String, Object>> taskevents) {
 			this.taskevents = taskevents;
 		}
 
