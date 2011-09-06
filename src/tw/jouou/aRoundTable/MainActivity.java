@@ -357,7 +357,6 @@ public class MainActivity extends Activity {
     	
 		CheckBox chkBoxItemDone = null;
 		ExpandableListView projItemListView = (ExpandableListView) v.findViewById(R.id.proj_item_list);
-		ImageView btnIssue = (ImageView) v.findViewById(R.id.proj_issue_tracker);
 		ImageView btnDocs = (ImageView) v.findViewById(R.id.proj_docs);
 		ImageView btnAddItem = (ImageView) v.findViewById(R.id.proj_additem);
 		ImageView btnContacts = (ImageView) v.findViewById(R.id.proj_contact);
