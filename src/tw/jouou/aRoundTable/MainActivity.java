@@ -631,20 +631,24 @@ public class MainActivity extends Activity {
 	
 	//FIXME: storing all items in memory might not be a good idea
 	private class TaskEventsAdapter extends BaseExpandableListAdapter{
-		private List<HashMap <String, Object>> taskevents;
-		public TaskEventsAdapter(List<HashMap <String, Object>> taskevents) {
+		private List<TaskEvent> taskevents;
+		private List<TaskEvent> overDue;
+		public TaskEventsAdapter(List<TaskEvent> taskevents, List<TaskEvent> overDue) {
 			this.taskevents = taskevents;
+			this.overDue = overDue;
 		}
 
 		@Override
 		public Object getChild(int groupPosition, int childPosition) {
-			return null;
+			if(groupPosition > 1)
+				return null;
+			
+			return overDue.get(childPosition);
 		}
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			// TODO Auto-generated method stub
-			return 0;
+			return childPosition;
 		}
 
 		@Override
@@ -656,26 +660,28 @@ public class MainActivity extends Activity {
 
 		@Override
 		public int getChildrenCount(int groupPosition) {
-			// TODO Auto-generated method stub
+			if(groupPosition == 0)
+				return overDue.size();
+			
 			return 0;
 		}
 
 		@Override
 		public Object getGroup(int groupPosition) {
-			// TODO Auto-generated method stub
+			if(groupPosition > 1)
+				return taskevents.get(groupPosition -1);
+			
 			return null;
 		}
 
 		@Override
 		public int getGroupCount() {
-			// TODO Auto-generated method stub
-			return 0;
+			return 1 + taskevents.size();
 		}
 
 		@Override
 		public long getGroupId(int groupPosition) {
-			// TODO Auto-generated method stub
-			return 0;
+			return groupPosition;
 		}
 
 		@Override
@@ -687,14 +693,12 @@ public class MainActivity extends Activity {
 
 		@Override
 		public boolean hasStableIds() {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		public boolean isChildSelectable(int groupPosition, int childPosition) {
-			// TODO Auto-generated method stub
-			return false;
+			return true;
 		}
 		
 	}
