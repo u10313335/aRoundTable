@@ -54,6 +54,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -252,7 +253,7 @@ public class MainActivity extends Activity {
     private void formAllItemList(View v, List<TaskEvent> taskevents) {
     	ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
     	CheckBox itemDone = null;
-		ListView allItemListView = (ListView) v.findViewById(R.id.all_item_list);
+		ExpandableListView allItemListView = (ExpandableListView) v.findViewById(R.id.all_item_list);
 		ImageView btnRefresh = (ImageView) v.findViewById(R.id.all_item_refresh);
 		ImageView btnAddItem = (ImageView) v.findViewById(R.id.all_item_add);
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
@@ -285,10 +286,7 @@ public class MainActivity extends Activity {
 	    	items.add(item);
 	    }
 		
-		allItemListView.setAdapter(new SpecialAdapter(this,items,R.layout.all_item_list_item,
-    			new String[] { "checkDone", "itemName", "itemProj", "dueRelateDay", "dueDate" },
-    			new int[] { R.id.all_item_done, R.id.all_item_name,
-						R.id.all_item_project, R.id.all_item_due_relate_day, R.id.all_item_duedate }));
+		allItemListView.setAdapter(new TaskEventsAdapter(items));
 
     	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override
@@ -358,7 +356,7 @@ public class MainActivity extends Activity {
 		}
     	
 		CheckBox chkBoxItemDone = null;
-		ListView projItemListView = (ListView) v.findViewById(R.id.proj_item_list);
+		ExpandableListView projItemListView = (ExpandableListView) v.findViewById(R.id.proj_item_list);
 		ImageView btnIssue = (ImageView) v.findViewById(R.id.proj_issue_tracker);
 		ImageView btnDocs = (ImageView) v.findViewById(R.id.proj_docs);
 		ImageView btnAddItem = (ImageView) v.findViewById(R.id.proj_additem);
@@ -391,10 +389,7 @@ public class MainActivity extends Activity {
 	    	items.add(item);
 	    }
 		
-		projItemListView.setAdapter(new SpecialAdapter(this,items,R.layout.project_list_item,
-    			new String[] { "checkDone", "itemName", "itemOwner", "dueRelateDay", "dueDate" },
-    			new int[] { R.id.itemDone, R.id.item_name,
-						R.id.item_owner, R.id.item_dueRelateDay, R.id.item_duedate }));
+		projItemListView.setAdapter(new TaskEventsAdapter(taskevents));
 
 		projItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override
@@ -648,6 +643,76 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	};
+	
+	//FIXME: storing all items in memory might not be a good idea
+	private class TaskEventsAdapter extends BaseExpandableListAdapter{
+		private List<TaskEvent> taskevents;
+		public TaskEventsAdapter(List<TaskEvent> taskevents) {
+			this.taskevents = taskevents;
+		}
+
+		@Override
+		public Object getChild(int groupPosition, int childPosition) {
+			return null;
+		}
+
+		@Override
+		public long getChildId(int groupPosition, int childPosition) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public View getChildView(int groupPosition, int childPosition,
+				boolean isLastChild, View convertView, ViewGroup parent) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public int getChildrenCount(int groupPosition) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public Object getGroup(int groupPosition) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public int getGroupCount() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public long getGroupId(int groupPosition) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public View getGroupView(int groupPosition, boolean isExpanded,
+				View convertView, ViewGroup parent) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public boolean hasStableIds() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean isChildSelectable(int groupPosition, int childPosition) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		
+	}
 	
 	
 	private class SpecialAdapter extends SimpleAdapter {
