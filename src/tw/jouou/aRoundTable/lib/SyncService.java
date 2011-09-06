@@ -130,12 +130,15 @@ public class SyncService extends Service {
 					for (int j=0 ; j < deletedTasks.size() ; j++) {
 						ArtApi.getInstance(SyncService.this).deleteTask(deletedTasks.get(j));
 						dbUtils.tasksDelegate.delete(deletedTasks.get(j));
+						dbUtils.taskMembersDelegate.deleteUnderTask(deletedTasks.get(j));
 					}
+					//rebuild tasks
 					dbUtils.tasksDelegate.deleteAll(localProjs.get(i).getServerId());
+					dbUtils.taskMembersDelegate.deleteUnderProj(localProjs.get(i).getServerId());
 					remoteTasks = ArtApi.getInstance(SyncService.this).getTaskList(localProjs.get(i).getServerId());
 					for (int k=0 ; k < remoteTasks.length ; k++) {
-						Task task = new Task(remoteTasks[k].getProjId(), remoteTasks[k].getServerId(), remoteTasks[k].getName(), remoteTasks[k].getDueDate(), remoteTasks[k].getNote(), remoteTasks[k].getDone(), remoteTasks[k].getUpdateAt());
-						dbUtils.tasksDelegate.insert(task);
+						dbUtils.tasksDelegate.insert(remoteTasks[k]);
+						dbUtils.taskMembersDelegate.insert(remoteTasks[k]);
 					}
 				}
 			}
@@ -168,6 +171,7 @@ public class SyncService extends Service {
 						ArtApi.getInstance(SyncService.this).deleteEvent(deletedEvents.get(j));
 						dbUtils.eventsDelegate.delete(deletedEvents.get(j));
 					}
+					//rebuild events
 					dbUtils.eventsDelegate.deleteAll(localProjs.get(i).getServerId());
 					remoteEvents = ArtApi.getInstance(SyncService.this).getEventList(localProjs.get(i).getServerId());
 					for (int k=0 ; k < remoteEvents.length ; k++) {

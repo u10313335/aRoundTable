@@ -471,7 +471,6 @@ public class ArtApi {
 					notifications[i] = new Notification(notificationJson.getJSONObject(i)); 
 				}
 				return notifications;
-				//notifications[i] = new Notification(projectId, jsonNotification.getInt("user_id"), jsonNotification.getString("message"));
 			} catch (JSONException e) {
 				throw new ServerException("Server return invalid json");
 			}

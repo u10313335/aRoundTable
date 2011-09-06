@@ -6,11 +6,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.ContentValues;
+import android.util.Log;
 
 public class Task implements Serializable {
 	
@@ -24,6 +26,7 @@ public class Task implements Serializable {
 	private boolean done;
 	private Date updateAt;
 	private int type = 0;
+	private int user_ids[];
 	
 	public Task(long id, long projId, long serverId, String name, Date due,
 			String note, boolean done, Date updateAt) {
@@ -61,6 +64,12 @@ public class Task implements Serializable {
 			this.note = taskJson.getString("note");
 			this.done = (taskJson.getString("finished").equals("1")) ? true : false;
 			this.updateAt = formatter.parse(taskJson.getString("updated_at"));
+			JSONArray jsonArray = taskJson.getJSONArray("user_ids");
+			this.user_ids = new int[jsonArray.length()];
+			for(int i=0; i<this.user_ids.length; i++){
+				this.user_ids[i] = jsonArray.getInt(i);
+				Log.v("Task", "task_id: " + this.serverId + " user_ids: " + jsonArray.getInt(i));
+			}
 		} catch (ParseException e) {
 			System.out.println("Parse error");
 		}
@@ -141,5 +150,15 @@ public class Task implements Serializable {
 		values.put(DBUtils.FIELD_TASK_UPDATED_AT, sdf.format(updateAt));
 		values.put(DBUtils.FIELD_TASK_TYPE, type);
 		return values;
+	}
+	
+	public ContentValues getMembersValues() {
+		ContentValues members_values = new ContentValues();
+		for(int i=0; i<user_ids.length; i++){
+			members_values.put(DBUtils.FIELD_TASK_MEMBERS_TASKID, serverId);
+			members_values.put(DBUtils.FIELD_TASK_MEMBERS_PROJECTID, projId);
+			members_values.put(DBUtils.FIELD_TASK_MEMBERS_MEMBERID, user_ids[i]);
+		}
+		return members_values;
 	}
 }
