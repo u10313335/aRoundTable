@@ -210,7 +210,7 @@ public class MainActivity extends Activity {
     		        	txTitle.setText(getString(R.string.all_item_event));
     		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else {
-    		        	txTitle.setText(projs.get(position-2).getName());
+    		        	txTitle.setText("「" + projs.get(position-2).getName() + "」的工作");
     		        	txTitle.setTextColor(Color.parseColor(colors[projs.get(position-2).getColor()]));
     		        }
     		    }
@@ -509,8 +509,7 @@ public class MainActivity extends Activity {
 		}
 		users = dbUtils.userDelegate.get();
     	if(!users.isEmpty()){
-    		//update();
-    		
+    		update();
         	if(viewFlow != null)
         		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
     	}
