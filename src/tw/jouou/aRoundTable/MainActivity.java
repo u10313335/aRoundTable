@@ -211,7 +211,7 @@ public class MainActivity extends Activity {
     		        	txTitle.setText(getString(R.string.all_item_event));
     		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else {
-    		        	txTitle.setText(projs.get(position-2).getName());
+    		        	txTitle.setText("「" + projs.get(position-2).getName() + "」的工作");
     		        	txTitle.setTextColor(Color.parseColor(colors[projs.get(position-2).getColor()]));
     		        }
     		    }
@@ -357,11 +357,9 @@ public class MainActivity extends Activity {
     	
 		CheckBox chkBoxItemDone = null;
 		ExpandableListView projItemListView = (ExpandableListView) v.findViewById(R.id.proj_item_list);
-		ImageView btnIssue = (ImageView) v.findViewById(R.id.proj_issue_tracker);
 		ImageView btnDocs = (ImageView) v.findViewById(R.id.proj_docs);
 		ImageView btnAddItem = (ImageView) v.findViewById(R.id.proj_additem);
 		ImageView btnContacts = (ImageView) v.findViewById(R.id.proj_contact);
-		ImageView btnChart = (ImageView) v.findViewById(R.id.proj_chart);	
 
 	    for (int i=0; i < taskevents.size(); i++) {
 	    	Date due = taskevents.get(i).getDueDate();
@@ -400,12 +398,6 @@ public class MainActivity extends Activity {
 				menu.setHeaderTitle(getString(R.string.item_operations));
 			}
     	});   	
-		btnIssue.setOnClickListener(new OnClickListener() {
-    		@Override
-    	    public void onClick(View arg0) {
-    	    	// TODO:insert issue tracker activity here
-    	    }
-    	});
 		btnDocs.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View arg0) {
@@ -428,12 +420,6 @@ public class MainActivity extends Activity {
     	    	Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
     	    	intent.putExtra("proj", proj);
     	    	startActivity(intent);
-    	    }
-    	});
-		btnChart.setOnClickListener(new OnClickListener() {
-    	    @Override
-    	    public void onClick(View arg0) {
-    	    	// TODO:insert chart activity here
     	    }
     	});
 	}
@@ -519,7 +505,6 @@ public class MainActivity extends Activity {
 		users = dbUtils.userDelegate.get();
     	if(!users.isEmpty()){
     		update();
-    		
         	if(viewFlow != null)
         		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
     	}
@@ -794,10 +779,7 @@ public class MainActivity extends Activity {
 
 	
 	private class DiffAdapter extends BaseAdapter {
-		
-
 		public DiffAdapter(Context context) {
-			//LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		}
 
 		@Override
@@ -822,9 +804,6 @@ public class MainActivity extends Activity {
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			if (convertView == null) {
-				convertView = lists[0];
-			} 
 			convertView = lists[position];
 			return convertView;
 		}
