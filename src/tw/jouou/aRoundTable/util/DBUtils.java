@@ -53,7 +53,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
 	
-	public final static String TABLE_TASK_MEMBERS = "task_members";
+	public final static String TABLE_TASK_MEMBERS = "tasks_members";
 	public final static String FIELD_TASK_MEMBERS_TASKID = "task_id";
 	public final static String FIELD_TASK_MEMBERS_PROJECTID = "project_id";
 	public final static String FIELD_TASK_MEMBERS_MEMBERID = "member_id";
@@ -774,21 +774,23 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
-					" from task where due>= Datetime('now','localtime') and finish=0 and type<>2" +
-					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at>= Datetime('now','localtime') and type<>2" +
-					" order by due ASC", null);
+			Cursor c1 = db.rawQuery("select server_id,name,project_id,start_at,server_id,type" +
+					" from event where start_at>=Datetime('now','localtime') and type<>2" +
+					" union all select task.server_id,task.name,task.project_id,task.due,task.finish,task.type" +
+					" from task,tasks_members where task.server_id=tasks_members.task_id" +
+					" and task.due>=Datetime('now','localtime') and task.finish=0 and task.type<>2" +
+					" and tasks_members.member_id=3" +
+					" order by task.due ASC", null);
 			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish," +
 					" type from task where due='' and finish=0 and type<>2" +
 					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at='' and type<>2", null);	
+					" from event where start_at='' and type<>2", null);
 			while (c1.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
 						c1.getString(c1.getColumnIndexOrThrow("name")),
 						c1.getLong(c1.getColumnIndexOrThrow("project_id")),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("due"))),
-						c1.getInt(c1.getColumnIndexOrThrow("finish")),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("start_at"))),
+						c1.getInt(c1.getColumnIndexOrThrow("server_id")),
 						c1.getInt(c1.getColumnIndexOrThrow("type")));
 				taskevents.add(taskevent);
 			}

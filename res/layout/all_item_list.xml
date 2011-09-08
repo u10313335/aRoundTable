@@ -26,8 +26,7 @@
 			  
 	<LinearLayout android:layout_width="fill_parent"
 				  android:layout_height="20dp"
-				  android:orientation="horizontal"
-				  android:background="#AFAFAE">
+				  android:orientation="horizontal">
 				  
 		<TextView android:id="@+id/last_update"
 				  android:layout_width="fill_parent"
