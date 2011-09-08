@@ -433,7 +433,7 @@ public class MainActivity extends Activity {
         SharedPreferences settings = getSharedPreferences(SyncService.PREF, 0);
         String prefLastUpdate = settings.getString(SyncService.PREF_LAST_UPDATE, "");
         if(! "".equals(prefLastUpdate)) {
-        		txLastUpdate.setText("Last Update: " + prefLastUpdate);
+        		txLastUpdate.setText("上次更新時間 : " + prefLastUpdate);
         }
     }
 	

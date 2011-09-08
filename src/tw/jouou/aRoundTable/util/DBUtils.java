@@ -53,6 +53,11 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
 	
+	public final static String TABLE_TASK_MEMBERS = "tasks_members";
+	public final static String FIELD_TASK_MEMBERS_TASKID = "task_id";
+	public final static String FIELD_TASK_MEMBERS_PROJECTID = "project_id";
+	public final static String FIELD_TASK_MEMBERS_MEMBERID = "member_id";
+	
 	public final static String TABLE_EVENT = "event";
 	public final static String FIELD_EVENT_ID = "_id";
 	public final static String FIELD_EVENT_NAME = "name";
@@ -114,6 +119,11 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_TASK_UPDATED_AT + " DATETIME, "
 				+ FIELD_TASK_TYPE + " INTEGER )");
 		
+		db.execSQL( "CREATE TABLE " + TABLE_TASK_MEMBERS
+				+ "( " + FIELD_TASK_MEMBERS_TASKID + " INTEGER, "
+				+ FIELD_TASK_MEMBERS_PROJECTID + " INTEGER, "
+				+ FIELD_TASK_MEMBERS_MEMBERID + " INTEGER )");
+		
 		db.execSQL( "CREATE TABLE " + TABLE_EVENT
 				+ "( " + FIELD_EVENT_ID + " INTEGER PRIMARY KEY, "
 				+ FIELD_EVENT_NAME + " TEXT, "
@@ -130,7 +140,8 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ "( " + FIELD_NOTIFICATION_ID + " INTEGER PRIMARY KEY, "
 				+ FIELD_NOTIFICATION_MESSAGE + " TEXT, "
 				+ FIELD_NOTIFICATION_MEMBERID + " INTEGER, "
-				+ FIELD_NOTIFICATION_SERVERID + " INTEGER )");
+				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
+				+ FIELD_NOTIFICATION_READ + " INTEGER )");
 		
 		try {
 			TableUtils.createTable(conn, Member.class);
@@ -142,6 +153,8 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, ConnectionSource cs, int oldVersion,
 			int newVersion) {
+		switch(oldVersion) {
+		}
 	}	
 
 	public UsersDelegate userDelegate = new UsersDelegate();
@@ -150,6 +163,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
 	public NotificationDelegate notificationDelegate = new NotificationDelegate();
+	public TaskMembersDelegate taskMembersDelegate = new TaskMembersDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -480,7 +494,55 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return tasks;
 		}
 	}
-
+	
+	public class TaskMembersDelegate {
+		public void delete(long id) {
+			if (id < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_TASK_MEMBERS, "member_id = ?", new String[] { String
+					.valueOf(id) });
+			db.close();
+		}
+		
+		public void deleteUnderTask(long id) {
+			if (id < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_TASK_MEMBERS, "task_id = ?", new String[] { String
+					.valueOf(id) });
+			db.close();
+		}
+		
+		public void deleteUnderProj(long id) {
+			if (id < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_TASK_MEMBERS, "project_id = ?", new String[] { String
+					.valueOf(id) });
+			db.close();
+		}
+	
+		public void deleteAll() {
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_TASK_MEMBERS, null, null);
+			db.close();
+		}
+	
+		public void update(Task task) {
+			SQLiteDatabase db = getReadableDatabase();
+			ContentValues values = task.getMembersValues();
+			db.update(TABLE_TASK_MEMBERS, values, "task_id = ?", new String[] { String
+					.valueOf(task.getServerId()) });
+			db.close();
+		}
+	
+		public void insert(Task task) {
+			SQLiteDatabase db = getWritableDatabase();
+			db.insert(TABLE_TASK_MEMBERS, null, task.getMembersValues());
+			db.close();
+		}
+	}
 
 	public class EventDelegate {
 		public void delete(long id) {
@@ -712,21 +774,23 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
-					" from task where due>= Datetime('now','localtime') and finish=0 and type<>2" +
-					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at>= Datetime('now','localtime') and type<>2" +
-					" order by due ASC", null);
+			Cursor c1 = db.rawQuery("select server_id,name,project_id,start_at,server_id,type" +
+					" from event where start_at>=Datetime('now','localtime') and type<>2" +
+					" union all select task.server_id,task.name,task.project_id,task.due,task.finish,task.type" +
+					" from task,tasks_members where task.server_id=tasks_members.task_id" +
+					" and task.due>=Datetime('now','localtime') and task.finish=0 and task.type<>2" +
+					" and tasks_members.member_id=3" +
+					" order by task.due ASC", null);
 			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish," +
 					" type from task where due='' and finish=0 and type<>2" +
 					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at='' and type<>2", null);	
+					" from event where start_at='' and type<>2", null);
 			while (c1.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
 						c1.getString(c1.getColumnIndexOrThrow("name")),
 						c1.getLong(c1.getColumnIndexOrThrow("project_id")),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("due"))),
-						c1.getInt(c1.getColumnIndexOrThrow("finish")),
+						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("start_at"))),
+						c1.getInt(c1.getColumnIndexOrThrow("server_id")),
 						c1.getInt(c1.getColumnIndexOrThrow("type")));
 				taskevents.add(taskevent);
 			}
