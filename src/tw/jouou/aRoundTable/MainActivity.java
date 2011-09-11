@@ -178,14 +178,14 @@ public class MainActivity extends Activity {
         		taskevents = dbUtils.taskEventDelegate.get();
         		mAllTaskEvents.add(taskevents);
         		formNotification(lists[0]);
-        		formAllItemList(lists[1],taskevents);
+        		//formAllItemList(lists[1],taskevents);
     		} catch (ParseException e) {
     			Log.v(TAG, "Parse error");
     		}
 
     		for (int i=2; i < (projs.size())+2; i++) {
     			lists[i] = mInflater.inflate(R.layout.project, null);
-    			formProjLists(lists[i], projs.get(i-2));
+    			//formProjLists(lists[i], projs.get(i-2));
     		}
     		mainView = mInflater.inflate(R.layout.main, null);
     		txTitle = (TextView) mainView.findViewById(R.id.main_title);
@@ -225,6 +225,7 @@ public class MainActivity extends Activity {
     	}
     }
     
+
     private void formNotification(View v) {
     	ExpandableListView notificationView = (ExpandableListView) v.findViewById(R.id.dynamic_issue_list);
     	List<Notification> notifications = dbUtils.notificationDelegate.get();
@@ -248,6 +249,7 @@ public class MainActivity extends Activity {
         notificationView.setAdapter(adapter);
         
     }
+    
     
     // form all task/event list
     private void formAllItemList(View v, List<TaskEvent> taskevents) {
@@ -423,6 +425,7 @@ public class MainActivity extends Activity {
     	    }
     	});
 	}
+	
 	
 	private void getLastUpdate() {
         SharedPreferences settings = getSharedPreferences(SyncService.PREF, 0);
@@ -628,81 +631,6 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	};
-	
-	//FIXME: storing all items in memory might not be a good idea
-	private class TaskEventsAdapter extends BaseExpandableListAdapter{
-		private List<TaskEvent> taskevents;
-		private List<TaskEvent> overDue;
-		public TaskEventsAdapter(List<TaskEvent> taskevents, List<TaskEvent> overDue) {
-			this.taskevents = taskevents;
-			this.overDue = overDue;
-		}
-
-		@Override
-		public Object getChild(int groupPosition, int childPosition) {
-			if(groupPosition > 1)
-				return null;
-			
-			return overDue.get(childPosition);
-		}
-
-		@Override
-		public long getChildId(int groupPosition, int childPosition) {
-			return childPosition;
-		}
-
-		@Override
-		public View getChildView(int groupPosition, int childPosition,
-				boolean isLastChild, View convertView, ViewGroup parent) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public int getChildrenCount(int groupPosition) {
-			if(groupPosition == 0)
-				return overDue.size();
-			
-			return 0;
-		}
-
-		@Override
-		public Object getGroup(int groupPosition) {
-			if(groupPosition > 1)
-				return taskevents.get(groupPosition -1);
-			
-			return null;
-		}
-
-		@Override
-		public int getGroupCount() {
-			return 1 + taskevents.size();
-		}
-
-		@Override
-		public long getGroupId(int groupPosition) {
-			return groupPosition;
-		}
-
-		@Override
-		public View getGroupView(int groupPosition, boolean isExpanded,
-				View convertView, ViewGroup parent) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean hasStableIds() {
-			return false;
-		}
-
-		@Override
-		public boolean isChildSelectable(int groupPosition, int childPosition) {
-			return true;
-		}
-		
-	}
-	
 	
 	private class SpecialAdapter extends SimpleAdapter {
 		ArrayList<HashMap<String, Object>> items;

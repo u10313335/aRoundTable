@@ -26,6 +26,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 
 public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
@@ -142,6 +143,22 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_NOTIFICATION_MEMBERID + " INTEGER, "
 				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
 				+ FIELD_NOTIFICATION_READ + " INTEGER )");
+		
+		db.execSQL( "CREATE VIEW IF NOT EXISTS taskevents AS " +
+					"SELECT task.server_id AS server_id, " +
+					"task.name AS name, " +
+					"task.project_id AS project_id," +
+					"task.due AS date, " +
+					"task.finish AS finish, " +
+					"task.type AS type " +
+					"FROM task UNION SELECT " +
+					"event.server_id AS server_id" +
+					"event.name AS name" +
+					"event.project_id AS project_id" +
+					"event.start_at AS date" +
+					"0 AS finish" +
+					"1 AS type" +
+					"ORDER BY date ASC");
 		
 		try {
 			TableUtils.createTable(conn, Member.class);
@@ -807,6 +824,16 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			c2.close();
 			db.close();
 			return taskevents;
+		}
+		
+		//TODO: merge with general get()
+		//TODO: now only return tasks, is this okay?
+		public List<TaskEvent> getOverDue(long projectId){
+			SQLiteDatabase db = getReadableDatabase();
+			db.query("taskevents", null, "date < Datetime('now','localtime') " +
+					"AND type <> 2 " +
+					"ANDproject_id = ?", new String[] {Long.toString(projectId)}, null, null, null);
+			
 		}
 	}
 	
