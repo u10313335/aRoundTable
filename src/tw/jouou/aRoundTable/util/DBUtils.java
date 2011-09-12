@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable.util;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Task;
@@ -76,6 +77,13 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
 	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
 	public final static String FIELD_NOTIFICATION_READ = "read";
+	
+	public final static String TABLE_GROUPDOC = "groupdoc";
+	public final static String FIELD_GROUPDOC_ID = "_id";
+	public final static String FIELD_GROUPDOC_CONTENT = "content";
+	public final static String FIELD_GROUPDOC_PROJECTID = "project_id";
+	public final static String FIELD_GROUPDOC_SERVERID = "server_id";
+	public final static String FIELD_GROUPDOC_UPDATED_AT = "updated_at";
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -143,6 +151,13 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
 				+ FIELD_NOTIFICATION_READ + " INTEGER )");
 		
+		db.execSQL( "CREATE TABLE " + TABLE_GROUPDOC
+				+ "( " + FIELD_GROUPDOC_ID + " INTEGER PRIMARY KEY, "
+				+ FIELD_GROUPDOC_CONTENT + " TEXT, "
+				+ FIELD_GROUPDOC_PROJECTID + " INTEGER, "
+				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
+				+ FIELD_GROUPDOC_UPDATED_AT + " DATETIME )");
+		
 		try {
 			TableUtils.createTable(conn, Member.class);
 		} catch (SQLException e) {
@@ -164,6 +179,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
 	public NotificationDelegate notificationDelegate = new NotificationDelegate();
 	public TaskMembersDelegate taskMembersDelegate = new TaskMembersDelegate();
+	public GroupDocDelegate groupDocDelegate = new GroupDocDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -837,4 +853,39 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return notifications;
 		}
 	}
+	
+	public class GroupDocDelegate {
+		public void insert(GroupDoc groupDoc) {
+			SQLiteDatabase db = getWritableDatabase();
+			db.insert(TABLE_GROUPDOC, null, groupDoc.getValues());
+			db.close();
+		}
+
+		public GroupDoc get(long projId) throws ParseException {
+			GroupDoc groupDoc = null;
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_GROUPDOC, null, "project_id=" + projId, null, null, null, null);
+
+			while (c.moveToNext()) {
+				groupDoc = new GroupDoc(c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_ID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_PROJECTID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_SERVERID)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_GROUPDOC_CONTENT)),
+						formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_GROUPDOC_UPDATED_AT))));
+			}
+			c.close();
+			db.close();
+			return groupDoc;
+		}
+		
+		public void update(GroupDoc groupDoc) {
+			SQLiteDatabase db = getReadableDatabase();
+			ContentValues values = groupDoc.getValues();
+			db.update(TABLE_GROUPDOC, values, "server_id = ?", new String[] { String
+					.valueOf(groupDoc.getServerId()) });
+			db.close();
+		}
+	}
+	
 }

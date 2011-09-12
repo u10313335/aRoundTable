@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -406,7 +407,15 @@ public class MainActivity extends Activity {
 		btnDocs.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View arg0) {
-    	    	// TODO:insert group docs activity here
+    			Intent groupdoc_intent = new Intent();
+    			try {
+					GroupDoc groupDoc = dbUtils.groupDocDelegate.get(proj.getServerId());
+					groupdoc_intent.putExtra("groupdoc", groupDoc);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+    			groupdoc_intent.setClass(MainActivity.this, GroupDocActivity.class);
+    			startActivity(groupdoc_intent);
     	    }
     	});
 		btnAddItem.setOnClickListener(new OnClickListener() {
