@@ -1,16 +1,19 @@
 package tw.jouou.aRoundTable;
 
-import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
-import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class AuthActivity extends Activity {
-
+	
+	private SharedPreferences mPrefs;
+	
+	
 	@Override
 	protected void onCreate (Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -23,10 +26,9 @@ public class AuthActivity extends Activity {
 			        if(url.startsWith("art://done")){
 			        	Uri uri = Uri.parse(url);
 					 	String token = uri.getQueryParameter("");
-					    User user = new User(token);
-					    DBUtils	dbUtils = new DBUtils(AuthActivity.this);
-						dbUtils.userDelegate.insert(user);
-						dbUtils.close();
+						mPrefs = PreferenceManager.getDefaultSharedPreferences(AuthActivity.this);
+				        mPrefs.edit().putString("TOKEN", token).commit();
+				        mPrefs.edit().putBoolean("AUTHORIZED", true).commit();
 						setResult(RESULT_OK);
 						finish();
 			        }else

@@ -3,13 +3,13 @@
     <string name="hello">Hello World, aRoundTable!</string>
     <string name="app_name">aRound Table</string>
     <string name="title">Deadline/Event</string>
-    <string name="welcome_message_title">歡迎使用aRound Table！</string>
-    <string name="welcome_message">第一次啟動本程式，請先完成帳號認證</string>
+    <string name="welcome_message_title">歡迎使用 aRound Table！</string>
+    <string name="welcome_message">第一次啟動本程式，請先完成 Google 帳號認證</string>
     <string name="create_project_message_title">新增專案</string>
     <string name="create_project_message">資料庫中無專案，現在就新增一個？</string>
     <string name="register_finished">認證完成</string>
+    <string name="retriving_existed_data">擷取已存於伺服器的專案...</string>
     <string name="processing">正在處理中</string>
-    <string name="internet_connection_problem">伺服器連線異常，稍後重試上傳</string>
     <string name="confirm">確認</string>
     <string name="edit_project">編輯專案</string>
     <string name="quit_project">退出專案</string>
@@ -45,4 +45,8 @@
     <string name="email_to_invite">電子郵件地址</string>
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>
+    <string name="syncing">同步中...</string>
+    <string name="internet_connection_problem">網路連線未備妥，請稍後再試。</string>
+    <string name="remote_server_problem">遠端伺服器錯誤，請稍後再試。</string>
+    <string name="last_update">上次更新時間：</string>
 </resources>

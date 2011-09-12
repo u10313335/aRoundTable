@@ -30,9 +30,9 @@ import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
-import tw.jouou.aRoundTable.bean.User;
-import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * Interface for around-table API
@@ -66,11 +66,9 @@ public class ArtApi {
 		if(instance != null)
 			return instance;
 		
-		DBUtils dbUtils = new DBUtils(context);
-		List<User> users = (new DBUtils(context)).userDelegate.get();    	
-        dbUtils.close();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         
-        return instance = new ArtApi(users.get(0).getToken());
+        return instance = new ArtApi(prefs.getString("TOKEN", ""));
 	}
 	
 	public Project[] getProjectList() throws ServerException, ConnectionFailException{

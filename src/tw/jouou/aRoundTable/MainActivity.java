@@ -5,7 +5,6 @@ import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
-import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
@@ -30,15 +29,21 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.PendingIntent;
 import android.app.AlarmManager;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -73,10 +78,8 @@ public class MainActivity extends Activity {
 	
 	//TODO:dummy test data, remove them ASAP
 	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
-	private String token;
 	private int mUnReadCount;
 	private DBUtils dbUtils;
-	private List<User> users;
 	private List<Project> projs;
 	private LayoutInflater mInflater;
 	private View lists[]; //list[0] is "notifications", list[1] is "all task/events list",
@@ -87,10 +90,13 @@ public class MainActivity extends Activity {
     private TextView txLastUpdate;
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
+	private SharedPreferences mPrefs;
 	private ArrayList<List<TaskEvent>> mAllTaskEvents = new ArrayList<List<TaskEvent>>();
 	private int position = 1;  // screen position
 	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423",
 			"#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
+	private DataReceiver dataReceiver;
+	private IntentFilter filter;
 	protected static final int MENU_EditProj = Menu.FIRST;
 	protected static final int MENU_QuitProj = Menu.FIRST+1;
 	protected static final int MENU_ViewFinished = Menu.FIRST+2;
@@ -110,32 +116,13 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
         if(dbUtils == null) {
     		dbUtils = new DBUtils(this);
     	}
-        
-    	users = dbUtils.userDelegate.get();
-    	
     	mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
- 
-    	if(!users.isEmpty()) {
-    		token = users.get(0).getToken();
-         	update();
-    	}else {
-    		Builder dialog = new Builder(MainActivity.this);
-    	    dialog.setTitle(R.string.welcome_message_title);
-    	    dialog.setMessage(R.string.welcome_message);
-        	dialog.setPositiveButton(R.string.confirm,
-        		new DialogInterface.OnClickListener() {
-        	    	public void onClick(DialogInterface dialoginterface, int i) {
-        	    		dialoginterface.dismiss();
-        	    		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
-        	    	}
-        	    }
-        	);
-        	dialog.show();
-    	}
+    	dataReceiver = new DataReceiver();
+    	filter = new IntentFilter();
+        filter.addAction("tw.jouou.aRoundTable.MainActivity");  
     }
     
     @Override
@@ -151,18 +138,7 @@ public class MainActivity extends Activity {
     }
     
     protected void update() {
-		if(SyncService.getService() == null) {
-			Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
-			PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
-			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-			long firstTime = SystemClock.elapsedRealtime();
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-				firstTime, 15*60*1000, pendingIntent);
-		}
     	mAllTaskEvents.clear();
-    	if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
-    	}
     	try {
 			projs = dbUtils.projectsDelegate.get();
 		} catch (ParseException e) {
@@ -181,7 +157,6 @@ public class MainActivity extends Activity {
     		} catch (ParseException e) {
     			Log.v(TAG, "Parse error");
     		}
-
     		for (int i=2; i < (projs.size())+2; i++) {
     			lists[i] = mInflater.inflate(R.layout.project, null);
     			formProjLists(lists[i], projs.get(i-2));
@@ -193,13 +168,13 @@ public class MainActivity extends Activity {
     		if(mUnReadCount > 0) {
     			txUnread.setText(""+mUnReadCount);
     			ivUnreadIndicator.setImageResource(R.drawable.has_unread);
-    		}
+    		}	
     		setContentView(mainView);
     		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
             adapter = new DiffAdapter(this);
             viewFlow.setAdapter(adapter);
             CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
-    		viewFlow.setFlowIndicator(indic);
+    		viewFlow.setFlowIndicator(indic);   
     		viewFlow.setOnViewSwitchListener(new ViewSwitchListener() {
     		    public void onSwitched(View v, int position) {
     		        MainActivity.this.position = position;
@@ -216,11 +191,14 @@ public class MainActivity extends Activity {
     		    }
     		});
     		getLastUpdate();
-			viewFlow.setSelection(MainActivity.this.position);
+			viewFlow.setSelection(position);
     	}else {
-            Intent addgroup_intent= new Intent();
-            addgroup_intent.setClass(MainActivity.this,CreateProjectActivity.class);
-            startActivity(addgroup_intent);
+    		setContentView(mainView);
+    		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
+            adapter = new DiffAdapter(this);
+            viewFlow.setAdapter(adapter);
+            CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
+    		viewFlow.setFlowIndicator(indic);	
     	}
     }
     
@@ -245,7 +223,6 @@ public class MainActivity extends Activity {
 	    }
         SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(this, groups, R.layout.notification_item, new String[] { "g" }, new int[] { R.id.notificaton_context }, childs, android.R.layout.simple_expandable_list_item_2, new String[] { "c" }, new int[] { android.R.id.text1});
         notificationView.setAdapter(adapter);
-        
     }
     
     // form all task/event list
@@ -302,10 +279,33 @@ public class MainActivity extends Activity {
     	
     	btnRefresh.setOnClickListener(new OnClickListener() {
     		@Override
-    		public void onClick(View arg0) {
-	    		Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
-	    		startService(syncIntent);
-	    		update();
+    		public void onClick(View v) {
+	    		final ArtApi artApi = ArtApi.getInstance(MainActivity.this);
+				final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+				dialog.setMessage(getString(R.string.syncing));
+				dialog.show();
+				final Handler handler = new Handler() {
+					@Override
+					public void handleMessage(Message msg) {
+						super.handleMessage(msg);
+						dialog.dismiss();
+						SharedPreferences prefs = getSharedPreferences(SyncService.PREF, 0);
+						prefs.edit().putString(SyncService.PREF_LAST_UPDATE, SyncService.formatter.format(new Date())).commit();
+					    update();
+					}
+				};
+			    new Thread() {
+			    	@Override
+			        public void run() { 
+			        	try {
+			        		//FIXME: probably FC due to Dao not open?
+					    	SyncService.sync(dbUtils, MainActivity.this, artApi);
+			            }
+			            finally {
+			            	handler.sendEmptyMessage(0);
+			            }
+			        }
+			    }.start();
     		}
     	});
     	
@@ -430,10 +430,10 @@ public class MainActivity extends Activity {
 	}
 	
 	private void getLastUpdate() {
-        SharedPreferences settings = getSharedPreferences(SyncService.PREF, 0);
-        String prefLastUpdate = settings.getString(SyncService.PREF_LAST_UPDATE, "");
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String prefLastUpdate = prefs.getString(SyncService.PREF_LAST_UPDATE, "");
         if(! "".equals(prefLastUpdate)) {
-        		txLastUpdate.setText("上次更新時間 : " + prefLastUpdate);
+        		txLastUpdate.setText(getString(R.string.last_update) + prefLastUpdate);
         }
     }
 	
@@ -484,6 +484,44 @@ public class MainActivity extends Activity {
         }
     	return super.onContextItemSelected(item); 
     }
+    
+    private void setSyncService() {
+		Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
+		PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, syncIntent, 0);
+		AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+		long firstTime = SystemClock.elapsedRealtime();
+		alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+					firstTime, 15*60*1000, pendingIntent);
+    }
+    
+    private void init() {
+		try {
+			Project remoteProjs[] = ArtApi.getInstance(MainActivity.this).getProjectList();
+			for (int i=0 ; i < remoteProjs.length ; i++) {
+				Project proj = new Project(remoteProjs[i].getName(), remoteProjs[i].getServerId(), remoteProjs[i].getColor(), remoteProjs[i].getUpdateAt());
+				dbUtils.projectsDelegate.insert(proj);
+			}
+			List<Project> localProjs = dbUtils.projectsDelegate.get();
+			for (int i=0 ; i<localProjs.size() ; i++) {
+				Task remoteTasks[] = ArtApi.getInstance(MainActivity.this).getTaskList(localProjs.get(i).getServerId());
+				for (int j=0 ; j < remoteTasks.length ; j++) {
+					dbUtils.tasksDelegate.insert(remoteTasks[j]);
+					dbUtils.taskMembersDelegate.insert(remoteTasks[j]);
+				}
+				Event remoteEvents[] = ArtApi.getInstance(MainActivity.this).getEventList(localProjs.get(i).getServerId());
+				for (int k=0 ; k < remoteEvents.length ; k++) {
+					Event event = new Event(remoteEvents[k].getProjId(), remoteEvents[k].getServerId(), remoteEvents[k].getName(), remoteEvents[k].getStartAt(), remoteEvents[k].getEndAt(), remoteEvents[k].getLocation(), remoteEvents[k].getNote(), remoteEvents[k].getUpdateAt());
+					dbUtils.eventsDelegate.insert(event);
+				}
+			}
+		} catch (ParseException e) {
+			Log.v(TAG, "Parse Error");
+		} catch (ServerException e) {
+			Toast.makeText(MainActivity.this, getString(R.string.remote_server_problem) + " " + e.getMessage(), Toast.LENGTH_SHORT).show();
+		} catch (ConnectionFailException e) {
+			Toast.makeText(MainActivity.this, getString(R.string.internet_connection_problem), Toast.LENGTH_SHORT).show();
+		}
+    }
 	
 	private Integer dayDistance(Date due) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -503,15 +541,67 @@ public class MainActivity extends Activity {
 
     @Override
 	public void onResume() {
-		super.onResume();
+		super.onResume();		
 		if (dbUtils == null) {
 			dbUtils = new DBUtils(this);
 		}
-		users = dbUtils.userDelegate.get();
-    	if(!users.isEmpty()){
-    		update();
-        	if(viewFlow != null)
-        		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
+    	registerReceiver(dataReceiver, filter);
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+    	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
+    		lists = new View[1];
+    		lists[0] = mInflater.inflate(R.layout.all_item_list, null);
+    		mainView = mInflater.inflate(R.layout.main, null);
+    		setContentView(mainView);
+    		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
+            adapter = new DiffAdapter(this);
+            viewFlow.setAdapter(adapter);
+            CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
+    		viewFlow.setFlowIndicator(indic);
+        	Builder dialog = new Builder(MainActivity.this);
+        	dialog.setTitle(R.string.welcome_message_title);
+        	dialog.setMessage(R.string.welcome_message);
+        	dialog.setPositiveButton(R.string.confirm,
+            	new DialogInterface.OnClickListener() {
+            	    	public void onClick(DialogInterface dialoginterface, int i) {
+            	    		dialoginterface.dismiss();
+            	    		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
+            	    	}
+            	    }
+            	);
+            	dialog.show();
+            	return;
+        }
+    	if(mPrefs.getBoolean("AUTHORIZED", false) && !(mPrefs.getBoolean("INITIALIZED", false))) {
+			final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+			dialog.setMessage(getString(R.string.retriving_existed_data));
+			dialog.show();
+			final Handler handler = new Handler() {
+				@Override
+				public void handleMessage(Message msg) {
+					dialog.dismiss();
+					super.handleMessage(msg);
+			        update();
+				}
+			};
+	        new Thread() { 
+	            @Override
+	            public void run() { 
+	                try {
+	                	init();
+	                	setSyncService();
+	                }
+	                finally {
+						mPrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+				        mPrefs.edit().putBoolean("INITIALIZED", true).commit();
+				        handler.sendEmptyMessage(0);
+	                }
+	            }
+	        }.start();
+	        return;
+    	}
+		update();
+    	if(viewFlow != null) {
+    		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
     	}
     }
     
@@ -522,6 +612,7 @@ public class MainActivity extends Activity {
 			dbUtils.close();
 			dbUtils = null;
 		}
+		unregisterReceiver(dataReceiver);
 	}
     
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -711,6 +802,14 @@ public class MainActivity extends Activity {
 		  return view;
 		}
 	}
+	
+	
+    private class DataReceiver extends BroadcastReceiver {
+        @Override  
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(MainActivity.this, intent.getStringExtra("service_data"), Toast.LENGTH_SHORT).show();
+        }
+    }   
 
 	
 	private class DiffAdapter extends BaseAdapter {
