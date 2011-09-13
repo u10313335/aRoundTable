@@ -28,6 +28,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
+
+//FIXME: This class is TOO BIG, split it!!
 public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
 	public final static int DB_VERSION = 1;
@@ -150,15 +152,15 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 					"task.project_id AS project_id," +
 					"task.due AS date, " +
 					"task.finish AS finish, " +
-					"task.type AS type " +
-					"FROM task UNION SELECT " +
+					"0 AS type " +
+					"FROM task WHERE task.type <> 2 UNION SELECT " +
 					"event.server_id AS server_id" +
 					"event.name AS name" +
 					"event.project_id AS project_id" +
 					"event.start_at AS date" +
 					"0 AS finish" +
 					"1 AS type" +
-					"ORDER BY date ASC");
+					"WHERE event.type <> 2 ORDER BY date ASC");
 		
 		try {
 			TableUtils.createTable(conn, Member.class);
@@ -746,94 +748,63 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	}
 
 	public class TaskEventDelegate {	
-		public List<TaskEvent> get(long projId) throws ParseException {
-			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
-			
-			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
-					" from task where project_id=" + projId +
-					" and due>= Datetime('now','localtime') and finish=0 and type<>2" +
-					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where project_id=" + projId + 
-					" and start_at>= Datetime('now','localtime') and type<>2" +
-					" order by due ASC", null);
-			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish,type" +
-					" from task where project_id=" + projId +
-					" and due='' and finish=0 and type<>2" +
-					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where project_id=" + projId +
-					" and start_at='' and type<>2", null);		
-			while (c1.moveToNext()) {
-				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
-						c1.getString(c1.getColumnIndexOrThrow("name")),
-						c1.getLong(c1.getColumnIndexOrThrow("project_id")),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("due"))),
-						c1.getInt(c1.getColumnIndexOrThrow("finish")),
-						c1.getInt(c1.getColumnIndexOrThrow("type")));
-				taskevents.add(taskevent);
-			}
-			c1.close();
-			while (c2.moveToNext()) {
-				TaskEvent taskevent = new TaskEvent(c2.getLong(c2.getColumnIndexOrThrow("server_id")),
-						c2.getString(c2.getColumnIndexOrThrow("name")),
-						c2.getLong(c2.getColumnIndexOrThrow("project_id")),
-						null,
-						c2.getInt(c2.getColumnIndexOrThrow("finish")),
-						c2.getInt(c2.getColumnIndexOrThrow("type")));
-				taskevents.add(taskevent);
-			}
-			c2.close();
-			db.close();
-			return taskevents;
+		public List<TaskEvent> get(long projectId) {
+			return query("date >= Datetime('now','localtime') " +
+					"AND finish = false" +
+					"AND project_id = ?", new String[] {Long.toString(projectId)});
 		}
 		
-		public List<TaskEvent> get() throws ParseException {
-			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
-		
-			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.rawQuery("select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at>=Datetime('now','localtime') and type<>2" +
-					" union all select task.server_id,task.name,task.project_id,task.due,task.finish,task.type" +
-					" from task,tasks_members where task.server_id=tasks_members.task_id" +
-					" and task.due>=Datetime('now','localtime') and task.finish=0 and task.type<>2" +
-					" and tasks_members.member_id=3" +
-					" order by task.due ASC", null);
-			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish," +
-					" type from task where due='' and finish=0 and type<>2" +
-					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at='' and type<>2", null);
-			while (c1.moveToNext()) {
-				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
-						c1.getString(c1.getColumnIndexOrThrow("name")),
-						c1.getLong(c1.getColumnIndexOrThrow("project_id")),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow("start_at"))),
-						c1.getInt(c1.getColumnIndexOrThrow("server_id")),
-						c1.getInt(c1.getColumnIndexOrThrow("type")));
-				taskevents.add(taskevent);
-			}
-			c1.close();
-			while (c2.moveToNext()) {
-				TaskEvent taskevent = new TaskEvent(c2.getLong(c2.getColumnIndexOrThrow("server_id")),
-						c2.getString(c2.getColumnIndexOrThrow("name")),
-						c2.getLong(c2.getColumnIndexOrThrow("project_id")),
-						null,
-						c2.getInt(c2.getColumnIndexOrThrow("finish")),
-						c2.getInt(c2.getColumnIndexOrThrow("type")));
-				taskevents.add(taskevent);
-			}
-			c2.close();
-			db.close();
-			return taskevents;
+		public List<TaskEvent> getOwned() {
+			return query("date >= Datetime('now','localtime') " +
+					"AND finish = false" +
+					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?)", 
+					new String[] {Long.toString(3)});
 		}
 		
-		//TODO: merge with general get()
-		//TODO: now only return tasks, is this okay?
 		public List<TaskEvent> getOverDue(long projectId){
+			return query("date < Datetime('now','localtime') " +
+					"AND finish = false" +
+					"AND project_id = ?", new String[] {Long.toString(projectId)});
+		}
+		
+		//FIXME: now using mock userId, should be real
+		public List<TaskEvent> getOwnedOverDue(){
+			return query("date < Datetime('now','localtime') " +
+					"AND finish = false" +
+					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?)", 
+					new String[] {Long.toString(3)}); 
+		}
+		
+		private List<TaskEvent> query(String selection, String[] selectionArgs){
 			SQLiteDatabase db = getReadableDatabase();
-			db.query("taskevents", null, "date < Datetime('now','localtime') " +
-					"AND type <> 2 " +
-					"ANDproject_id = ?", new String[] {Long.toString(projectId)}, null, null, null);
-			
+			Cursor cursor = db.query("taskevents", null, selection, selectionArgs, null, null, null);
+			LinkedList<TaskEvent> taskEvents = new LinkedList<TaskEvent>(); 
+			while(cursor.moveToNext()){
+				TaskEvent taskevent = new TaskEvent(cursor.getLong(cursor.getColumnIndexOrThrow("server_id")),
+						cursor.getString(cursor.getColumnIndexOrThrow("name")),
+						cursor.getLong(cursor.getColumnIndexOrThrow("project_id")),
+						stringToDate(cursor.getString(cursor.getColumnIndex("date"))),
+						cursor.getInt(cursor.getColumnIndexOrThrow("finish")),
+						cursor.getInt(cursor.getColumnIndexOrThrow("type")));
+				taskEvents.add(taskevent);
+			}
+			try{
+				return taskEvents;
+			}finally{
+				cursor.close();
+				db.close();
+			}
+		}
+	}
+	
+	private Date stringToDate(String dateString){
+		//TODO: is these two line needed?
+		if(dateString == null)
+			return null;
+		try {
+			return formatter.parse(dateString);
+		} catch (ParseException e) {
+			return null;
 		}
 	}
 	
