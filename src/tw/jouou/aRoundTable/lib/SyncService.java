@@ -102,7 +102,6 @@ public class SyncService extends Service {
 						Log.v(TAG, "[task] local: " + task.getServerId() + " remote: " + remoteTasks[j].getServerId());
 						if (!(task.getUpdateAt().compareTo(remoteTasks[j].getUpdateAt())==0)) {
 							if(task.getUpdateAt().after(remoteTasks[j].getUpdateAt())) {
-								Log.v(TAG, "task: " + task.getServerId() + " local update to server (push)" + remoteTasks[j].getServerId());
 								artApi.updateTask(task.getServerId(), task.getName(), task.getDueDate(), task.getNote(), task.getDone());
 								task.setUpdateAt(artApi.getTask(task.getServerId()).getUpdateAt());
 								dbUtils.tasksDelegate.update(task);
@@ -118,13 +117,15 @@ public class SyncService extends Service {
 				} else {
 					Log.v(TAG, "task numbers vary, rebuild tasks db...");
 					List<Long> deletedTasks = dbUtils.tasksDelegate.getDeleted(localProjs.get(i).getServerId());
-					for (int j=0 ; j < deletedTasks.size() ; j++) {
-						artApi.deleteTask(deletedTasks.get(j));
-						dbUtils.tasksDelegate.delete(deletedTasks.get(j));
-						dbUtils.taskMembersDelegate.deleteUnderTask(deletedTasks.get(j));
+					if(!deletedTasks.isEmpty()) {
+						for (int j=0 ; j < deletedTasks.size() ; j++) {
+							artApi.deleteTask(deletedTasks.get(j));
+							dbUtils.tasksDelegate.delete(deletedTasks.get(j));
+							dbUtils.taskMembersDelegate.deleteUnderTask(deletedTasks.get(j));
+						}
 					}
 					//rebuild tasks
-					dbUtils.tasksDelegate.deleteAll(localProjs.get(i).getServerId());
+					dbUtils.tasksDelegate.deleteUnderProj(localProjs.get(i).getServerId());
 					dbUtils.taskMembersDelegate.deleteUnderProj(localProjs.get(i).getServerId());
 					remoteTasks = artApi.getTaskList(localProjs.get(i).getServerId());
 					for (int k=0 ; k < remoteTasks.length ; k++) {
