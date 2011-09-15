@@ -4,6 +4,7 @@ package tw.jouou.aRoundTable;
 import java.util.Date;
 import java.util.LinkedList;
 
+import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
@@ -116,6 +117,9 @@ public class CreateProjectActivity extends Activity {
 		    	dbUtils = new DBUtils(CreateProjectActivity.this);
 		    	proj = new Project(params[0], serverId, Integer.parseInt(params[1]), new Date());
 		    	dbUtils.projectsDelegate.insert(proj);
+		    	//TODO: add server update here
+		    	GroupDoc groupDoc = new GroupDoc(serverId, 0, "", new Date());
+		    	dbUtils.groupDocDelegate.insert(groupDoc);
 			} catch (ServerException e) {
 				exception = e;
 			} catch (ConnectionFailException e) {
@@ -134,8 +138,7 @@ public class CreateProjectActivity extends Activity {
 				Toast.makeText(CreateProjectActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
 				return;
 			}
-
-				dbUtils.close();				
+				dbUtils.close();
 				Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
 				intent.putExtra("proj", proj);
 				startActivity(intent);
