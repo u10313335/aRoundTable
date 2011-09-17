@@ -471,11 +471,11 @@ public class AddEventActivity extends Activity {
         protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddEventActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddEventActivity.this, getString(R.string.cannot_add_event_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(AddEventActivity.this, "無法新增事件。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				Toast.makeText(AddEventActivity.this, getString(R.string.cannot_add_event_connection_problem), Toast.LENGTH_LONG).show();
 				return;
 			}
 			dbUtils.close();

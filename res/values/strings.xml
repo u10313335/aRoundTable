@@ -46,7 +46,15 @@
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>
     <string name="syncing">同步中...</string>
-    <string name="internet_connection_problem">網路連線未備妥，請稍後再試。</string>
-    <string name="remote_server_problem">遠端伺服器錯誤，請稍後再試。</string>
+    <string name="start_sync">已開始同步處理</string>
+    <string name="internet_connection_problem">嘗試同步失敗（沒有資料連線）</string>
+    <string name="remote_server_problem">遠端伺服器錯誤，請稍後再試</string>
+    <string name="cannot_add_task_connection_problem">無法新增工作。（沒有資料連線）。</string>
+    <string name="cannot_add_task_server_problem">無法新增工作。（遠端伺服器錯誤）。</string>
+    <string name="cannot_add_event_connection_problem">無法新增事件。（沒有資料連線）。</string>
+    <string name="cannot_add_event_server_problem">無法新增事件。（遠端伺服器錯誤）。</string>
+    <string name="cannot_quit_project_connection_problem">無法退出專案。（沒有資料連線）。</string>
+    <string name="cannot_quit_project_server_problem">無法退出專案。（遠端伺服器錯誤）。</string>
+    
     <string name="last_update">上次更新時間：</string>
 </resources>

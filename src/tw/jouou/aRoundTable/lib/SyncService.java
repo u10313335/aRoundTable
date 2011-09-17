@@ -60,9 +60,10 @@ public class SyncService extends Service {
 	}
 	
 	public static void sync(DBUtils dbUtils, Context context, ArtApi artApi) {
+		Intent intent = new Intent();
+        intent.setAction("tw.jouou.aRoundTable.MainActivity");
 		try {
 			Project remoteProjs[] = artApi.getProjectList();
-			
 			List<Project> localProjs = dbUtils.projectsDelegate.get();
 			int projDiff = remoteProjs.length - localProjs.size();
 			if(projDiff == 0) {
@@ -188,15 +189,14 @@ public class SyncService extends Service {
 				}
 			}
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-			prefs.edit().putString(PREF_LAST_UPDATE, formatter.format(new Date())).commit();
+			String now = formatter.format(new Date());
+			prefs.edit().putString(PREF_LAST_UPDATE, now).commit();
+			intent.putExtra("service_data", context.getString(R.string.last_update) + now);
+            context.sendBroadcast(intent);
 		} catch (ServerException e) {
-			Intent intent = new Intent();
-            intent.setAction("tw.jouou.aRoundTable.MainActivity");
             intent.putExtra("service_data", context.getString(R.string.remote_server_problem) + " " + e.getMessage());
             context.sendBroadcast(intent);
 		} catch (ConnectionFailException e) {
-			Intent intent = new Intent();
-            intent.setAction("tw.jouou.aRoundTable.MainActivity");
             intent.putExtra("service_data", context.getString(R.string.internet_connection_problem));
             context.sendBroadcast(intent);
 		} catch (ParseException e) {

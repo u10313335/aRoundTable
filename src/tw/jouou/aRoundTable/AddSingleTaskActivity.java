@@ -450,11 +450,11 @@ public class AddSingleTaskActivity extends Activity {
         protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddSingleTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddSingleTaskActivity.this, getString(R.string.cannot_add_task_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(AddSingleTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				Toast.makeText(AddSingleTaskActivity.this, getString(R.string.cannot_add_task_connection_problem), Toast.LENGTH_LONG).show();
 				return;
 			}
 			dbUtils.close();

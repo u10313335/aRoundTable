@@ -123,7 +123,7 @@ public class MainActivity extends Activity {
     	mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     	dataReceiver = new DataReceiver();
     	filter = new IntentFilter();
-        filter.addAction("tw.jouou.aRoundTable.MainActivity");  
+        filter.addAction("tw.jouou.aRoundTable.MainActivity"); 
     }
     
     @Override
@@ -282,31 +282,9 @@ public class MainActivity extends Activity {
     		@Override
     		public void onClick(View v) {
 	    		final ArtApi artApi = ArtApi.getInstance(MainActivity.this);
-				final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
-				dialog.setMessage(getString(R.string.syncing));
-				dialog.show();
-				final Handler handler = new Handler() {
-					@Override
-					public void handleMessage(Message msg) {
-						super.handleMessage(msg);
-						dialog.dismiss();
-						SharedPreferences prefs = getSharedPreferences(SyncService.PREF, 0);
-						prefs.edit().putString(SyncService.PREF_LAST_UPDATE, SyncService.formatter.format(new Date())).commit();
-					    update();
-					}
-				};
-			    new Thread() {
-			    	@Override
-			        public void run() { 
-			        	try {
-			        		//FIXME: probably FC due to Dao not open?
-					    	SyncService.sync(dbUtils, MainActivity.this, artApi);
-			            }
-			            finally {
-			            	handler.sendEmptyMessage(0);
-			            }
-			        }
-			    }.start();
+	    		//FIXME: probably FC due to Dao not open?*/
+				SyncService.sync(dbUtils, MainActivity.this, artApi);
+				update();
     		}
     	});
     	
@@ -608,6 +586,10 @@ public class MainActivity extends Activity {
 	        }.start();
 	        return;
     	}
+        if(SyncService.getService() == null) {
+        	Intent syncIntent = new Intent(this, SyncService.class);
+    		startService(syncIntent);
+        }
 		update();
     	if(viewFlow != null) {
     		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
@@ -695,13 +677,14 @@ public class MainActivity extends Activity {
     					try {
 							ArtApi.getInstance(MainActivity.this).quitProject(projs.get(position-2).getServerId());
 		   					dbUtils.projectsDelegate.delete(projs.get(position-2));
+		   					dbUtils.groupDocDelegate.delete(projs.get(position-2).getServerId());
 	    					dbUtils.tasksDelegate.deleteUnderProj(projs.get(position-2).getServerId());
 	    					dbUtils.eventsDelegate.deleteUnderProj(projs.get(position-2).getServerId());
 	    					update();
 						} catch (ServerException e) {
-							Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+							Toast.makeText(MainActivity.this, getString(R.string.cannot_quit_project_server_problem) + e.getMessage(), Toast.LENGTH_LONG).show();
 						} catch (ConnectionFailException e) {
-							Toast.makeText(MainActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
+							Toast.makeText(MainActivity.this, getString(R.string.cannot_quit_project_connection_problem), Toast.LENGTH_LONG).show();
 						}
     				}
                 });
@@ -816,7 +799,8 @@ public class MainActivity extends Activity {
     private class DataReceiver extends BroadcastReceiver {
         @Override  
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(MainActivity.this, intent.getStringExtra("service_data"), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity.this, intent.getStringExtra("service_data"), Toast.LENGTH_SHORT).show();
+			txLastUpdate.setText(intent.getStringExtra("service_data"));
         }
     }   
 

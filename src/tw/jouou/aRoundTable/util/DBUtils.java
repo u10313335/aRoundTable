@@ -860,6 +860,15 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			db.insert(TABLE_GROUPDOC, null, groupDoc.getValues());
 			db.close();
 		}
+		
+		public void delete(long projId) {
+			if (projId < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_GROUPDOC, "project_id = ?", new String[] { String
+					.valueOf(projId) });
+			db.close();
+		}
 
 		public GroupDoc get(long projId) throws ParseException {
 			GroupDoc groupDoc = null;

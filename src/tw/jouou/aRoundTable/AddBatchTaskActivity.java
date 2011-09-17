@@ -151,20 +151,20 @@ public class AddBatchTaskActivity extends Activity {
         mBtnFinish.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		String[] titles = getTasksTitle();
+        		Tasks tasks = null;
         		switch(mDueType) {
         			case 0:
-        				String[] titles = getTasksTitle();
-        				Tasks tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
+        				tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
         				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 1:
         				break;
         			case 2:
-        				/*(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
-        							"", mEdRemarks.getText().toString());*/
+        				tasks = new Tasks(titles, "", mEdRemarks.getText().toString());
+        				(new CreateTaskTask()).execute(tasks);
         				break;
         		}
-				//AddBatchTaskActivity.this.finish();
       	  	}
     	});
         
@@ -455,11 +455,11 @@ public class AddBatchTaskActivity extends Activity {
 		protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddBatchTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddBatchTaskActivity.this, getString(R.string.cannot_add_task_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(AddBatchTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				Toast.makeText(AddBatchTaskActivity.this, getString(R.string.cannot_add_task_connection_problem), Toast.LENGTH_LONG).show();
 				return;
 			}
 			dbUtils.close();
