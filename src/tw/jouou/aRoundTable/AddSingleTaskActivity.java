@@ -146,7 +146,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnAssignDate.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = ASSIGN_DAY_PANEL;
         		mDateChooser.removeAllViews();
         		findAssignDateView();
       	  	}
@@ -155,7 +154,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnDependency.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = DEPENDENCY_PANEL;
         		mDateChooser.removeAllViews();
         		findDependencyView();
       	  	}
@@ -164,7 +162,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnUndetermined.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = UNDETERMINED_PANEL;
         		mDateChooser.removeAllViews();
         		findUndeterminedView();
       	  	}
@@ -242,6 +239,7 @@ public class AddSingleTaskActivity extends Activity {
     }
 
 	private void findAssignDateView() {
+		mDueType = ASSIGN_DAY_PANEL;
         RelativeLayout add_single_task_assign_date = 
         		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null)
         		.findViewById(R.id.add_single_task_assign_date);
@@ -298,6 +296,7 @@ public class AddSingleTaskActivity extends Activity {
 	}
 
 	private void findDependencyView() {
+		mDueType = DEPENDENCY_PANEL;
 		RelativeLayout add_single_task_dependency;
 		if (mTasks.isEmpty()) {
 			add_single_task_dependency = new RelativeLayout(this);
@@ -363,6 +362,7 @@ public class AddSingleTaskActivity extends Activity {
 	}
 	
 	private void findUndeterminedView() {
+		mDueType = UNDETERMINED_PANEL;
         RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
         		.findViewById(R.id.add_single_task_undetermined);
         mDateChooser.addView(add_single_task_undetermined);

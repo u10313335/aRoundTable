@@ -194,11 +194,16 @@ public class ArtApi {
 	 */
 	public void updateTask(long taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+		//SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		//formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 		params.put("task[name]", name);
-		params.put("task[due]", formatter.format(due));
+		if(!(due == null)) {
+			params.put("task[due]", due.toString());
+		} else {
+			params.put("task[due]", "");
+		}
+		//params.put("task[due]", formatter.format(due));
 		params.put("task[note]", note);
 		params.put("task[finished]", (finished)? "1" : "0");
 		

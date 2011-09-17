@@ -797,10 +797,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 					" and task.due>=Datetime('now','localtime') and task.finish=0 and task.type<>2" +
 					" and tasks_members.member_id=3" +
 					" order by task.due ASC", null);
-			Cursor c2 = db.rawQuery("select server_id,name,project_id,due,finish," +
-					" type from task where due='' and finish=0 and type<>2" +
-					" union all select server_id,name,project_id,start_at,server_id,type" +
-					" from event where start_at='' and type<>2", null);
+			Cursor c2 = db.rawQuery("select server_id,name,project_id,start_at,server_id,type" +
+					" from event where start_at='' and type<>2" +
+					" union all select task.server_id,task.name,task.project_id,task.due,task.finish,task.type" +
+					" from task,tasks_members where task.server_id=tasks_members.task_id" +
+					" and task.due='' and task.finish=0 and task.type<>2" +
+					" and tasks_members.member_id=3", null);
 			while (c1.moveToNext()) {
 				TaskEvent taskevent = new TaskEvent(c1.getLong(c1.getColumnIndexOrThrow("server_id")),
 						c1.getString(c1.getColumnIndexOrThrow("name")),
