@@ -100,12 +100,21 @@
 			</TableRow>
 	
 			<TableRow>
-				<EditText android:id="@+id/single_owneradd_context"
+				<!--<EditText android:id="@+id/single_owneradd_context"
 				 	  	  android:layout_width="wrap_content" 
 				  	  	  android:layout_height="wrap_content"
 				  	  	  android:layout_column="1"
 				  	  	  android:layout_span="2" 
-				  	  	  android:text=""/>
+				  	  	  android:text=""/>-->
+				  	  	  
+				<AutoCompleteTextView	
+								android:id="@+id/single_owneradd_context"
+		 						android:hint="@string/email_to_invite"
+		 						android:layout_width="wrap_content"
+         						android:layout_height="wrap_content"
+         						android:layout_column="1"
+				  	  	  		android:layout_span="2" 
+         						android:inputType="textEmailAddress"/>
 				  	  
 				<ImageButton android:id="@+id/single_owner_add" 
 					 	 	 android:layout_width="wrap_content"

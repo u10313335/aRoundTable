@@ -2,6 +2,7 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -12,6 +13,7 @@ import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ import java.util.List;
 import org.taptwo.android.widget.CircleFlowIndicator;
 import org.taptwo.android.widget.ViewFlow;
 import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
+
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -347,8 +351,11 @@ public class MainActivity extends Activity {
 	    	HashMap< String, Object > item = new HashMap< String, Object >();
 	    	item.put("checkDone", chkBoxItemDone);
 	    	item.put("itemName", taskevents.get(i).getName());
-	    	item.put("itemOwner", itemOwners[0]);
-	    	
+	    	if (taskevents.get(i).getType() == 0) {
+	    		item.put("itemOwner", getMembersName(taskevents.get(i).getServerId()));
+	    	} else {
+	    		item.put("itemOwner", "");
+	    	}
     		if (due==null) {
     			item.put("dueRelateDay", getString(R.string.undetermined));
 				item.put("today", false);
@@ -422,6 +429,20 @@ public class MainActivity extends Activity {
         if(! "".equals(prefLastUpdate)) {
         		txLastUpdate.setText(getString(R.string.last_update) + prefLastUpdate);
         }
+    }
+	
+    private String getMembersName(long taskId) {
+    	String nameList = "";
+    	String[] names = dbUtils.taskMembersDelegate.getMembers(taskId);
+    	if(names != null) {
+    		nameList = names[0];
+    		int i = 1;
+    		while(i < names.length) {
+    			nameList = names[i] + ", " + nameList;
+    			i++;
+    		}
+    	}
+    	return nameList;
     }
 	
     public boolean onContextItemSelected(MenuItem item) {

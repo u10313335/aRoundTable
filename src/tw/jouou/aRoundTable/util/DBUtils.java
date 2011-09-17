@@ -20,6 +20,7 @@ import com.j256.ormlite.android.AndroidConnectionSource;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -27,6 +28,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
@@ -54,10 +56,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
 	
-	public final static String TABLE_TASK_MEMBERS = "tasks_members";
-	public final static String FIELD_TASK_MEMBERS_TASKID = "task_id";
-	public final static String FIELD_TASK_MEMBERS_PROJECTID = "project_id";
-	public final static String FIELD_TASK_MEMBERS_MEMBERID = "member_id";
+	public final static String TABLE_TASKS_MEMBERS = "tasks_members";
+	public final static String FIELD_TASKS_MEMBERS_TASKID = "task_id";
+	public final static String FIELD_TASKS_MEMBERS_PROJECTID = "project_id";
+	public final static String FIELD_TASKS_MEMBERS_MEMBERID = "member_id";
 	
 	public final static String TABLE_EVENT = "event";
 	public final static String FIELD_EVENT_ID = "_id";
@@ -127,10 +129,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_TASK_UPDATED_AT + " DATETIME, "
 				+ FIELD_TASK_TYPE + " INTEGER )");
 		
-		db.execSQL( "CREATE TABLE " + TABLE_TASK_MEMBERS
-				+ "( " + FIELD_TASK_MEMBERS_TASKID + " INTEGER, "
-				+ FIELD_TASK_MEMBERS_PROJECTID + " INTEGER, "
-				+ FIELD_TASK_MEMBERS_MEMBERID + " INTEGER )");
+		db.execSQL( "CREATE TABLE " + TABLE_TASKS_MEMBERS
+				+ "( " + FIELD_TASKS_MEMBERS_TASKID + " INTEGER, "
+				+ FIELD_TASKS_MEMBERS_PROJECTID + " INTEGER, "
+				+ FIELD_TASKS_MEMBERS_MEMBERID + " INTEGER )");
 		
 		db.execSQL( "CREATE TABLE " + TABLE_EVENT
 				+ "( " + FIELD_EVENT_ID + " INTEGER PRIMARY KEY, "
@@ -516,7 +518,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			if (id < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, "member_id = ?", new String[] { String
+			db.delete(TABLE_TASKS_MEMBERS, "member_id = ?", new String[] { String
 					.valueOf(id) });
 			db.close();
 		}
@@ -525,7 +527,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			if (id < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, "task_id = ?", new String[] { String
+			db.delete(TABLE_TASKS_MEMBERS, "task_id = ?", new String[] { String
 					.valueOf(id) });
 			db.close();
 		}
@@ -534,29 +536,53 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			if (id < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, "project_id = ?", new String[] { String
+			db.delete(TABLE_TASKS_MEMBERS, "project_id = ?", new String[] { String
 					.valueOf(id) });
 			db.close();
 		}
 	
 		public void deleteAll() {
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, null, null);
+			db.delete(TABLE_TASKS_MEMBERS, null, null);
 			db.close();
 		}
 	
 		public void update(Task task) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = task.getMembersValues();
-			db.update(TABLE_TASK_MEMBERS, values, "task_id = ?", new String[] { String
+			db.update(TABLE_TASKS_MEMBERS, values, "task_id = ?", new String[] { String
 					.valueOf(task.getServerId()) });
 			db.close();
 		}
 	
 		public void insert(Task task) {
 			SQLiteDatabase db = getWritableDatabase();
-			db.insert(TABLE_TASK_MEMBERS, null, task.getMembersValues());
+			db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues());
 			db.close();
+		}
+		
+		public String[] getMembers(long taskId) {
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASKS_MEMBERS,  null, "task_id=" + taskId, null, null, null, null);
+			String[] names = null;
+			if(c.getCount() > 0) {
+				names = new String[c.getCount()];
+				while (c.moveToNext()) {
+					List<Member> members = null;
+					try {
+						QueryBuilder<Member, Integer> queryBuilder = memberDao.queryBuilder();
+						queryBuilder.where().eq("server_id", c.getLong((c.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
+						queryBuilder.selectColumns("name");
+						members = memberDao.query(queryBuilder.prepare());
+						names[c.getPosition()] = members.get(0).name;
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			c.close();
+			db.close();
+			return names;
 		}
 	}
 

@@ -155,9 +155,9 @@ public class Task implements Serializable {
 	public ContentValues getMembersValues() {
 		ContentValues members_values = new ContentValues();
 		for(int i=0; i<user_ids.length; i++){
-			members_values.put(DBUtils.FIELD_TASK_MEMBERS_TASKID, serverId);
-			members_values.put(DBUtils.FIELD_TASK_MEMBERS_PROJECTID, projId);
-			members_values.put(DBUtils.FIELD_TASK_MEMBERS_MEMBERID, user_ids[i]);
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_TASKID, serverId);
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_PROJECTID, projId);
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, user_ids[i]);
 		}
 		return members_values;
 	}

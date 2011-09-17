@@ -1,5 +1,6 @@
 package tw.jouou.aRoundTable;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.j256.ormlite.stmt.QueryBuilder;
+
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
@@ -26,8 +30,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +41,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -79,7 +86,7 @@ public class AddSingleTaskActivity extends Activity {
     private Button mBtnDatePicker;
     private Button mBtnFinish;
     private Button mBtnCancel;
-    private EditText mEdOwner;
+    private AutoCompleteTextView mAutoOwner;
     private EditText mEdRemarks;
     private SimpleDateFormat mDateToStr, mStrToDate;
     private Calendar mCalendar = Calendar.getInstance();
@@ -105,6 +112,7 @@ public class AddSingleTaskActivity extends Activity {
         mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
+        mAutoOwner.setAdapter(new ArrayAdapter<String>(AddSingleTaskActivity.this, R.layout.email_autocomplete_item, getMembersMail(mProj.getServerId())));
         try {
     		mTasks = dbUtils.tasksDelegate.get(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
@@ -375,7 +383,7 @@ public class AddSingleTaskActivity extends Activity {
     	mBtnAssignDate = (ImageButton)findViewById(R.id.single_date);
     	mBtnDependency = (ImageButton)findViewById(R.id.single_dependency);
     	mBtnUndetermined = (ImageButton)findViewById(R.id.single_undetermined);
-    	mEdOwner = (EditText)findViewById(R.id.single_owneradd_context);
+    	mAutoOwner = (AutoCompleteTextView)findViewById(R.id.single_owneradd_context);
     	mBtnAddOwner = (ImageButton)findViewById(R.id.single_owner_add);
     	mEdRemarks = (EditText)findViewById(R.id.single_remarks_context);
     	mBtnFinish = (Button)findViewById(R.id.single_additem_finish);
@@ -393,7 +401,23 @@ public class AddSingleTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
-    
+    private String[] getMembersMail(long projId) {
+    	List<Member> members = null;
+		try {
+			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			queryBuilder.where().eq("project_id", projId);
+			queryBuilder.selectColumns("email");
+			members = dbUtils.memberDao.query(queryBuilder.prepare());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		String[] emails = new String[members.size()];
+		for(int i = 0; i < members.size(); i++) {
+			emails[i] = members.get(i).email;
+		}
+		return emails;
+    }
+  
   	private class CreateTaskTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;
 		private Exception exception;
@@ -461,5 +485,4 @@ public class AddSingleTaskActivity extends Activity {
 			AddSingleTaskActivity.this.finish();
 		}
 	}
-  	  
 }
