@@ -122,16 +122,16 @@ public class SyncService extends Service {
 						for (int j=0 ; j < deletedTasks.size() ; j++) {
 							artApi.deleteTask(deletedTasks.get(j));
 							dbUtils.tasksDelegate.delete(deletedTasks.get(j));
-							dbUtils.taskMembersDelegate.deleteUnderTask(deletedTasks.get(j));
+							dbUtils.tasksMembersDelegate.deleteUnderTask(deletedTasks.get(j));
 						}
 					}
 					//rebuild tasks
 					dbUtils.tasksDelegate.deleteUnderProj(localProjs.get(i).getServerId());
-					dbUtils.taskMembersDelegate.deleteUnderProj(localProjs.get(i).getServerId());
+					dbUtils.tasksMembersDelegate.deleteUnderProj(localProjs.get(i).getServerId());
 					remoteTasks = artApi.getTaskList(localProjs.get(i).getServerId());
 					for (int k=0 ; k < remoteTasks.length ; k++) {
 						dbUtils.tasksDelegate.insert(remoteTasks[k]);
-						dbUtils.taskMembersDelegate.insert(remoteTasks[k]);
+						dbUtils.tasksMembersDelegate.insert(remoteTasks[k]);
 					}
 				}
 			}
@@ -183,7 +183,7 @@ public class SyncService extends Service {
 					// Add new version
 					for(Member member: artApi.getMembers(project.getServerId())) {
 						dbUtils.memberDao.create(member);
-					}	
+					}
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}

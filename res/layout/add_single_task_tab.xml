@@ -92,21 +92,18 @@
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 	
-				<TextView android:id="@+id/single_owner_context"
-				  	  	  android:layout_width="wrap_content" 
-				  	  	  android:layout_height="wrap_content"
-				  	  	  android:gravity="center"
-				  	 	  android:text="none"/>
+				<RelativeLayout android:layout_height="wrap_content"
+				  				android:layout_width="wrap_content"
+				  				android:layout_span="3"
+				  				android:orientation="vertical">
+					<TableLayout  android:id="@+id/members_field"
+			  	  		  		  android:layout_width="fill_parent"
+			  	  		  		  android:layout_height="wrap_content"
+			  	  		  		  android:stretchColumns="0"/>
+				</RelativeLayout>
 			</TableRow>
 	
-			<TableRow>
-				<!--<EditText android:id="@+id/single_owneradd_context"
-				 	  	  android:layout_width="wrap_content" 
-				  	  	  android:layout_height="wrap_content"
-				  	  	  android:layout_column="1"
-				  	  	  android:layout_span="2" 
-				  	  	  android:text=""/>-->
-				  	  	  
+			<TableRow>				  	  	  
 				<AutoCompleteTextView	
 								android:id="@+id/single_owneradd_context"
 		 						android:hint="@string/email_to_invite"
@@ -117,7 +114,7 @@
          						android:inputType="textEmailAddress"/>
 				  	  
 				<ImageButton android:id="@+id/single_owner_add" 
-					 	 	 android:layout_width="wrap_content"
+					 	 	 android:layout_width="10dip"
 					 	 	 android:layout_height="wrap_content"
 					 	 	 android:src="@drawable/ic_input_add"/>
 			</TableRow>

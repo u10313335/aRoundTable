@@ -2,7 +2,6 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
-import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -13,7 +12,6 @@ import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
 
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,8 +24,6 @@ import java.util.List;
 import org.taptwo.android.widget.CircleFlowIndicator;
 import org.taptwo.android.widget.ViewFlow;
 import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
-
-import com.j256.ormlite.stmt.QueryBuilder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -81,8 +77,6 @@ import android.widget.Toast;
  */
 public class MainActivity extends Activity {
 	
-	//TODO:dummy test data, remove them ASAP
-	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
 	private int mUnReadCount;
 	private DBUtils dbUtils;
 	private List<Project> projs;
@@ -285,10 +279,30 @@ public class MainActivity extends Activity {
     	btnRefresh.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View v) {
-	    		final ArtApi artApi = ArtApi.getInstance(MainActivity.this);
-	    		//FIXME: probably FC due to Dao not open?*/
-				SyncService.sync(dbUtils, MainActivity.this, artApi);
-				update();
+    			final ArtApi artApi = ArtApi.getInstance(MainActivity.this);
+		        final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+		        dialog.setMessage(getString(R.string.syncing));
+		        dialog.show();
+		        final Handler handler = new Handler() {
+		        	@Override
+		        	public void handleMessage(Message msg) {
+		           		super.handleMessage(msg);
+		           		dialog.dismiss();
+		           		update();
+		           	}
+		        };
+		        new Thread() {
+					@Override
+					public void run() { 
+						try {
+							//FIXME: probably FC due to Dao not open?
+							SyncService.sync(dbUtils, MainActivity.this, artApi);
+						}
+						finally {
+							handler.sendEmptyMessage(0);
+						}
+					}
+				}.start();
     		}
     	});
     	
@@ -433,7 +447,7 @@ public class MainActivity extends Activity {
 	
     private String getMembersName(long taskId) {
     	String nameList = "";
-    	String[] names = dbUtils.taskMembersDelegate.getMembers(taskId);
+    	String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
     	if(names != null) {
     		nameList = names[0];
     		int i = 1;
@@ -514,7 +528,7 @@ public class MainActivity extends Activity {
 				Task remoteTasks[] = ArtApi.getInstance(MainActivity.this).getTaskList(localProjs.get(i).getServerId());
 				for (int j=0 ; j < remoteTasks.length ; j++) {
 					dbUtils.tasksDelegate.insert(remoteTasks[j]);
-					dbUtils.taskMembersDelegate.insert(remoteTasks[j]);
+					dbUtils.tasksMembersDelegate.insert(remoteTasks[j]);
 				}
 				Event remoteEvents[] = ArtApi.getInstance(MainActivity.this).getEventList(localProjs.get(i).getServerId());
 				for (int k=0 ; k < remoteEvents.length ; k++) {

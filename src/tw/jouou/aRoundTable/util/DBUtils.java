@@ -28,7 +28,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String DB_NAME = "aRoundTable";
@@ -180,7 +179,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
 	public NotificationDelegate notificationDelegate = new NotificationDelegate();
-	public TaskMembersDelegate taskMembersDelegate = new TaskMembersDelegate();
+	public TasksMembersDelegate tasksMembersDelegate = new TasksMembersDelegate();
 	public GroupDocDelegate groupDocDelegate = new GroupDocDelegate();
 	
 	public class UsersDelegate {
@@ -513,7 +512,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		}
 	}
 	
-	public class TaskMembersDelegate {
+	public class TasksMembersDelegate {
 		public void delete(long id) {
 			if (id < 0)
 				return;
@@ -547,17 +546,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			db.close();
 		}
 	
-		public void update(Task task) {
-			SQLiteDatabase db = getReadableDatabase();
-			ContentValues values = task.getMembersValues();
-			db.update(TABLE_TASKS_MEMBERS, values, "task_id = ?", new String[] { String
-					.valueOf(task.getServerId()) });
-			db.close();
-		}
-	
 		public void insert(Task task) {
 			SQLiteDatabase db = getWritableDatabase();
-			db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues());
+			Long[] owners = task.getOwners();
+			for(int i=0; i<owners.length; i++) {
+				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(owners[i]));
+			}
 			db.close();
 		}
 		
