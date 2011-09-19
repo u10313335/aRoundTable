@@ -221,18 +221,15 @@ public class AddBatchTaskActivity extends Activity {
     }
 	
 	private void findAddBatchView() {
-		final TableRow tr = new TableRow(AddBatchTaskActivity.this);
-		final TableRow tr2 = new TableRow(AddBatchTaskActivity.this);
-		final RelativeLayout rl = new RelativeLayout(AddBatchTaskActivity.this);
-		final TableLayout tl = new TableLayout(AddBatchTaskActivity.this);
-		final TableRow tr3 = new TableRow(AddBatchTaskActivity.this);
-		final TableRow tr4 = new TableRow(AddBatchTaskActivity.this);
-		mTasksTitle.add(tr);
-		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		tr2.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		rl.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		tl.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		tr3.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableRow titleRow = new TableRow(AddBatchTaskActivity.this);
+		titleRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableRow ownerRow = new TableRow(AddBatchTaskActivity.this);
+		ownerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableRow selectOwnerRow = new TableRow(AddBatchTaskActivity.this);
+		selectOwnerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		mTasksTitle.add(titleRow);
+		
+		//widgets for titleRow
 		TextView title = new TextView(AddBatchTaskActivity.this);
 		title.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
 		title.setText(R.string.item_title);
@@ -244,15 +241,31 @@ public class AddBatchTaskActivity extends Activity {
 		delTask.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mTasksTitle.remove(tr);
-				add_batch.removeView(tr);
-				add_batch.removeView(tr2);
-				add_batch.removeView(tr3);
+				mTasksTitle.remove(titleRow);
+				add_batch.removeView(titleRow);
+				add_batch.removeView(ownerRow);
+				add_batch.removeView(selectOwnerRow);
 			}
 		});
+		titleRow.addView(title);
+		titleRow.addView(ed);
+		titleRow.addView(delTask);
+		
+		//widgets for ownerRow
 		TextView owner = new TextView(AddBatchTaskActivity.this);
 		owner.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
 		owner.setText(R.string.owner);
+		final RelativeLayout memberField = new RelativeLayout(AddBatchTaskActivity.this);
+		memberField.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableLayout memberList = new TableLayout(AddBatchTaskActivity.this);
+		memberList.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		ownerRow.addView(owner);
+		memberField.addView(memberList);
+		TableRow.LayoutParams memberFieldParams = new TableRow.LayoutParams();
+		memberFieldParams.span = 2;
+		ownerRow.addView(memberField, memberFieldParams);
+
+		//widgets for selectOwnerRow
 		final AutoCompleteTextView autoOwner = new AutoCompleteTextView(AddBatchTaskActivity.this);
 		autoOwner.setHint(R.string.email_to_invite);
 		autoOwner.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
@@ -271,29 +284,22 @@ public class AddBatchTaskActivity extends Activity {
 				txName.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
 				txName.setText(member.name);
 				tr.addView(txName);
-				tl.addView(tr, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+				memberList.addView(tr, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 						LayoutParams.WRAP_CONTENT));
 			}
 		});
-		tr.addView(title);
-		tr.addView(ed);
-		tr.addView(delTask);
-		TableRow.LayoutParams params = new TableRow.LayoutParams();
-		params.column = 1;
-		TableRow.LayoutParams params2 = new TableRow.LayoutParams();
-		params2.span = 2;
-		tr2.addView(owner);
-		rl.addView(tl);
-		tr2.addView(rl, params2);
-		tr3.addView(autoOwner, params);
-		tr3.addView(addOwner);
-		add_batch.addView(tr, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+		TableRow.LayoutParams autoOwnerParams = new TableRow.LayoutParams();
+		autoOwnerParams.column = 1;
+		selectOwnerRow.addView(autoOwner, autoOwnerParams);
+		selectOwnerRow.addView(addOwner);
+		
+		//add rows onto add_batch panel
+		add_batch.addView(titleRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT));
-		add_batch.addView(tr2, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+		add_batch.addView(ownerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT));
-		add_batch.addView(tr3, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+		add_batch.addView(selectOwnerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT));
-		add_batch.addView(tr4, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT, 1));
 	}
 
 	private void findAssignDateView() {
