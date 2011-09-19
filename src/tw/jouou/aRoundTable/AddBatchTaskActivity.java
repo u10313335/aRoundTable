@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -225,8 +226,6 @@ public class AddBatchTaskActivity extends Activity {
 		titleRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		final TableRow ownerRow = new TableRow(AddBatchTaskActivity.this);
 		ownerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		final TableRow selectOwnerRow = new TableRow(AddBatchTaskActivity.this);
-		selectOwnerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		mTasksTitle.add(titleRow);
 		
 		//widgets for titleRow
@@ -242,9 +241,7 @@ public class AddBatchTaskActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				mTasksTitle.remove(titleRow);
-				add_batch.removeView(titleRow);
-				add_batch.removeView(ownerRow);
-				add_batch.removeView(selectOwnerRow);
+				add_batch.removeAllViews();
 			}
 		});
 		titleRow.addView(title);
@@ -257,22 +254,42 @@ public class AddBatchTaskActivity extends Activity {
 		owner.setText(R.string.owner);
 		final RelativeLayout memberField = new RelativeLayout(AddBatchTaskActivity.this);
 		memberField.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		final TableLayout memberList = new TableLayout(AddBatchTaskActivity.this);
-		memberList.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		ownerRow.addView(owner);
-		memberField.addView(memberList);
-		TableRow.LayoutParams memberFieldParams = new TableRow.LayoutParams();
-		memberFieldParams.span = 2;
-		ownerRow.addView(memberField, memberFieldParams);
 
 		//widgets for selectOwnerRow
 		final AutoCompleteTextView autoOwner = new AutoCompleteTextView(AddBatchTaskActivity.this);
 		autoOwner.setHint(R.string.email_to_invite);
 		autoOwner.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+		final TableRow.LayoutParams ownerParams = new TableRow.LayoutParams();
+		ownerParams.column = 1;
+		String[] membersMail = getMembersMail(mProj.getServerId());
 		autoOwner.setAdapter(new ArrayAdapter<String>(AddBatchTaskActivity.this,
-        		R.layout.email_autocomplete_item, getMembersMail(mProj.getServerId())));
+        		R.layout.email_autocomplete_item, membersMail));
+		autoOwner.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> membersMail, View v, int position, long l) {
+    			ownerRow.removeView(autoOwner);
+    			Member member = getMember(autoOwner.getText().toString());
+				mTaskOwners.add(member);
+				final TextView txName = new TextView(AddBatchTaskActivity.this);
+				txName.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
+				txName.setText(member.name);
+				ownerRow.addView(txName, ownerParams);
+				final ImageButton delOwner = new ImageButton(AddBatchTaskActivity.this);
+				delOwner.setImageResource(R.drawable.ic_delete);
+				delOwner.setOnClickListener( new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						ownerRow.removeView(txName);
+						ownerRow.removeView(delOwner);
+						autoOwner.setText("");
+						ownerRow.addView(autoOwner, ownerParams);
+					}
+				});
+				ownerRow.addView(delOwner);
+            }
+        });
+
 		ImageButton addOwner = new ImageButton(AddBatchTaskActivity.this);
-		addOwner.setImageResource(R.drawable.ic_input_add);
 		addOwner.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -284,21 +301,14 @@ public class AddBatchTaskActivity extends Activity {
 				txName.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
 				txName.setText(member.name);
 				tr.addView(txName);
-				memberList.addView(tr, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
-						LayoutParams.WRAP_CONTENT));
 			}
 		});
-		TableRow.LayoutParams autoOwnerParams = new TableRow.LayoutParams();
-		autoOwnerParams.column = 1;
-		selectOwnerRow.addView(autoOwner, autoOwnerParams);
-		selectOwnerRow.addView(addOwner);
+		ownerRow.addView(autoOwner);
 		
 		//add rows onto add_batch panel
 		add_batch.addView(titleRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT));
 		add_batch.addView(ownerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.WRAP_CONTENT));
-		add_batch.addView(selectOwnerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT));
 	}
 

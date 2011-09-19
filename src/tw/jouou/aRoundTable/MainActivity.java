@@ -147,6 +147,10 @@ public class MainActivity extends Activity {
     }
     
     protected void update() {
+		mainView = mInflater.inflate(R.layout.main, null);
+		txTitle = (TextView) mainView.findViewById(R.id.main_title);
+		setContentView(mainView);
+
     	try {
 			projs = dbUtils.projectsDelegate.get();
 			projectTaskEventAdapters = new ProjectTaskEventAdapter[projs.size()];
@@ -160,25 +164,24 @@ public class MainActivity extends Activity {
     		
     		formNotification(lists[0]);
     		formAllItemList(lists[1]);
-
-    		for (int i=0; i < projs.size(); i++) {
-    			formProjLists(i, projs.get(i));
-
-    		}
-    		mainView = mInflater.inflate(R.layout.main, null);
-    		txTitle = (TextView) mainView.findViewById(R.id.main_title);
     		ivUnreadIndicator = (ImageView) mainView.findViewById(R.id.main_unread_indicator);
     		txUnread = (TextView) mainView.findViewById(R.id.main_unread_count);
+    		
+    		for (int i=0; i < projs.size(); i++) {
+    			formProjLists(i, projs.get(i));
+    		}
+    		
     		if(mUnReadCount > 0) {
     			txUnread.setText(""+mUnReadCount);
     			ivUnreadIndicator.setImageResource(R.drawable.has_unread);
     		}	
     		setContentView(mainView);
+
     		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
             adapter = new DiffAdapter(this);
             viewFlow.setAdapter(adapter);
             CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
-    		viewFlow.setFlowIndicator(indic);   
+    		viewFlow.setFlowIndicator(indic);
     		viewFlow.setOnViewSwitchListener(new ViewSwitchListener() {
     		    public void onSwitched(View v, int position) {
     		        MainActivity.this.position = position;
@@ -196,13 +199,6 @@ public class MainActivity extends Activity {
     		});
     		getLastUpdate();
 			viewFlow.setSelection(position);
-    	}else {
-    		setContentView(mainView);
-    		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
-            adapter = new DiffAdapter(this);
-            viewFlow.setAdapter(adapter);
-            CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
-    		viewFlow.setFlowIndicator(indic);	
     	}
     }
     
