@@ -54,7 +54,7 @@
     <string name="cannot_add_event_server_problem">無法新增事件。（遠端伺服器錯誤）。</string>
     <string name="cannot_quit_project_connection_problem">無法退出專案。（沒有資料連線）。</string>
     <string name="cannot_quit_project_server_problem">無法退出專案。（遠端伺服器錯誤）。</string>
-    <string name="add_batch_tasks">新增工作：</string>
+    <string name="add_batch_tasks">新增工作</string>
     <string name="item_title">標題：</string>
     <string name="create_under">建立於：</string>
     <string name="due">到期：</string>

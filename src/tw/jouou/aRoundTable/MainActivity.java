@@ -138,6 +138,10 @@ public class MainActivity extends Activity {
     
     protected void update() {
     	mAllTaskEvents.clear();
+		mainView = mInflater.inflate(R.layout.main, null);
+		txTitle = (TextView) mainView.findViewById(R.id.main_title);
+		setContentView(mainView);
+
     	try {
 			projs = dbUtils.projectsDelegate.get();
 		} catch (ParseException e) {
@@ -153,27 +157,24 @@ public class MainActivity extends Activity {
         		mAllTaskEvents.add(taskevents);
         		formNotification(lists[0]);
         		formAllItemList(lists[1],taskevents);
+        		ivUnreadIndicator = (ImageView) mainView.findViewById(R.id.main_unread_indicator);
+        		txUnread = (TextView) mainView.findViewById(R.id.main_unread_count);
+        		if(mUnReadCount > 0) {
+        			txUnread.setText(""+mUnReadCount);
+        			ivUnreadIndicator.setImageResource(R.drawable.has_unread);
+        		}	
     		} catch (ParseException e) {
     			Log.v(TAG, "Parse error");
     		}
     		for (int i=2; i < (projs.size())+2; i++) {
     			lists[i] = mInflater.inflate(R.layout.project, null);
     			formProjLists(lists[i], projs.get(i-2));
-    		}
-    		mainView = mInflater.inflate(R.layout.main, null);
-    		txTitle = (TextView) mainView.findViewById(R.id.main_title);
-    		ivUnreadIndicator = (ImageView) mainView.findViewById(R.id.main_unread_indicator);
-    		txUnread = (TextView) mainView.findViewById(R.id.main_unread_count);
-    		if(mUnReadCount > 0) {
-    			txUnread.setText(""+mUnReadCount);
-    			ivUnreadIndicator.setImageResource(R.drawable.has_unread);
-    		}	
-    		setContentView(mainView);
+    		} 		
     		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
             adapter = new DiffAdapter(this);
             viewFlow.setAdapter(adapter);
             CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
-    		viewFlow.setFlowIndicator(indic);   
+    		viewFlow.setFlowIndicator(indic);
     		viewFlow.setOnViewSwitchListener(new ViewSwitchListener() {
     		    public void onSwitched(View v, int position) {
     		        MainActivity.this.position = position;
@@ -191,13 +192,6 @@ public class MainActivity extends Activity {
     		});
     		getLastUpdate();
 			viewFlow.setSelection(position);
-    	}else {
-    		setContentView(mainView);
-    		viewFlow = (ViewFlow) findViewById(R.id.viewflow);
-            adapter = new DiffAdapter(this);
-            viewFlow.setAdapter(adapter);
-            CircleFlowIndicator indic = (CircleFlowIndicator) findViewById(R.id.viewflowindic);
-    		viewFlow.setFlowIndicator(indic);	
     	}
     }
     
