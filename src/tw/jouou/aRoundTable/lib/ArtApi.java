@@ -2,12 +2,10 @@ package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -30,9 +28,9 @@ import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
-import tw.jouou.aRoundTable.bean.User;
-import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * Interface for around-table API
@@ -66,11 +64,9 @@ public class ArtApi {
 		if(instance != null)
 			return instance;
 		
-		DBUtils dbUtils = new DBUtils(context);
-		List<User> users = (new DBUtils(context)).userDelegate.get();    	
-        dbUtils.close();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         
-        return instance = new ArtApi(users.get(0).getToken());
+        return instance = new ArtApi(prefs.getString("TOKEN", ""));
 	}
 	
 	public Project[] getProjectList() throws ServerException, ConnectionFailException{
@@ -196,11 +192,16 @@ public class ArtApi {
 	 */
 	public void updateTask(long taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+		//SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		//formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 		params.put("task[name]", name);
-		params.put("task[due]", formatter.format(due));
+		if(!(due == null)) {
+			params.put("task[due]", due.toString());
+		} else {
+			params.put("task[due]", "");
+		}
+		//params.put("task[due]", formatter.format(due));
 		params.put("task[note]", note);
 		params.put("task[finished]", (finished)? "1" : "0");
 		

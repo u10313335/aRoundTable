@@ -26,7 +26,7 @@ public class Task implements Serializable {
 	private boolean done;
 	private Date updateAt;
 	private int type = 0;
-	private int user_ids[];
+	private Long[] owners;
 	
 	public Task(long id, long projId, long serverId, String name, Date due,
 			String note, boolean done, Date updateAt) {
@@ -51,6 +51,18 @@ public class Task implements Serializable {
 		this.updateAt = updateAt;
 	}
 	
+	public Task(long projId, long serverId, String name, Date due, Long[] owners, 
+			String note, boolean done, Date updateAt) {
+		this.projId = projId;
+		this.serverId = serverId;
+		this.name = name;
+		this.due = due;
+		this.owners = owners;
+		this.note = note;
+		this.done = done;
+		this.updateAt = updateAt;
+	}
+	
 	public Task(JSONObject taskJson) throws JSONException {
 		try {
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -65,9 +77,9 @@ public class Task implements Serializable {
 			this.done = (taskJson.getString("finished").equals("1")) ? true : false;
 			this.updateAt = formatter.parse(taskJson.getString("updated_at"));
 			JSONArray jsonArray = taskJson.getJSONArray("user_ids");
-			this.user_ids = new int[jsonArray.length()];
-			for(int i=0; i<this.user_ids.length; i++){
-				this.user_ids[i] = jsonArray.getInt(i);
+			this.owners = new Long[jsonArray.length()];
+			for(int i=0; i<this.owners.length; i++){
+				this.owners[i] = jsonArray.getLong(i);
 				Log.v("Task", "task_id: " + this.serverId + " user_ids: " + jsonArray.getInt(i));
 			}
 		} catch (ParseException e) {
@@ -106,6 +118,10 @@ public class Task implements Serializable {
 	
 	public Date getDueDate() {
 		return due;
+	}
+	
+	public Long[] getOwners() {
+		return owners;
 	}
 	
 	public String getNote() {
@@ -152,12 +168,12 @@ public class Task implements Serializable {
 		return values;
 	}
 	
-	public ContentValues getMembersValues() {
+	public ContentValues getMembersValues(Long ownerId) {
 		ContentValues members_values = new ContentValues();
-		for(int i=0; i<user_ids.length; i++){
-			members_values.put(DBUtils.FIELD_TASK_MEMBERS_TASKID, serverId);
-			members_values.put(DBUtils.FIELD_TASK_MEMBERS_PROJECTID, projId);
-			members_values.put(DBUtils.FIELD_TASK_MEMBERS_MEMBERID, user_ids[i]);
+		for(int i=0; i<owners.length; i++) {
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_TASKID, serverId);
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_PROJECTID, projId);
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, ownerId);
 		}
 		return members_values;
 	}

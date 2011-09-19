@@ -21,7 +21,7 @@
 				<TextView android:id="@+id/event_title" 
 				 	 	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="標題" 
+				  	  	  android:text="@string/item_title" 
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 	
@@ -39,7 +39,7 @@
 				  	  	  android:layout_height="wrap_content"
 				  	  	  android:textStyle="bold"
 				  	  	  android:textColor="@android:color/white"
-				  	  	  android:text="建立於"/>
+				  	  	  android:text="@string/create_under"/>
 
 				<TextView android:id="@+id/event_create_under_context" 
 				 	 	  android:layout_width="wrap_content"
@@ -54,7 +54,7 @@
 				<TextView android:id="@+id/event_time"
 					  	  android:layout_width="wrap_content" 
 				  	  	  android:layout_height="wrap_content"
-				 	  	  android:text="到期"
+				 	  	  android:text="@string/due"
 				 	  	  android:textStyle="bold"
 				 	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 	
@@ -62,12 +62,7 @@
 							 android:layout_width="wrap_content"
 							 android:layout_height="wrap_content" 
 							 android:src="@drawable/date"/>
-				
-				<ImageButton android:id="@+id/event_dependency" 
-							 android:layout_width="wrap_content"
-							 android:layout_height="wrap_content"
-							 android:src="@drawable/dependency"/>
-
+							 
 				<ImageButton android:id="@+id/event_undetermined" 
 							 android:layout_width="wrap_content"
 							 android:layout_height="wrap_content"
@@ -99,7 +94,7 @@
 				<TextView android:id="@+id/event_location" 
 				 	  	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="地點"
+				  	  	  android:text="@string/location"
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 		
@@ -114,7 +109,7 @@
 				<TextView android:id="@+id/event_remarks" 
 				 	  	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="備註"
+				  	  	  android:text="@string/note"
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 		

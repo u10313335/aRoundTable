@@ -1,6 +1,7 @@
 package tw.jouou.aRoundTable.util;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Task;
@@ -19,6 +20,7 @@ import com.j256.ormlite.android.AndroidConnectionSource;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -26,7 +28,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteStatement;
 
 
 //FIXME: This class is TOO BIG, split it!!
@@ -56,10 +57,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
 	
-	public final static String TABLE_TASK_MEMBERS = "tasks_members";
-	public final static String FIELD_TASK_MEMBERS_TASKID = "task_id";
-	public final static String FIELD_TASK_MEMBERS_PROJECTID = "project_id";
-	public final static String FIELD_TASK_MEMBERS_MEMBERID = "member_id";
+	public final static String TABLE_TASKS_MEMBERS = "tasks_members";
+	public final static String FIELD_TASKS_MEMBERS_TASKID = "task_id";
+	public final static String FIELD_TASKS_MEMBERS_PROJECTID = "project_id";
+	public final static String FIELD_TASKS_MEMBERS_MEMBERID = "member_id";
 	
 	public final static String TABLE_EVENT = "event";
 	public final static String FIELD_EVENT_ID = "_id";
@@ -79,6 +80,13 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
 	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
 	public final static String FIELD_NOTIFICATION_READ = "read";
+	
+	public final static String TABLE_GROUPDOC = "groupdoc";
+	public final static String FIELD_GROUPDOC_ID = "_id";
+	public final static String FIELD_GROUPDOC_CONTENT = "content";
+	public final static String FIELD_GROUPDOC_PROJECTID = "project_id";
+	public final static String FIELD_GROUPDOC_SERVERID = "server_id";
+	public final static String FIELD_GROUPDOC_UPDATED_AT = "updated_at";
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -122,10 +130,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_TASK_UPDATED_AT + " DATETIME, "
 				+ FIELD_TASK_TYPE + " INTEGER )");
 		
-		db.execSQL( "CREATE TABLE " + TABLE_TASK_MEMBERS
-				+ "( " + FIELD_TASK_MEMBERS_TASKID + " INTEGER, "
-				+ FIELD_TASK_MEMBERS_PROJECTID + " INTEGER, "
-				+ FIELD_TASK_MEMBERS_MEMBERID + " INTEGER )");
+		db.execSQL( "CREATE TABLE " + TABLE_TASKS_MEMBERS
+				+ "( " + FIELD_TASKS_MEMBERS_TASKID + " INTEGER, "
+				+ FIELD_TASKS_MEMBERS_PROJECTID + " INTEGER, "
+				+ FIELD_TASKS_MEMBERS_MEMBERID + " INTEGER )");
 		
 		db.execSQL( "CREATE TABLE " + TABLE_EVENT
 				+ "( " + FIELD_EVENT_ID + " INTEGER PRIMARY KEY, "
@@ -161,6 +169,14 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 					"0 AS finish" +
 					"1 AS type" +
 					"WHERE event.type <> 2 ORDER BY date ASC");
+
+		db.execSQL( "CREATE TABLE " + TABLE_GROUPDOC
+				+ "( " + FIELD_GROUPDOC_ID + " INTEGER PRIMARY KEY, "
+				+ FIELD_GROUPDOC_CONTENT + " TEXT, "
+				+ FIELD_GROUPDOC_PROJECTID + " INTEGER, "
+				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
+				+ FIELD_GROUPDOC_UPDATED_AT + " DATETIME )");
+
 		
 		try {
 			TableUtils.createTable(conn, Member.class);
@@ -182,7 +198,8 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
 	public NotificationDelegate notificationDelegate = new NotificationDelegate();
-	public TaskMembersDelegate taskMembersDelegate = new TaskMembersDelegate();
+	public TasksMembersDelegate tasksMembersDelegate = new TasksMembersDelegate();
+	public GroupDocDelegate groupDocDelegate = new GroupDocDelegate();
 	
 	public class UsersDelegate {
 		public void delete(User user) {
@@ -514,12 +531,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		}
 	}
 	
-	public class TaskMembersDelegate {
+	public class TasksMembersDelegate {
 		public void delete(long id) {
 			if (id < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, "member_id = ?", new String[] { String
+			db.delete(TABLE_TASKS_MEMBERS, "member_id = ?", new String[] { String
 					.valueOf(id) });
 			db.close();
 		}
@@ -528,7 +545,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			if (id < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, "task_id = ?", new String[] { String
+			db.delete(TABLE_TASKS_MEMBERS, "task_id = ?", new String[] { String
 					.valueOf(id) });
 			db.close();
 		}
@@ -537,29 +554,48 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			if (id < 0)
 				return;
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, "project_id = ?", new String[] { String
+			db.delete(TABLE_TASKS_MEMBERS, "project_id = ?", new String[] { String
 					.valueOf(id) });
 			db.close();
 		}
 	
 		public void deleteAll() {
 			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK_MEMBERS, null, null);
-			db.close();
-		}
-	
-		public void update(Task task) {
-			SQLiteDatabase db = getReadableDatabase();
-			ContentValues values = task.getMembersValues();
-			db.update(TABLE_TASK_MEMBERS, values, "task_id = ?", new String[] { String
-					.valueOf(task.getServerId()) });
+			db.delete(TABLE_TASKS_MEMBERS, null, null);
 			db.close();
 		}
 	
 		public void insert(Task task) {
 			SQLiteDatabase db = getWritableDatabase();
-			db.insert(TABLE_TASK_MEMBERS, null, task.getMembersValues());
+			Long[] owners = task.getOwners();
+			for(int i=0; i<owners.length; i++) {
+				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(owners[i]));
+			}
 			db.close();
+		}
+		
+		public String[] getMembers(long taskId) {
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASKS_MEMBERS,  null, "task_id=" + taskId, null, null, null, null);
+			String[] names = null;
+			if(c.getCount() > 0) {
+				names = new String[c.getCount()];
+				while (c.moveToNext()) {
+					List<Member> members = null;
+					try {
+						QueryBuilder<Member, Integer> queryBuilder = memberDao.queryBuilder();
+						queryBuilder.where().eq("server_id", c.getLong((c.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
+						queryBuilder.selectColumns("name");
+						members = memberDao.query(queryBuilder.prepare());
+						names[c.getPosition()] = members.get(0).name;
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			c.close();
+			db.close();
+			return names;
 		}
 	}
 
@@ -838,4 +874,48 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return notifications;
 		}
 	}
+	
+	public class GroupDocDelegate {
+		public void insert(GroupDoc groupDoc) {
+			SQLiteDatabase db = getWritableDatabase();
+			db.insert(TABLE_GROUPDOC, null, groupDoc.getValues());
+			db.close();
+		}
+		
+		public void delete(long projId) {
+			if (projId < 0)
+				return;
+			SQLiteDatabase db = getWritableDatabase();
+			db.delete(TABLE_GROUPDOC, "project_id = ?", new String[] { String
+					.valueOf(projId) });
+			db.close();
+		}
+
+		public GroupDoc get(long projId) throws ParseException {
+			GroupDoc groupDoc = null;
+		
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_GROUPDOC, null, "project_id=" + projId, null, null, null, null);
+
+			while (c.moveToNext()) {
+				groupDoc = new GroupDoc(c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_ID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_PROJECTID)),
+						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_SERVERID)),
+						c.getString(c.getColumnIndexOrThrow(FIELD_GROUPDOC_CONTENT)),
+						formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_GROUPDOC_UPDATED_AT))));
+			}
+			c.close();
+			db.close();
+			return groupDoc;
+		}
+		
+		public void update(GroupDoc groupDoc) {
+			SQLiteDatabase db = getReadableDatabase();
+			ContentValues values = groupDoc.getValues();
+			db.update(TABLE_GROUPDOC, values, "server_id = ?", new String[] { String
+					.valueOf(groupDoc.getServerId()) });
+			db.close();
+		}
+	}
+	
 }

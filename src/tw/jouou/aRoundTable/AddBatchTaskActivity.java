@@ -1,5 +1,6 @@
 package tw.jouou.aRoundTable;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -9,6 +10,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.j256.ormlite.stmt.QueryBuilder;
+
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
@@ -25,6 +29,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +37,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -57,6 +63,7 @@ public class AddBatchTaskActivity extends Activity {
 	private Project mProj;
 	private int mDueType = ASSIGN_DAY_PANEL;
 	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
+	private LinkedList<Member> mTaskOwners = new LinkedList<Member>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private LinkedList<TableRow> mTasksTitle = new LinkedList<TableRow>();
 	private long mProjId;
@@ -151,20 +158,20 @@ public class AddBatchTaskActivity extends Activity {
         mBtnFinish.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		String[] titles = getTasksTitle();
+        		Tasks tasks = null;
         		switch(mDueType) {
         			case 0:
-        				String[] titles = getTasksTitle();
-        				Tasks tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
+        				tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
         				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 1:
         				break;
         			case 2:
-        				/*(new CreateItemEventTask()).execute(mEdTitle.getText().toString(),
-        							"", mEdRemarks.getText().toString());*/
+        				tasks = new Tasks(titles, "", mEdRemarks.getText().toString());
+        				(new CreateTaskTask()).execute(tasks);
         				break;
         		}
-				//AddBatchTaskActivity.this.finish();
       	  	}
     	});
         
@@ -214,28 +221,84 @@ public class AddBatchTaskActivity extends Activity {
     }
 	
 	private void findAddBatchView() {
-		final TableRow tr = new TableRow(AddBatchTaskActivity.this);
-		mTasksTitle.add(tr);
-		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableRow titleRow = new TableRow(AddBatchTaskActivity.this);
+		titleRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableRow ownerRow = new TableRow(AddBatchTaskActivity.this);
+		ownerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableRow selectOwnerRow = new TableRow(AddBatchTaskActivity.this);
+		selectOwnerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		mTasksTitle.add(titleRow);
+		
+		//widgets for titleRow
 		TextView title = new TextView(AddBatchTaskActivity.this);
 		title.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-		title.setText("標題");
+		title.setText(R.string.item_title);
 		EditText ed = new EditText(AddBatchTaskActivity.this);
 		ed.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
 		ed.setTag("ed");
-		ImageButton ib = new ImageButton(AddBatchTaskActivity.this);
-		ib.setImageResource(R.drawable.ic_delete);
-		ib.setOnClickListener( new OnClickListener() {
+		ImageButton delTask = new ImageButton(AddBatchTaskActivity.this);
+		delTask.setImageResource(R.drawable.ic_delete);
+		delTask.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mTasksTitle.remove(tr);
-				add_batch.removeView(tr);
+				mTasksTitle.remove(titleRow);
+				add_batch.removeView(titleRow);
+				add_batch.removeView(ownerRow);
+				add_batch.removeView(selectOwnerRow);
 			}
 		});
-		tr.addView(title);
-		tr.addView(ed);
-		tr.addView(ib);
-		add_batch.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+		titleRow.addView(title);
+		titleRow.addView(ed);
+		titleRow.addView(delTask);
+		
+		//widgets for ownerRow
+		TextView owner = new TextView(AddBatchTaskActivity.this);
+		owner.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
+		owner.setText(R.string.owner);
+		final RelativeLayout memberField = new RelativeLayout(AddBatchTaskActivity.this);
+		memberField.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		final TableLayout memberList = new TableLayout(AddBatchTaskActivity.this);
+		memberList.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		ownerRow.addView(owner);
+		memberField.addView(memberList);
+		TableRow.LayoutParams memberFieldParams = new TableRow.LayoutParams();
+		memberFieldParams.span = 2;
+		ownerRow.addView(memberField, memberFieldParams);
+
+		//widgets for selectOwnerRow
+		final AutoCompleteTextView autoOwner = new AutoCompleteTextView(AddBatchTaskActivity.this);
+		autoOwner.setHint(R.string.email_to_invite);
+		autoOwner.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+		autoOwner.setAdapter(new ArrayAdapter<String>(AddBatchTaskActivity.this,
+        		R.layout.email_autocomplete_item, getMembersMail(mProj.getServerId())));
+		ImageButton addOwner = new ImageButton(AddBatchTaskActivity.this);
+		addOwner.setImageResource(R.drawable.ic_input_add);
+		addOwner.setOnClickListener( new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				final TableRow tr = new TableRow(AddBatchTaskActivity.this);
+				final Member member = getMember(autoOwner.getText().toString());
+				mTaskOwners.add(member);
+				tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+				TextView txName = new TextView(AddBatchTaskActivity.this);
+				txName.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
+				txName.setText(member.name);
+				tr.addView(txName);
+				memberList.addView(tr, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+						LayoutParams.WRAP_CONTENT));
+			}
+		});
+		TableRow.LayoutParams autoOwnerParams = new TableRow.LayoutParams();
+		autoOwnerParams.column = 1;
+		selectOwnerRow.addView(autoOwner, autoOwnerParams);
+		selectOwnerRow.addView(addOwner);
+		
+		//add rows onto add_batch panel
+		add_batch.addView(titleRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+				LayoutParams.WRAP_CONTENT));
+		add_batch.addView(ownerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
+				LayoutParams.WRAP_CONTENT));
+		add_batch.addView(selectOwnerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT));
 	}
 
@@ -271,17 +334,17 @@ public class AddBatchTaskActivity extends Activity {
         		AlertDialog.Builder dialog = new AlertDialog.Builder(AddBatchTaskActivity.this);
         		View view = mInflater.inflate(R.layout.number_picker_pref, null);
         		dialog.setView(view);
-        		dialog.setTitle(getString(R.string.setting_days));
+        		dialog.setTitle(R.string.setting_days);
         		dialog.setIcon(R.drawable.ic_dialog_time);
                 final NumberPicker mNumberPicker = (NumberPicker) view.findViewById(R.id.pref_num_picker);
                 mNumberPicker.setCurrent(1);
-                dialog.setPositiveButton(getString(R.string.done), new DialogInterface.OnClickListener() {
+                dialog.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					updateDisplay(mYear, mMonth, mDay+mNumberPicker.getCurrent());
     				}
                 });
-                dialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                dialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					dialog.dismiss();
@@ -301,7 +364,7 @@ public class AddBatchTaskActivity extends Activity {
 			add_single_task_dependency = new RelativeLayout(this);
 			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
 			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			noDependable.setText("無可相依工作");
+			noDependable.setText(R.string.no_dependable_task);
 			add_single_task_dependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
@@ -388,6 +451,22 @@ public class AddBatchTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
+    private String[] getMembersMail(long projId) {
+    	List<Member> members = null;
+		try {
+			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			queryBuilder.where().eq("project_id", projId);
+			members = dbUtils.memberDao.query(queryBuilder.prepare());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		String[] emails = new String[members.size()];
+		for(int i = 0; i < members.size(); i++) {
+			emails[i] = members.get(i).email;
+		}
+		return emails;
+    }
+    
     private String[] getTasksTitle() {
 		Set<String> set = new TreeSet<String>();
 		for (int i=0; i < mTasksTitle.size(); i++) {
@@ -407,6 +486,19 @@ public class AddBatchTaskActivity extends Activity {
     		this.due = due;
     		this.note = note;
     	}
+    }
+    
+    private Member getMember(String email) {
+    	List<Member> members = null;
+		try {
+			dbUtils = new DBUtils(this);
+			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			queryBuilder.where().eq("email", email);
+			members = dbUtils.memberDao.query(queryBuilder.prepare());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return members.get(0);
     }
     
   	private class CreateTaskTask extends AsyncTask<Tasks, Void, Integer> {
@@ -455,11 +547,11 @@ public class AddBatchTaskActivity extends Activity {
 		protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddBatchTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddBatchTaskActivity.this, getString(R.string.cannot_add_task_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(AddBatchTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				Toast.makeText(AddBatchTaskActivity.this, getString(R.string.cannot_add_task_connection_problem), Toast.LENGTH_LONG).show();
 				return;
 			}
 			dbUtils.close();

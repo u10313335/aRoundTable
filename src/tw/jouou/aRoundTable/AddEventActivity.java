@@ -69,7 +69,6 @@ public class AddEventActivity extends Activity {
     private EditText mEdTitle;
     private TextView mTxCreateUnder;
     private ImageButton mBtnAssignDate;
-    private ImageButton mBtnDependency;
     private ImageButton mBtnUndetermined;
     private Button mBtnFromDatePicker;
     private Button mBtnToDatePicker;
@@ -158,13 +157,6 @@ public class AddEventActivity extends Activity {
         		mDueType = ASSIGN_TIME_PANEL;
         		mTimeChooser.removeAllViews();
         		findAssignTimeView();
-      	  	}
-    	});
-
-        mBtnDependency.setOnClickListener(new OnClickListener() {
-        	@Override
-      	  	public void onClick(View v) {
-        		// TODO:temporary disable dependency for event
       	  	}
     	});
         
@@ -400,7 +392,6 @@ public class AddEventActivity extends Activity {
     	mEdTitle = (EditText)findViewById(R.id.event_title_context);
     	mTxCreateUnder = (TextView)findViewById(R.id.event_create_under_context);
     	mBtnAssignDate = (ImageButton)findViewById(R.id.event_date);
-    	mBtnDependency = (ImageButton)findViewById(R.id.event_dependency);
     	mBtnUndetermined = (ImageButton)findViewById(R.id.event_undetermined);
     	mEdLocation = (EditText)findViewById(R.id.event_location_context);
     	mEdRemarks = (EditText)findViewById(R.id.event_remarks_context);
@@ -471,11 +462,11 @@ public class AddEventActivity extends Activity {
         protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddEventActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddEventActivity.this, getString(R.string.cannot_add_event_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(AddEventActivity.this, "無法新增事件。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				Toast.makeText(AddEventActivity.this, getString(R.string.cannot_add_event_connection_problem), Toast.LENGTH_LONG).show();
 				return;
 			}
 			dbUtils.close();

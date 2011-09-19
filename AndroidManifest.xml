@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="tw.jouou.aRoundTable"
-      android:versionCode="20"
-      android:versionName="20110824dev">
+      android:versionCode="21"
+      android:versionName="20110912dev">
     <uses-sdk android:minSdkVersion="4" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -55,6 +55,9 @@
         </activity>
         
         <activity android:name="ContactsActivity">
+        </activity>
+        
+        <activity android:name="GroupDocActivity">
         </activity>
         
         <service android:name="tw.jouou.aRoundTable.lib.SyncService"

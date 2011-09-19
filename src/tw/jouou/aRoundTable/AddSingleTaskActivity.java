@@ -1,5 +1,6 @@
 package tw.jouou.aRoundTable;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.j256.ormlite.stmt.QueryBuilder;
+
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
@@ -35,6 +39,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -62,10 +67,12 @@ public class AddSingleTaskActivity extends Activity {
 	private Date mTaskDue;
 	private int mDueType = ASSIGN_DAY_PANEL;
 	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
+	private LinkedList<Member> mTaskOwners = new LinkedList<Member>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
+	private TableLayout mMemberField;
 	private List<Task> mTasks = null;
     private EditText mEdTitle;
     private TextView mTxCreateUnder;
@@ -79,7 +86,7 @@ public class AddSingleTaskActivity extends Activity {
     private Button mBtnDatePicker;
     private Button mBtnFinish;
     private Button mBtnCancel;
-    private EditText mEdOwner;
+    private AutoCompleteTextView mAutoOwner;
     private EditText mEdRemarks;
     private SimpleDateFormat mDateToStr, mStrToDate;
     private Calendar mCalendar = Calendar.getInstance();
@@ -105,6 +112,8 @@ public class AddSingleTaskActivity extends Activity {
         mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
+        mAutoOwner.setAdapter(new ArrayAdapter<String>(AddSingleTaskActivity.this,
+        		R.layout.email_autocomplete_item, getMembersMail(mProj.getServerId())));
         try {
     		mTasks = dbUtils.tasksDelegate.get(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
@@ -146,7 +155,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnAssignDate.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = ASSIGN_DAY_PANEL;
         		mDateChooser.removeAllViews();
         		findAssignDateView();
       	  	}
@@ -155,7 +163,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnDependency.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = DEPENDENCY_PANEL;
         		mDateChooser.removeAllViews();
         		findDependencyView();
       	  	}
@@ -164,7 +171,6 @@ public class AddSingleTaskActivity extends Activity {
         mBtnUndetermined.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		mDueType = UNDETERMINED_PANEL;
         		mDateChooser.removeAllViews();
         		findUndeterminedView();
       	  	}
@@ -199,8 +205,12 @@ public class AddSingleTaskActivity extends Activity {
         mBtnAddOwner.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		// TODO:add addowner function here
-      	  	}
+        		String getString = mAutoOwner.getText().toString();
+        		if(!getString.equals("")) {
+        			findAddMemberView(getMember(getString));
+        			mAutoOwner.getText().clear();
+        		}
+        	}
     	});
     }
 	
@@ -242,6 +252,7 @@ public class AddSingleTaskActivity extends Activity {
     }
 
 	private void findAssignDateView() {
+		mDueType = ASSIGN_DAY_PANEL;
         RelativeLayout add_single_task_assign_date = 
         		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null)
         		.findViewById(R.id.add_single_task_assign_date);
@@ -273,17 +284,17 @@ public class AddSingleTaskActivity extends Activity {
         		AlertDialog.Builder dialog = new AlertDialog.Builder(AddSingleTaskActivity.this);
         		View view = mInflater.inflate(R.layout.number_picker_pref, null);
         		dialog.setView(view);
-        		dialog.setTitle(getString(R.string.setting_days));
+        		dialog.setTitle(R.string.setting_days);
         		dialog.setIcon(R.drawable.ic_dialog_time);
                 final NumberPicker mNumberPicker = (NumberPicker) view.findViewById(R.id.pref_num_picker);
                 mNumberPicker.setCurrent(1);
-                dialog.setPositiveButton(getString(R.string.done), new DialogInterface.OnClickListener() {
+                dialog.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					updateDisplay(mYear, mMonth, mDay+mNumberPicker.getCurrent());
     				}
                 });
-                dialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                dialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					dialog.dismiss();
@@ -298,12 +309,13 @@ public class AddSingleTaskActivity extends Activity {
 	}
 
 	private void findDependencyView() {
+		mDueType = DEPENDENCY_PANEL;
 		RelativeLayout add_single_task_dependency;
 		if (mTasks.isEmpty()) {
 			add_single_task_dependency = new RelativeLayout(this);
 			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
 			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			noDependable.setText("無可相依工作");
+			noDependable.setText(R.string.no_dependable_task);
 			add_single_task_dependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
@@ -317,7 +329,7 @@ public class AddSingleTaskActivity extends Activity {
 				.findViewById(R.id.single_depend_on_view);
         Spinner single_dependency_plus_minus = (Spinner) add_single_task_dependency.findViewById(R.id.single_dependency_plus_minus);
         ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
-        		android.R.layout.simple_spinner_item, new String[]{"加","減"});
+        		android.R.layout.simple_spinner_item, new String[]{getString(R.string.plus), getString(R.string.minus)});
         plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         single_dependency_plus_minus.setAdapter(plus_minus_adapter);
         single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -363,9 +375,32 @@ public class AddSingleTaskActivity extends Activity {
 	}
 	
 	private void findUndeterminedView() {
+		mDueType = UNDETERMINED_PANEL;
         RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
         		.findViewById(R.id.add_single_task_undetermined);
         mDateChooser.addView(add_single_task_undetermined);
+	}
+	
+	private void findAddMemberView(final Member member) {
+		final TableRow tr = new TableRow(AddSingleTaskActivity.this);
+		mTaskOwners.add(member);
+		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		TextView txName = new TextView(AddSingleTaskActivity.this);
+		txName.setTextAppearance(AddSingleTaskActivity.this, android.R.style.TextAppearance_Medium);
+		txName.setText(member.name);
+		ImageButton ib = new ImageButton(AddSingleTaskActivity.this);
+		ib.setImageResource(R.drawable.ic_delete);
+		ib.setOnClickListener( new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mTaskOwners.remove(member);
+				mMemberField.removeView(tr);
+			}
+		});
+		tr.addView(txName);
+		tr.addView(ib);
+		mMemberField.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT));
 	}
 	
     private void findViews() {
@@ -375,8 +410,9 @@ public class AddSingleTaskActivity extends Activity {
     	mBtnAssignDate = (ImageButton)findViewById(R.id.single_date);
     	mBtnDependency = (ImageButton)findViewById(R.id.single_dependency);
     	mBtnUndetermined = (ImageButton)findViewById(R.id.single_undetermined);
-    	mEdOwner = (EditText)findViewById(R.id.single_owneradd_context);
+    	mAutoOwner = (AutoCompleteTextView)findViewById(R.id.single_owneradd_context);
     	mBtnAddOwner = (ImageButton)findViewById(R.id.single_owner_add);
+    	mMemberField = (TableLayout)findViewById(R.id.owners_field);
     	mEdRemarks = (EditText)findViewById(R.id.single_remarks_context);
     	mBtnFinish = (Button)findViewById(R.id.single_additem_finish);
     	mBtnCancel = (Button)findViewById(R.id.single_additem_cancel);
@@ -393,7 +429,44 @@ public class AddSingleTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
+    private Long[] getOwnersId() {
+		Set<Long> set = new TreeSet<Long>();
+		for (int i=0; i < mTaskOwners.size(); i++) {
+			long ownerId = mTaskOwners.get(i).serverId;
+			set.add(ownerId);
+		}
+		return set.toArray(new Long[set.size()]);
+    }
     
+    private String[] getMembersMail(long projId) {
+    	List<Member> members = null;
+		try {
+			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			queryBuilder.where().eq("project_id", projId);
+			members = dbUtils.memberDao.query(queryBuilder.prepare());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		String[] emails = new String[members.size()];
+		for(int i = 0; i < members.size(); i++) {
+			emails[i] = members.get(i).email;
+		}
+		return emails;
+    }
+    
+    private Member getMember(String email) {
+    	List<Member> members = null;
+		try {
+			dbUtils = new DBUtils(this);
+			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			queryBuilder.where().eq("email", email);
+			members = dbUtils.memberDao.query(queryBuilder.prepare());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return members.get(0);
+    }
+  
   	private class CreateTaskTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;
 		private Exception exception;
@@ -414,14 +487,16 @@ public class AddSingleTaskActivity extends Activity {
 		    	if (mBundle.getInt("addOrEdit") == 0) {
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-						.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
-		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), params[2], false, new Date());
+								.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
+		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
+		    			dbUtils.tasksMembersDelegate.insert(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-						.createTask(mProjId, params[0], null, params[2]);
+								.createTask(mProjId, params[0], null, params[3]);
 						Task task = new Task(mProjId, serverId, params[0], null, params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
+						dbUtils.tasksMembersDelegate.insert(task);
 		    		}	
 		    	} else {
 		    		if (!params[1].equals("")) {
@@ -430,7 +505,7 @@ public class AddSingleTaskActivity extends Activity {
 		    			dbUtils.tasksDelegate.update(task);
 		    		} else {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
-		    				mTask.getServerId(), params[0], null, params[2], false, new Date());
+		    					mTask.getServerId(), params[0], null, params[2], false, new Date());
 		    			dbUtils.tasksDelegate.update(task);
 		    		}
 		    		Intent syncIntent = new Intent(AddSingleTaskActivity.this, SyncService.class);
@@ -450,16 +525,15 @@ public class AddSingleTaskActivity extends Activity {
         protected void onPostExecute(Integer i) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(AddSingleTaskActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(AddSingleTaskActivity.this, getString(R.string.cannot_add_task_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}
 			if(exception instanceof ConnectionFailException) {
-				Toast.makeText(AddSingleTaskActivity.this, "無法新增工作。（沒有網路連接）", Toast.LENGTH_LONG).show();
+				Toast.makeText(AddSingleTaskActivity.this, getString(R.string.cannot_add_task_connection_problem), Toast.LENGTH_LONG).show();
 				return;
 			}
 			dbUtils.close();
 			AddSingleTaskActivity.this.finish();
 		}
 	}
-  	  
 }
