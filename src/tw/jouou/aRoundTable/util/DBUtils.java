@@ -162,12 +162,13 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 					"task.finish AS finish, " +
 					"0 AS type " +
 					"FROM task WHERE task.type <> 2 UNION SELECT " +
-					"event.server_id AS server_id" +
-					"event.name AS name" +
-					"event.project_id AS project_id" +
-					"event.start_at AS date" +
-					"0 AS finish" +
-					"1 AS type" +
+					"event.server_id AS server_id, " +
+					"event.name AS name, " +
+					"event.project_id AS project_id, " +
+					"event.start_at AS date, " +
+					"0 AS finish, " +
+					"1 AS type " +
+					"FROM event " + 
 					"WHERE event.type <> 2 ORDER BY date ASC");
 
 		db.execSQL( "CREATE TABLE " + TABLE_GROUPDOC
