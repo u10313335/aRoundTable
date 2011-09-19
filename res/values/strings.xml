@@ -5,7 +5,6 @@
     <string name="title">Deadline/Event</string>
     <string name="welcome_message_title">歡迎使用 aRound Table！</string>
     <string name="welcome_message">第一次啟動本程式，請先完成 Google 帳號認證</string>
-    <string name="create_project_message_title">新增專案</string>
     <string name="create_project_message">資料庫中無專案，現在就新增一個？</string>
     <string name="register_finished">認證完成</string>
     <string name="retriving_existed_data">擷取已存於伺服器的專案...</string>
@@ -55,6 +54,18 @@
     <string name="cannot_add_event_server_problem">無法新增事件。（遠端伺服器錯誤）。</string>
     <string name="cannot_quit_project_connection_problem">無法退出專案。（沒有資料連線）。</string>
     <string name="cannot_quit_project_server_problem">無法退出專案。（遠端伺服器錯誤）。</string>
-    
+    <string name="add_batch_tasks">新增工作：</string>
+    <string name="item_title">標題：</string>
+    <string name="create_under">建立於：</string>
+    <string name="due">到期：</string>
+    <string name="date">日期：</string>
+    <string name="from">從：</string>
+    <string name="to">到：</string>
+    <string name="location">地點：</string>
+    <string name="no_dependable_task">無可相依工作</string>
+    <string name="plus">加</string>
+    <string name="minus">減</string>
+    <string name="owner">負責：</string>
+    <string name="note">備註：</string>
     <string name="last_update">上次更新時間：</string>
 </resources>

@@ -284,17 +284,17 @@ public class AddSingleTaskActivity extends Activity {
         		AlertDialog.Builder dialog = new AlertDialog.Builder(AddSingleTaskActivity.this);
         		View view = mInflater.inflate(R.layout.number_picker_pref, null);
         		dialog.setView(view);
-        		dialog.setTitle(getString(R.string.setting_days));
+        		dialog.setTitle(R.string.setting_days);
         		dialog.setIcon(R.drawable.ic_dialog_time);
                 final NumberPicker mNumberPicker = (NumberPicker) view.findViewById(R.id.pref_num_picker);
                 mNumberPicker.setCurrent(1);
-                dialog.setPositiveButton(getString(R.string.done), new DialogInterface.OnClickListener() {
+                dialog.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					updateDisplay(mYear, mMonth, mDay+mNumberPicker.getCurrent());
     				}
                 });
-                dialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                dialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					dialog.dismiss();
@@ -315,7 +315,7 @@ public class AddSingleTaskActivity extends Activity {
 			add_single_task_dependency = new RelativeLayout(this);
 			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
 			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			noDependable.setText("無可相依工作");
+			noDependable.setText(R.string.no_dependable_task);
 			add_single_task_dependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
@@ -329,7 +329,7 @@ public class AddSingleTaskActivity extends Activity {
 				.findViewById(R.id.single_depend_on_view);
         Spinner single_dependency_plus_minus = (Spinner) add_single_task_dependency.findViewById(R.id.single_dependency_plus_minus);
         ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
-        		android.R.layout.simple_spinner_item, new String[]{"加","減"});
+        		android.R.layout.simple_spinner_item, new String[]{getString(R.string.plus), getString(R.string.minus)});
         plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         single_dependency_plus_minus.setAdapter(plus_minus_adapter);
         single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -412,7 +412,7 @@ public class AddSingleTaskActivity extends Activity {
     	mBtnUndetermined = (ImageButton)findViewById(R.id.single_undetermined);
     	mAutoOwner = (AutoCompleteTextView)findViewById(R.id.single_owneradd_context);
     	mBtnAddOwner = (ImageButton)findViewById(R.id.single_owner_add);
-    	mMemberField = (TableLayout)findViewById(R.id.members_field);
+    	mMemberField = (TableLayout)findViewById(R.id.owners_field);
     	mEdRemarks = (EditText)findViewById(R.id.single_remarks_context);
     	mBtnFinish = (Button)findViewById(R.id.single_additem_finish);
     	mBtnCancel = (Button)findViewById(R.id.single_additem_cancel);
@@ -487,13 +487,13 @@ public class AddSingleTaskActivity extends Activity {
 		    	if (mBundle.getInt("addOrEdit") == 0) {
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-						.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
+								.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
 		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    			dbUtils.tasksMembersDelegate.insert(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-						.createTask(mProjId, params[0], null, params[3]);
+								.createTask(mProjId, params[0], null, params[3]);
 						Task task = new Task(mProjId, serverId, params[0], null, params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
 						dbUtils.tasksMembersDelegate.insert(task);
@@ -505,7 +505,7 @@ public class AddSingleTaskActivity extends Activity {
 		    			dbUtils.tasksDelegate.update(task);
 		    		} else {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
-		    				mTask.getServerId(), params[0], null, params[2], false, new Date());
+		    					mTask.getServerId(), params[0], null, params[2], false, new Date());
 		    			dbUtils.tasksDelegate.update(task);
 		    		}
 		    		Intent syncIntent = new Intent(AddSingleTaskActivity.this, SyncService.class);
