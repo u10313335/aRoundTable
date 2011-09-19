@@ -790,28 +790,28 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		
 		public List<TaskEvent> get(long projectId) {
 			return query("date >= Datetime('now','localtime') " +
-					"AND finish = false" +
+					"AND finish = 0 " +
 					"AND project_id = ?", new String[] {Long.toString(projectId)});
 		}
 		
 		public List<TaskEvent> getOwned() {
 			return query("date >= Datetime('now','localtime') " +
-					"AND finish = false" +
-					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?)", 
+					"AND finish = 0 " +
+					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))", 
 					new String[] {Long.toString(3)});
 		}
 		
 		public List<TaskEvent> getOverDue(long projectId){
 			return query("date < Datetime('now','localtime') " +
-					"AND finish = false" +
+					"AND finish = 0 " +
 					"AND project_id = ?", new String[] {Long.toString(projectId)});
 		}
 		
 		//FIXME: now using mock userId, should be real
 		public List<TaskEvent> getOwnedOverDue(){
 			return query("date < Datetime('now','localtime') " +
-					"AND finish = false" +
-					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?)", 
+					"AND finish = 0 " +
+					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))", 
 					new String[] {Long.toString(3)}); 
 		}
 		
