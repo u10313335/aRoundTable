@@ -747,7 +747,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		}
 	}
 
-	public class TaskEventDelegate {	
+	public class TaskEventDelegate {
+		public static final int TYPE_TASK = 0;
+		public static final int TYPE_EVENT = 1;
+		
 		public List<TaskEvent> get(long projectId) {
 			return query("date >= Datetime('now','localtime') " +
 					"AND finish = false" +

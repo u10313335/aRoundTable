@@ -36,6 +36,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -94,8 +95,7 @@ public class MainActivity extends Activity {
 	private OwnedTaskEventAdapter ownedTaskEventAdapter;
 	private ProjectTaskEventAdapter[] projectTaskEventAdapters;
 	private int position = 1;  // screen position
-	private final String colors[] = { "#00B0CF", "#A2CA30", "#F2E423",
-			"#CA4483", "#E99314", "#C02B20", "#F7F7CF", "#225DAB" };
+	private TypedArray colors;
 	protected static final int MENU_EditProj = Menu.FIRST;
 	protected static final int MENU_QuitProj = Menu.FIRST+1;
 	protected static final int MENU_ViewFinished = Menu.FIRST+2;
@@ -121,6 +121,7 @@ public class MainActivity extends Activity {
     		dbUtils = new DBUtils(this);
     	}
         
+        colors = getResources().obtainTypedArray(R.array.project_colors);
     	users = dbUtils.userDelegate.get();
     	
     	mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -210,7 +211,7 @@ public class MainActivity extends Activity {
     		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else {
     		        	txTitle.setText("「" + projs.get(position-2).getName() + "」的工作");
-    		        	txTitle.setTextColor(Color.parseColor(colors[projs.get(position-2).getColor()]));
+    		        	txTitle.setTextColor(colors.getColor(projs.get(position-2).getColor(), 0));
     		        }
     		    }
     		});
@@ -257,7 +258,7 @@ public class MainActivity extends Activity {
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
 		txLastUpdate = (TextView) v.findViewById(R.id.last_update);
 		TaskEventDelegate taskEventDelegate = dbUtils.taskEventDelegate;
-		allItemListView.setAdapter(new OwnedTaskEventAdapter(taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue()));
+		allItemListView.setAdapter(new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue()));
 
     	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override
@@ -322,7 +323,7 @@ public class MainActivity extends Activity {
 		
 		TaskEventDelegate taskEventDelegate = dbUtils.taskEventDelegate;
 		long projectId = project.getServerId();
-		projectTaskEventAdapters[projectPos] = new ProjectTaskEventAdapter(taskEventDelegate.get(projectId), taskEventDelegate.getOverDue(projectId));
+		projectTaskEventAdapters[projectPos] = new ProjectTaskEventAdapter(this, taskEventDelegate.get(projectId), taskEventDelegate.getOverDue(projectId));
 		projItemListView.setAdapter(projectTaskEventAdapters[projectPos]);
 
 		projItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {

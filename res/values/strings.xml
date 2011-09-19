@@ -45,4 +45,5 @@
     <string name="email_to_invite">電子郵件地址</string>
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>
+    <string name="item_overdue">%1$s 個項目已過期</string>
 </resources>
