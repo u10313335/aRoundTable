@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="?android:attr/listPreferredItemHeight" >
+	<ImageView
+		android:layout_gravity="center_vertical"
+		android:id="@+id/group_indicator"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:src="@drawable/expander_group"
+		android:layout_marginLeft="5dp"
+		android:layout_marginRight="5dp"
+		 />
+	<TextView
+		android:id="@+id/group_text"
+		android:layout_gravity="center_vertical"
+		android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+         />
+</LinearLayout>

@@ -43,4 +43,15 @@
         <item name="android:layout_height">fill_parent</item>
         <item name="android:background">#111</item>
     </style>
+    
+    <style name="TaskEventExpandable">
+    	<item name="android:layout_width">fill_parent</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:divider">@drawable/divider</item>
+		<item name="android:dividerHeight">1dp</item>
+		<item name="android:scrollbars">vertical</item>
+		<item name="android:cacheColorHint">@android:color/transparent</item>
+		<item name="android:layout_weight">1</item>
+		<item name="android:groupIndicator">@null</item>
+    </style>
 </resources>

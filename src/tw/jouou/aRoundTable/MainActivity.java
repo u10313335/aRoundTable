@@ -235,7 +235,7 @@ public class MainActivity extends Activity {
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
 		txLastUpdate = (TextView) v.findViewById(R.id.last_update);
 		TaskEventDelegate taskEventDelegate = dbUtils.taskEventDelegate;
-		allItemListView.setAdapter(new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue()));
+		allItemListView.setAdapter(ownedTaskEventAdapter = new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue()));
 
     	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override
@@ -397,9 +397,8 @@ public class MainActivity extends Activity {
     	}else{
     		ExpandableListContextMenuInfo menuInfo = (ExpandableListContextMenuInfo)item.getMenuInfo();
     		ExpandableListAdapter adapter = (position == 1)? ownedTaskEventAdapter : projectTaskEventAdapters[position - PROJECT_VIEWS_BORDER];
-    		long packedType = ExpandableListView.getPackedPositionType(menuInfo.packedPosition);
-    		int group = ExpandableListView.getPackedPositionGroup(packedType), 
-    			 child = ExpandableListView.getPackedPositionChild(packedType);
+    		int group = ExpandableListView.getPackedPositionGroup(menuInfo.packedPosition), 
+    			 child = ExpandableListView.getPackedPositionChild(menuInfo.packedPosition);
     		
     		TaskEvent taskEvent = (TaskEvent) ((child >= 0)? adapter.getChild(group, child): adapter.getGroup(group));
     		Intent additem_intent= new Intent();

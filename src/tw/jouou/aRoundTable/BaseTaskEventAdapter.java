@@ -7,9 +7,12 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import tw.jouou.aRoundTable.bean.Project;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -17,6 +20,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
@@ -26,6 +32,8 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 	private Context context;
 	private LayoutInflater inflater;
 	private TypedArray colors;
+	private static final int[] EMPTY_STATE_SET = {};
+    private static final int[] GROUP_EXPANDED_STATE_SET = {android.R.attr.state_expanded};
 	
 	public BaseTaskEventAdapter(Context context, List<TaskEvent> taskevents, List<TaskEvent> overDue) {
 		this.context = context;
@@ -68,7 +76,7 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 
 	@Override
 	public Object getGroup(int groupPosition) {
-		if(groupPosition > 1)
+		if(groupPosition > 0)
 			return taskevents.get(groupPosition -1);
 		
 		return null;
@@ -88,8 +96,9 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
 		View v;
 		if(groupPosition == 0){
-			v = inflater.inflate(android.R.layout.simple_expandable_list_item_1, parent, false);
-			((TextView) v.findViewById(android.R.id.text1)).setText(context.getString(R.string.item_overdue, overDue.size()));
+			v = inflater.inflate(R.layout.taskevent_collapse_group, parent, false);
+			((TextView) v.findViewById(R.id.group_text)).setText(context.getString(R.string.item_overdue, overDue.size()));
+			((ImageView) v.findViewById(R.id.group_indicator)).getDrawable().setState((isExpanded)? GROUP_EXPANDED_STATE_SET: EMPTY_STATE_SET);
 		}else{
 			TaskEvent taskEvent = (TaskEvent) getGroup(groupPosition);
 			
@@ -113,14 +122,33 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 		return true;
 	}
 	
-	protected void fillEntry(View view, TaskEvent taskEvent){
+	protected void fillEntry(View view, final TaskEvent taskEvent){
 		Project project = dbUtils.projectsDelegate.get(taskEvent.getProjId());
 		
 		// Project indicator
 		view.findViewById(R.id.item_color).setBackgroundColor(colors.getColor(project.getColor(), 0));
 		
 		// Finish checkbox
-		((CheckBox) view.findViewById(R.id.item_done)).setChecked(taskEvent.getDone() == 1);
+		CheckBox done = (CheckBox) view.findViewById(R.id.item_done);
+		done.setChecked(taskEvent.getDone() == 1);
+		done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			  @Override
+			  public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
+				  try {
+					  	Task task;
+      					task = dbUtils.tasksDelegate.getTask(taskEvent.getServerId());
+      					task.setDone(true);
+      					task.setUpdateAt(new Date());
+      					dbUtils.tasksDelegate.update(task);
+      					//TODO: This should not be here
+      					((MainActivity)context).update();
+    		    		Intent syncIntent = new Intent(context, SyncService.class);
+    		    		context.startService(syncIntent);
+				  } catch (ParseException e) {
+      					e.printStackTrace();
+				  }
+			  }
+		  });
 		
 		((TextView) view.findViewById(R.id.item_name)).setText(taskEvent.getName());
 		
