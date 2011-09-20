@@ -2,6 +2,7 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
+import tw.jouou.aRoundTable.bean.Member;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -12,6 +13,7 @@ import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -119,9 +121,6 @@ public class MainActivity extends Activity {
     		dbUtils = new DBUtils(this);
     	}
     	mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    	dataReceiver = new DataReceiver();
-    	filter = new IntentFilter();
-        filter.addAction("tw.jouou.aRoundTable.MainActivity"); 
     }
     
     @Override
@@ -441,6 +440,7 @@ public class MainActivity extends Activity {
 	
     private String getMembersName(long taskId) {
     	String nameList = "";
+    	dbUtils = new DBUtils(this);
     	String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
     	if(names != null) {
     		nameList = names[0];
@@ -464,6 +464,7 @@ public class MainActivity extends Activity {
         			case 0:
         				Task task;
         				try {
+        					Log.v(TAG, "get task id: " + taskevent.getServerId());
         					task = dbUtils.tasksDelegate.getTask(taskevent.getServerId());
             				additem_intent.putExtra("item", task);
             				additem_intent.putExtra("type", TASK);
@@ -522,12 +523,21 @@ public class MainActivity extends Activity {
 				Task remoteTasks[] = ArtApi.getInstance(MainActivity.this).getTaskList(localProjs.get(i).getServerId());
 				for (int j=0 ; j < remoteTasks.length ; j++) {
 					dbUtils.tasksDelegate.insert(remoteTasks[j]);
-					dbUtils.tasksMembersDelegate.insert(remoteTasks[j]);
+					dbUtils.tasksMembersDelegate.insertSingleTask(remoteTasks[j]);
 				}
 				Event remoteEvents[] = ArtApi.getInstance(MainActivity.this).getEventList(localProjs.get(i).getServerId());
 				for (int k=0 ; k < remoteEvents.length ; k++) {
 					Event event = new Event(remoteEvents[k].getProjId(), remoteEvents[k].getServerId(), remoteEvents[k].getName(), remoteEvents[k].getStartAt(), remoteEvents[k].getEndAt(), remoteEvents[k].getLocation(), remoteEvents[k].getNote(), remoteEvents[k].getUpdateAt());
 					dbUtils.eventsDelegate.insert(event);
+				}
+			}
+			for(Project project : localProjs) {
+				try {
+					for(Member member: ArtApi.getInstance(MainActivity.this).getMembers(project.getServerId())) {
+						dbUtils.memberDao.create(member);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
 			}
 		} catch (ParseException e) {
@@ -561,6 +571,9 @@ public class MainActivity extends Activity {
 		if (dbUtils == null) {
 			dbUtils = new DBUtils(this);
 		}
+    	dataReceiver = new DataReceiver();
+    	filter = new IntentFilter();
+        filter.addAction("tw.jouou.aRoundTable.MainActivity"); 
     	registerReceiver(dataReceiver, filter);
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
     	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
@@ -626,13 +639,18 @@ public class MainActivity extends Activity {
     }
     
 	@Override
+	public void onPause() {
+		super.onPause();
+		unregisterReceiver(dataReceiver);
+	}
+    
+	@Override
 	public void onStop() {
 		super.onStop();
 		if (dbUtils != null) {
 			dbUtils.close();
 			dbUtils = null;
 		}
-		unregisterReceiver(dataReceiver);
 	}
     
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -828,7 +846,6 @@ public class MainActivity extends Activity {
     private class DataReceiver extends BroadcastReceiver {
         @Override  
         public void onReceive(Context context, Intent intent) {
-            //Toast.makeText(MainActivity.this, intent.getStringExtra("service_data"), Toast.LENGTH_SHORT).show();
 			txLastUpdate.setText(intent.getStringExtra("service_data"));
         }
     }   

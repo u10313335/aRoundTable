@@ -67,6 +67,7 @@ public class AddBatchTaskActivity extends Activity {
 	private LinkedList<Member> mTaskOwners = new LinkedList<Member>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private LinkedList<TableRow> mTasksTitle = new LinkedList<TableRow>();
+	private LinkedList<TableRow> mOwnersEmail = new LinkedList<TableRow>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
@@ -159,17 +160,18 @@ public class AddBatchTaskActivity extends Activity {
         mBtnFinish.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		String[] titles = getTasksTitle();
+        		String[] titles = getTasksTitle(mTasksTitle);
+        		Long[] owners = getOwnersId(mOwnersEmail);
         		Tasks tasks = null;
         		switch(mDueType) {
         			case 0:
-        				tasks = new Tasks(titles, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
+        				tasks = new Tasks(titles, owners, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
         				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 1:
         				break;
         			case 2:
-        				tasks = new Tasks(titles, "", mEdRemarks.getText().toString());
+        				tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString());
         				(new CreateTaskTask()).execute(tasks);
         				break;
         		}
@@ -227,21 +229,23 @@ public class AddBatchTaskActivity extends Activity {
 		final TableRow ownerRow = new TableRow(AddBatchTaskActivity.this);
 		ownerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		mTasksTitle.add(titleRow);
-		
+		mOwnersEmail.add(ownerRow);
 		//widgets for titleRow
 		TextView title = new TextView(AddBatchTaskActivity.this);
 		title.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
 		title.setText(R.string.item_title);
 		EditText ed = new EditText(AddBatchTaskActivity.this);
 		ed.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-		ed.setTag("ed");
+		ed.setTag("title");
 		ImageButton delTask = new ImageButton(AddBatchTaskActivity.this);
 		delTask.setImageResource(R.drawable.ic_delete);
 		delTask.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				mTasksTitle.remove(titleRow);
-				add_batch.removeAllViews();
+				mOwnersEmail.remove(ownerRow);
+				add_batch.removeView(titleRow);
+				add_batch.removeView(ownerRow);
 			}
 		});
 		titleRow.addView(title);
@@ -268,19 +272,21 @@ public class AddBatchTaskActivity extends Activity {
 		autoOwner.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> membersMail, View v, int position, long l) {
     			ownerRow.removeView(autoOwner);
-    			Member member = getMember(autoOwner.getText().toString());
+    			final Member member = getMember(autoOwner.getText().toString());
 				mTaskOwners.add(member);
-				final TextView txName = new TextView(AddBatchTaskActivity.this);
-				txName.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-				txName.setText(member.name);
-				ownerRow.addView(txName, ownerParams);
+				final TextView txEmail = new TextView(AddBatchTaskActivity.this);
+				txEmail.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
+				txEmail.setText(member.email);
+				txEmail.setTag("email");
+				ownerRow.addView(txEmail, ownerParams);
 				final ImageButton delOwner = new ImageButton(AddBatchTaskActivity.this);
 				delOwner.setImageResource(R.drawable.ic_delete);
 				delOwner.setOnClickListener( new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						ownerRow.removeView(txName);
+						ownerRow.removeView(txEmail);
 						ownerRow.removeView(delOwner);
+						mTaskOwners.remove(member);
 						autoOwner.setText("");
 						ownerRow.addView(autoOwner, ownerParams);
 					}
@@ -388,7 +394,7 @@ public class AddBatchTaskActivity extends Activity {
 			Spinner single_dependency_plus_minus = (Spinner) add_single_task_dependency
 					.findViewById(R.id.single_dependency_plus_minus);
 			ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
-					android.R.layout.simple_spinner_item, new String[]{"加","減"});
+					android.R.layout.simple_spinner_item, new String[]{getString(R.string.plus), getString(R.string.minus)});
 			plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			single_dependency_plus_minus.setAdapter(plus_minus_adapter);
 			single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -477,22 +483,35 @@ public class AddBatchTaskActivity extends Activity {
 		return emails;
     }
     
-    private String[] getTasksTitle() {
-		Set<String> set = new TreeSet<String>();
-		for (int i=0; i < mTasksTitle.size(); i++) {
-			String taskTitle = ((EditText) mTasksTitle.get(i).findViewWithTag("ed")).getText().toString();
-			set.add(taskTitle);
+    private String[] getTasksTitle(LinkedList<TableRow> tasksTitle) {
+		List<String> list = new LinkedList<String>();
+		for (int i=0; i < tasksTitle.size(); i++) {
+			String taskTitle = ((EditText) tasksTitle.get(i).findViewWithTag("title")).getText().toString();
+			list.add(taskTitle);
 		}
-		return set.toArray(new String[set.size()]);
+		return list.toArray(new String[list.size()]);
     }
+    
+    private Long[] getOwnersId(LinkedList<TableRow> ownersEmail) {
+		List<Long> list = new LinkedList<Long>();
+		for (int i=0; i < ownersEmail.size(); i++) {
+			String ownerEmail = ((TextView) ownersEmail.get(i).findViewWithTag("email")).getText().toString();
+			Member member = getMember(ownerEmail);
+			list.add(member.serverId);
+		}
+		return list.toArray(new Long[list.size()]);
+    }
+    
     
     private class Tasks extends Object {
     	private String [] titles;
+    	private Long [] owners;
     	private String due;
     	private String note;
     	
-    	Tasks(String[] titles, String due, String note) {
+    	Tasks(String[] titles, Long[] owners, String due, String note) {
     		this.titles = titles;
+    		this.owners = owners;
     		this.due = due;
     		this.note = note;
     	}
@@ -510,6 +529,7 @@ public class AddBatchTaskActivity extends Activity {
 		}
 		return members.get(0);
     }
+    
     
   	private class CreateTaskTask extends AsyncTask<Tasks, Void, Integer> {
 		private ProgressDialog dialog;
@@ -531,16 +551,18 @@ public class AddBatchTaskActivity extends Activity {
 		    	if (!params[0].due.equals("")) {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
-								.createTask(mProjId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note);
-		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].note, false, new Date());
+								.createTask(mProjId, params[0].titles[i], params[0].owners[i], mDateToStr.parse(params[0].due), params[0].note);
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].owners[i], params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
+		    			dbUtils.tasksMembersDelegate.insertBatchTask(task);
 		    		}
 		    	} else {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
-								.createTask(mProjId, params[0].titles[i], null, params[0].note);
-		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].note, false, new Date());
+								.createTask(mProjId, params[0].titles[i], params[0].owners[i], null, params[0].note);
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].owners[i], params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
+		    			dbUtils.tasksMembersDelegate.insertBatchTask(task);
 		    		}
 		    	}
 			} catch (ServerException e) {

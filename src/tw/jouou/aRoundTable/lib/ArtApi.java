@@ -153,7 +153,7 @@ public class ArtApi {
 	}
 	
 	/**
-	 * Create a new task
+	 * Create a new task (single owners)
 	 * @param projectId project belongs to
 	 * @param name
 	 * @param due
@@ -162,7 +162,7 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public int createTask(long projectId, String name, Date due, String note) throws  ServerException, ConnectionFailException{
+	public int createTask(long projectId, String name, Long owner, Date due, String note) throws  ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
 
 		params.put("task[name]", name);
@@ -171,7 +171,40 @@ public class ArtApi {
 		} else {
 			params.put("task[due]", "");
 		}
+		params.put("task[user_ids][]", owner.toString());
 		params.put("task[note]", note);
+		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
+		try{
+			JSONObject projectJson = extractJsonObject(response);
+			return projectJson.getInt("id");
+		}catch(JSONException je){
+			throw new ServerException("Server returned unexpected data");
+		}
+	}
+	
+	/**
+	 * Create a new task (multiple owners)
+	 * @param projectId project belongs to
+	 * @param name
+	 * @param due
+	 * @param note
+	 * @return newly created task id
+	 * @throws ServerException
+	 * @throws ConnectionFailException
+	 */
+	public int createTask(long projectId, String name, Long[] owners, Date due, String note) throws  ServerException, ConnectionFailException{
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("task[name]", name));
+		if(!(due == null)) {
+			params.add(new BasicNameValuePair("task[due]", due.toString()));
+		} else {
+			params.add(new BasicNameValuePair("task[due]", ""));
+		}
+		for(int i=0; i<owners.length; i++) {
+			params.add(new BasicNameValuePair("task[user_ids][]", owners[i].toString()));
+		}
+		params.add(new BasicNameValuePair("task[note]", note));
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
 		try{
 			JSONObject projectJson = extractJsonObject(response);
@@ -541,9 +574,7 @@ public class ArtApi {
 			throw new ConnectionFailException();
 		}	
 	}
-	
-	
-	
+
 	/**
 	 * Make a new hash with token in it.
 	 * @return params hash
@@ -552,6 +583,37 @@ public class ArtApi {
 		HashMap<String, String> hash =  new HashMap<String, String>();
 		hash.put("token", token);
 		return hash;
+	}
+	
+	/**
+	 * Perform HTTP POST Request
+	 * @param path path to API endpoint
+	 * @param params HTTP Parameters
+	 * @return HttpResponse object
+	 * @throws ClientProtocolException 
+	 * @throws IOException
+	 */
+	private HttpResponse performPost(String path, List<NameValuePair> params) throws ServerException, ConnectionFailException{
+		HttpPost post = new HttpPost(baseURL + path);
+		
+		// Perform request
+		try {
+			post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		try {
+			HttpResponse response = httpClient.execute(post);
+			if(response.getStatusLine().getStatusCode() != 200)
+				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+			else
+				return response;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ConnectionFailException();
+		}
 	}
 	
 	/**

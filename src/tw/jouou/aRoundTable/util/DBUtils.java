@@ -546,12 +546,17 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			db.close();
 		}
 	
-		public void insert(Task task) {
+		public void insertSingleTask(Task task) {
 			SQLiteDatabase db = getWritableDatabase();
-			Long[] owners = task.getOwners();
-			for(int i=0; i<owners.length; i++) {
-				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(owners[i]));
+			for(int i=0; i<task.getOwners().length; i++) {
+				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(i));
 			}
+			db.close();
+		}
+		
+		public void insertBatchTask(Task task) {
+			SQLiteDatabase db = getWritableDatabase();
+				db.insert(TABLE_TASKS_MEMBERS, null, task.getMemberValues());
 			db.close();
 		}
 		
@@ -568,7 +573,9 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						queryBuilder.where().eq("server_id", c.getLong((c.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
 						queryBuilder.selectColumns("name");
 						members = memberDao.query(queryBuilder.prepare());
-						names[c.getPosition()] = members.get(0).name;
+						if(members.size() > 0) {
+							names[c.getPosition()] = members.get(0).name;
+						}
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
@@ -810,14 +817,14 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			List<TaskEvent> taskevents = new LinkedList<TaskEvent>();
 		
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.rawQuery("select server_id,name,project_id,start_at,server_id,type" +
+			Cursor c1 = db.rawQuery("select server_id,name,project_id,start_at,end_at,type" +
 					" from event where start_at>=Datetime('now','localtime') and type<>2" +
 					" union all select task.server_id,task.name,task.project_id,task.due,task.finish,task.type" +
 					" from task,tasks_members where task.server_id=tasks_members.task_id" +
 					" and task.due>=Datetime('now','localtime') and task.finish=0 and task.type<>2" +
 					" and tasks_members.member_id=3" +
 					" order by task.due ASC", null);
-			Cursor c2 = db.rawQuery("select server_id,name,project_id,start_at,server_id,type" +
+			Cursor c2 = db.rawQuery("select server_id,name,project_id,start_at,end_at,type" +
 					" from event where start_at='' and type<>2" +
 					" union all select task.server_id,task.name,task.project_id,task.due,task.finish,task.type" +
 					" from task,tasks_members where task.server_id=tasks_members.task_id" +

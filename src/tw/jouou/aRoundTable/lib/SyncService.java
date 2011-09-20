@@ -131,7 +131,7 @@ public class SyncService extends Service {
 					remoteTasks = artApi.getTaskList(localProjs.get(i).getServerId());
 					for (int k=0 ; k < remoteTasks.length ; k++) {
 						dbUtils.tasksDelegate.insert(remoteTasks[k]);
-						dbUtils.tasksMembersDelegate.insert(remoteTasks[k]);
+						dbUtils.tasksMembersDelegate.insertSingleTask(remoteTasks[k]);
 					}
 				}
 			}

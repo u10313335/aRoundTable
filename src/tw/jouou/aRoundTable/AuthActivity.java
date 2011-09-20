@@ -25,10 +25,15 @@ public class AuthActivity extends Activity {
 			    public boolean shouldOverrideUrlLoading(WebView view, String url){
 			        if(url.startsWith("art://done")){
 			        	Uri uri = Uri.parse(url);
-					 	String token = uri.getQueryParameter("");
 						mPrefs = PreferenceManager.getDefaultSharedPreferences(AuthActivity.this);
-				        mPrefs.edit().putString("TOKEN", token).commit();
-				        mPrefs.edit().putBoolean("AUTHORIZED", true).commit();
+						
+						//TODO: Make token keys constants
+				        mPrefs.edit()
+				        	.putString("TOKEN", uri.getQueryParameter("token"))
+				        	.putString("UID", uri.getQueryParameter("uid"))
+				        	.putBoolean("AUTHORIZED", true)
+				        	.commit();
+				        
 						setResult(RESULT_OK);
 						finish();
 			        }else

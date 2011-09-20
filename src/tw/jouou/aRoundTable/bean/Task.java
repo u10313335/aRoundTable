@@ -26,6 +26,7 @@ public class Task implements Serializable {
 	private boolean done;
 	private Date updateAt;
 	private int type = 0;
+	private Long owner;
 	private Long[] owners;
 	
 	public Task(long id, long projId, long serverId, String name, Date due,
@@ -40,12 +41,13 @@ public class Task implements Serializable {
 		this.updateAt = updateAt;
 	}
 	
-	public Task(long projId, long serverId, String name, Date due,
+	public Task(long projId, long serverId, String name, Date due, Long owner,
 			String note, boolean done, Date updateAt) {
 		this.projId = projId;
 		this.serverId = serverId;
 		this.name = name;
 		this.due = due;
+		this.owner = owner;
 		this.note = note;
 		this.done = done;
 		this.updateAt = updateAt;
@@ -80,7 +82,7 @@ public class Task implements Serializable {
 			this.owners = new Long[jsonArray.length()];
 			for(int i=0; i<this.owners.length; i++){
 				this.owners[i] = jsonArray.getLong(i);
-				Log.v("Task", "task_id: " + this.serverId + " user_ids: " + jsonArray.getInt(i));
+				Log.v("Task", "task_id: " + this.serverId + " user_ids: " + this.owners[i]);
 			}
 		} catch (ParseException e) {
 			System.out.println("Parse error");
@@ -168,13 +170,19 @@ public class Task implements Serializable {
 		return values;
 	}
 	
-	public ContentValues getMembersValues(Long ownerId) {
+	public ContentValues getMembersValues(int i) {
 		ContentValues members_values = new ContentValues();
-		for(int i=0; i<owners.length; i++) {
 			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_TASKID, serverId);
 			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_PROJECTID, projId);
-			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, ownerId);
-		}
+			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, owners[i]);
+		return members_values;
+	}
+	
+	public ContentValues getMemberValues() {
+		ContentValues members_values = new ContentValues();
+		members_values.put(DBUtils.FIELD_TASKS_MEMBERS_TASKID, serverId);
+		members_values.put(DBUtils.FIELD_TASKS_MEMBERS_PROJECTID, projId);
+		members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, owner);
 		return members_values;
 	}
 }
