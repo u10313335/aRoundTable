@@ -98,7 +98,7 @@ public class AddBatchTaskActivity extends Activity {
 		setContentView(R.layout.add_batch_task_tab);
 		 
         if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
+    		dbUtils = DBUtils.getInstance(this);
     	}
         findViews();  //find basic views
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -520,7 +520,6 @@ public class AddBatchTaskActivity extends Activity {
     private Member getMember(String email) {
     	List<Member> members = null;
 		try {
-			dbUtils = new DBUtils(this);
 			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
 			queryBuilder.where().eq("email", email);
 			members = dbUtils.memberDao.query(queryBuilder.prepare());
@@ -545,9 +544,6 @@ public class AddBatchTaskActivity extends Activity {
 		@Override
 		protected Integer doInBackground(Tasks... params) { 	
 			try {
-		    	if (dbUtils == null) {
-		    		dbUtils = new DBUtils(AddBatchTaskActivity.this);
-		    	}
 		    	if (!params[0].due.equals("")) {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)

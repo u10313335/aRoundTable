@@ -29,7 +29,7 @@ public class GroupDocActivity extends Activity {
 		setContentView(R.layout.group_doc);
 		
 		if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
+			dbUtils = DBUtils.getInstance(this);
     	}
 		
         mBundle = this.getIntent().getExtras();

@@ -29,23 +29,23 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-
 //FIXME: This class is TOO BIG, split it!!
 public class DBUtils extends OrmLiteSqliteOpenHelper {
+	private SQLiteDatabase db;
 	public final static String DB_NAME = "aRoundTable";
 	public final static int DB_VERSION = 1;
-	
+
 	public final static String TABLE_USER = "user";
 	public final static String FIELD_USER_ID = "_id";
 	public final static String FIELD_USER_TOKEN = "token";
-	
+
 	public final static String TABLE_PROJECT = "project";
 	public final static String FIELD_PROJECT_ID = "_id";
 	public final static String FIELD_PROJECT_NAME = "name";
 	public final static String FIELD_PROJECT_SERVERID = "server_id";
 	public final static String FIELD_PROJECT_COLOR = "color";
 	public final static String FIELD_PROJECT_UPDATED_AT = "updated_at";
-	
+
 	public final static String TABLE_TASK = "task";
 	public final static String FIELD_TASK_ID = "_id";
 	public final static String FIELD_TASK_NAME = "name";
@@ -56,12 +56,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_FINISHED = "finish";
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
-	
+
 	public final static String TABLE_TASKS_MEMBERS = "tasks_members";
 	public final static String FIELD_TASKS_MEMBERS_TASKID = "task_id";
 	public final static String FIELD_TASKS_MEMBERS_PROJECTID = "project_id";
 	public final static String FIELD_TASKS_MEMBERS_MEMBERID = "member_id";
-	
+
 	public final static String TABLE_EVENT = "event";
 	public final static String FIELD_EVENT_ID = "_id";
 	public final static String FIELD_EVENT_NAME = "name";
@@ -73,14 +73,14 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_EVENT_NOTE = "note";
 	public final static String FIELD_EVENT_UPDATED_AT = "updated_at";
 	public final static String FIELD_EVENT_TYPE = "type";
-	
+
 	public final static String TABLE_NOTIFICATION = "notification";
 	public final static String FIELD_NOTIFICATION_ID = "_id";
 	public final static String FIELD_NOTIFICATION_MEMBERID = "member_id";
 	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
 	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
 	public final static String FIELD_NOTIFICATION_READ = "read";
-	
+
 	public final static String TABLE_GROUPDOC = "groupdoc";
 	public final static String FIELD_GROUPDOC_ID = "_id";
 	public final static String FIELD_GROUPDOC_CONTENT = "content";
@@ -88,110 +88,100 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_GROUPDOC_SERVERID = "server_id";
 	public final static String FIELD_GROUPDOC_UPDATED_AT = "updated_at";
 
-	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	
+	private SimpleDateFormat formatter = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss");
+
 	// This is for ORM Lite
 	private ConnectionSource connectionSource;
 	public Dao<Member, Integer> memberDao;
 
+	private static DBUtils instance;
 
-	public DBUtils(Context context) {
+	private DBUtils(Context context) {
 		super(context, DB_NAME, null, DB_VERSION);
-		connectionSource =  new AndroidConnectionSource(this);
+		connectionSource = new AndroidConnectionSource(this);
+		 db = getReadableDatabase();
 		try {
 			memberDao = DaoManager.createDao(connectionSource, Member.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public static DBUtils getInstance(Context context) {
+		if (instance != null)
+			return instance;
+		return new DBUtils(context);
+	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db, ConnectionSource conn) {
-		db.execSQL("CREATE TABLE " + TABLE_USER
-				+ "( " + FIELD_USER_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_USER_TOKEN + " TEXT )");
+		db.execSQL("CREATE TABLE " + TABLE_USER + "( " + FIELD_USER_ID
+				+ " INTEGER PRIMARY KEY, " + FIELD_USER_TOKEN + " TEXT )");
 
-		db.execSQL( "CREATE TABLE " + TABLE_PROJECT
-				+ "( " + FIELD_PROJECT_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_PROJECT_NAME + " TEXT, "
-				+ FIELD_PROJECT_SERVERID + " INTEGER, "
-				+ FIELD_PROJECT_COLOR + " INTEGER, "
-				+ FIELD_PROJECT_UPDATED_AT + " DATETIME )");
-		
-		db.execSQL( "CREATE TABLE " + TABLE_TASK
-				+ "( " + FIELD_TASK_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_TASK_NAME + " TEXT, "
-				+ FIELD_TASK_PROJECTID + " INTEGER, "
-				+ FIELD_TASK_SERVERID + " INTEGER, "
-				+ FIELD_TASK_DUEDATE + " DATETIME, "
-				+ FIELD_TASK_NOTE + " TEXT, "
-				+ FIELD_TASK_FINISHED + " INTEGER, "
-				+ FIELD_TASK_UPDATED_AT + " DATETIME, "
+		db.execSQL("CREATE TABLE " + TABLE_PROJECT + "( " + FIELD_PROJECT_ID
+				+ " INTEGER PRIMARY KEY, " + FIELD_PROJECT_NAME + " TEXT, "
+				+ FIELD_PROJECT_SERVERID + " INTEGER, " + FIELD_PROJECT_COLOR
+				+ " INTEGER, " + FIELD_PROJECT_UPDATED_AT + " DATETIME )");
+
+		db.execSQL("CREATE TABLE " + TABLE_TASK + "( " + FIELD_TASK_ID
+				+ " INTEGER PRIMARY KEY, " + FIELD_TASK_NAME + " TEXT, "
+				+ FIELD_TASK_PROJECTID + " INTEGER, " + FIELD_TASK_SERVERID
+				+ " INTEGER, " + FIELD_TASK_DUEDATE + " DATETIME, "
+				+ FIELD_TASK_NOTE + " TEXT, " + FIELD_TASK_FINISHED
+				+ " INTEGER, " + FIELD_TASK_UPDATED_AT + " DATETIME, "
 				+ FIELD_TASK_TYPE + " INTEGER )");
-		
-		db.execSQL( "CREATE TABLE " + TABLE_TASKS_MEMBERS
-				+ "( " + FIELD_TASKS_MEMBERS_TASKID + " INTEGER, "
+
+		db.execSQL("CREATE TABLE " + TABLE_TASKS_MEMBERS + "( "
+				+ FIELD_TASKS_MEMBERS_TASKID + " INTEGER, "
 				+ FIELD_TASKS_MEMBERS_PROJECTID + " INTEGER, "
 				+ FIELD_TASKS_MEMBERS_MEMBERID + " INTEGER )");
-		
-		db.execSQL( "CREATE TABLE " + TABLE_EVENT
-				+ "( " + FIELD_EVENT_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_EVENT_NAME + " TEXT, "
-				+ FIELD_EVENT_PROJECTID + " INTEGER, "
-				+ FIELD_EVENT_SERVERID + " INTEGER, "
-				+ FIELD_EVENT_START + " DATETIME, "
-				+ FIELD_EVENT_END + " DATETIME, "
-				+ FIELD_EVENT_LOCATION + " TEXT, "
-				+ FIELD_EVENT_NOTE + " TEXT, "
-				+ FIELD_EVENT_UPDATED_AT + " DATETIME, "
-				+ FIELD_EVENT_TYPE + " INTEGER )");
-		
-		db.execSQL( "CREATE TABLE " + TABLE_NOTIFICATION
-				+ "( " + FIELD_NOTIFICATION_ID + " INTEGER PRIMARY KEY, "
+
+		db.execSQL("CREATE TABLE " + TABLE_EVENT + "( " + FIELD_EVENT_ID
+				+ " INTEGER PRIMARY KEY, " + FIELD_EVENT_NAME + " TEXT, "
+				+ FIELD_EVENT_PROJECTID + " INTEGER, " + FIELD_EVENT_SERVERID
+				+ " INTEGER, " + FIELD_EVENT_START + " DATETIME, "
+				+ FIELD_EVENT_END + " DATETIME, " + FIELD_EVENT_LOCATION
+				+ " TEXT, " + FIELD_EVENT_NOTE + " TEXT, "
+				+ FIELD_EVENT_UPDATED_AT + " DATETIME, " + FIELD_EVENT_TYPE
+				+ " INTEGER )");
+
+		db.execSQL("CREATE TABLE " + TABLE_NOTIFICATION + "( "
+				+ FIELD_NOTIFICATION_ID + " INTEGER PRIMARY KEY, "
 				+ FIELD_NOTIFICATION_MESSAGE + " TEXT, "
 				+ FIELD_NOTIFICATION_MEMBERID + " INTEGER, "
 				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
 				+ FIELD_NOTIFICATION_READ + " INTEGER )");
-		
-		db.execSQL( "CREATE VIEW IF NOT EXISTS taskevents AS " +
-					"SELECT task.server_id AS server_id, " +
-					"task.name AS name, " +
-					"task.project_id AS project_id," +
-					"task.due AS date, " +
-					"task.finish AS finish, " +
-					"0 AS type " +
-					"FROM task WHERE task.type <> 2 UNION SELECT " +
-					"event.server_id AS server_id, " +
-					"event.name AS name, " +
-					"event.project_id AS project_id, " +
-					"event.start_at AS date, " +
-					"0 AS finish, " +
-					"1 AS type " +
-					"FROM event " + 
-					"WHERE event.type <> 2 ORDER BY date ASC");
 
-		db.execSQL( "CREATE TABLE " + TABLE_GROUPDOC
-				+ "( " + FIELD_GROUPDOC_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_GROUPDOC_CONTENT + " TEXT, "
+		db.execSQL("CREATE VIEW IF NOT EXISTS taskevents AS "
+				+ "SELECT task.server_id AS server_id, "
+				+ "task.name AS name, " + "task.project_id AS project_id,"
+				+ "task.due AS date, " + "task.finish AS finish, "
+				+ "0 AS type " + "FROM task WHERE task.type <> 2 UNION SELECT "
+				+ "event.server_id AS server_id, " + "event.name AS name, "
+				+ "event.project_id AS project_id, "
+				+ "event.start_at AS date, " + "0 AS finish, " + "1 AS type "
+				+ "FROM event " + "WHERE event.type <> 2 ORDER BY date ASC");
+
+		db.execSQL("CREATE TABLE " + TABLE_GROUPDOC + "( " + FIELD_GROUPDOC_ID
+				+ " INTEGER PRIMARY KEY, " + FIELD_GROUPDOC_CONTENT + " TEXT, "
 				+ FIELD_GROUPDOC_PROJECTID + " INTEGER, "
 				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
 				+ FIELD_GROUPDOC_UPDATED_AT + " DATETIME )");
 
-		
 		try {
 			TableUtils.createTable(conn, Member.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
-	public void onUpgrade(SQLiteDatabase db, ConnectionSource cs, int oldVersion,
-			int newVersion) {
-		switch(oldVersion) {
+	public void onUpgrade(SQLiteDatabase db, ConnectionSource cs,
+			int oldVersion, int newVersion) {
+		switch (oldVersion) {
 		}
-	}	
+	}
 
 	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
@@ -201,108 +191,104 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public NotificationDelegate notificationDelegate = new NotificationDelegate();
 	public TasksMembersDelegate tasksMembersDelegate = new TasksMembersDelegate();
 	public GroupDocDelegate groupDocDelegate = new GroupDocDelegate();
-	
+
 	public class UsersDelegate {
 		public void delete(User user) {
 			if (user.getId() < 0)
 				return;
 
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_USER, "_id = ?", new String[] { String
-					.valueOf(user.getId()) });
-			db.close();	
+			db.delete(TABLE_USER, "_id = ?",
+					new String[] { String.valueOf(user.getId()) });
 		}
-		
+
 		public void update(User user) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = user.getValues();
-			db.update(TABLE_USER, values, "_id = ?", new String[] { String
-					.valueOf(user.getId()) });
-			db.close();
+			db.update(TABLE_USER, values, "_id = ?",
+					new String[] { String.valueOf(user.getId()) });
 		}
-	
+
 		public void insert(User user) {
-			SQLiteDatabase db = getWritableDatabase();
 			db.insert(TABLE_USER, null, user.getValues());
-			db.close();
 		}
-	
+
 		public List<User> get() {
 			List<User> users = new LinkedList<User>();
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_USER, null, null, null, null, null,
 					FIELD_USER_ID + " ASC");
 			while (c.moveToNext()) {
-				User user = new User(c.getLong(c.getColumnIndexOrThrow(FIELD_USER_ID)), 
-						c.getString(c.getColumnIndexOrThrow(FIELD_USER_TOKEN)));		
+				User user = new User(c.getLong(c
+						.getColumnIndexOrThrow(FIELD_USER_ID)), c.getString(c
+						.getColumnIndexOrThrow(FIELD_USER_TOKEN)));
 				users.add(user);
 			}
 			c.close();
-			db.close();
 			return users;
 		}
 	}
-	
+
 	public class ProjectsDelegate {
 		public void delete(Project proj) {
 			if (proj.getServerId() < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_PROJECT, "server_id = ?", new String[] { String
-					.valueOf(proj.getServerId()) });
-			db.close();
+			db.delete(TABLE_PROJECT, "server_id = ?",
+					new String[] { String.valueOf(proj.getServerId()) });
 		}
-		
+
 		public void deleteAll() {
-			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_PROJECT, "", null);
-			db.close();
 		}
-		
+
 		public void update(Project proj) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = proj.getValues();
-			db.update(TABLE_PROJECT, values, "server_id = ?", new String[] { String
-					.valueOf(proj.getServerId()) });
-			db.close();
+			db.update(TABLE_PROJECT, values, "server_id = ?",
+					new String[] { String.valueOf(proj.getServerId()) });
 		}
-	
+
 		public long insert(Project proj) {
-			SQLiteDatabase db = getWritableDatabase();
 			long id = db.insert(TABLE_PROJECT, null, proj.getValues());
-			db.close();
 			return id;
 		}
-	
-		public List<Project> get() throws ParseException{
+
+		public List<Project> get() throws ParseException {
 			List<Project> projs = new LinkedList<Project>();
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_PROJECT, null, null, null, null, null,
 					FIELD_PROJECT_ID + " DESC");
 			while (c.moveToNext()) {
-				Project proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_ID)),
+				Project proj = new Project(
+						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_ID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_PROJECT_NAME)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_SERVERID)),
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_PROJECT_SERVERID)),
 						c.getInt(c.getColumnIndexOrThrow(FIELD_PROJECT_COLOR)),
-						formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_PROJECT_UPDATED_AT))));
+						formatter.parse(c.getString(c
+								.getColumnIndexOrThrow(FIELD_PROJECT_UPDATED_AT))));
 				projs.add(proj);
 			}
 			c.close();
-			db.close();
 			return projs;
 		}
-		
+
 		public Project get(long projId) {
 			Project proj = null;
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_PROJECT, null, "server_id=" + projId, null, null, null, null);
+			Cursor c = db.query(TABLE_PROJECT, null, "server_id=" + projId,
+					null, null, null, null);
 			while (c.moveToNext()) {
 				try {
-					proj = new Project(c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_ID)),
-							c.getString(c.getColumnIndexOrThrow(FIELD_PROJECT_NAME)),
-							c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_SERVERID)),
-							c.getInt(c.getColumnIndexOrThrow(FIELD_PROJECT_COLOR)),
-							formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_PROJECT_UPDATED_AT))));
+					proj = new Project(
+							c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_ID)),
+							c.getString(c
+									.getColumnIndexOrThrow(FIELD_PROJECT_NAME)),
+							c.getLong(c
+									.getColumnIndexOrThrow(FIELD_PROJECT_SERVERID)),
+							c.getInt(c
+									.getColumnIndexOrThrow(FIELD_PROJECT_COLOR)),
+							formatter.parse(c.getString(c
+									.getColumnIndexOrThrow(FIELD_PROJECT_UPDATED_AT))));
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				} catch (ParseException e) {
@@ -310,290 +296,296 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				}
 			}
 			c.close();
-			db.close();
 			return proj;
 		}
 	}
-	
+
 	public class TaskDelegate {
 		public void delete(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK, "server_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.delete(TABLE_TASK, "server_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-		
+
 		public List<Long> getDeleted(long projId) throws ParseException {
 			List<Long> deletedServerIds = new LinkedList<Long>();
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_TASK, new String[] { "server_id" },
-					"project_id=" + projId + " and type=2",
-					null, null, null,
+					"project_id=" + projId + " and type=2", null, null, null,
 					null, null);
 			while (c.moveToNext()) {
-				long deletedServerId = c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_SERVERID));
+				long deletedServerId = c.getLong(c
+						.getColumnIndexOrThrow(FIELD_TASK_SERVERID));
 				deletedServerIds.add(deletedServerId);
 			}
 			c.close();
-			db.close();
 			return deletedServerIds;
 		}
-		
+
 		public void setDelete(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
 			ContentValues values = new ContentValues();
 			values.put(DBUtils.FIELD_TASK_TYPE, 2);
-			db.update(TABLE_TASK, values, "server_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.update(TABLE_TASK, values, "server_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-		
+
 		public void deleteAll(long projId) {
-			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_TASK, "project_id = ?", null);
-			db.close();
 		}
-		
+
 		public void deleteUnderProj(long projId) {
 			if (projId < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASK, "project_id = ?", new String[] { String
-					.valueOf(projId) });
-			db.close();
+			db.delete(TABLE_TASK, "project_id = ?",
+					new String[] { String.valueOf(projId) });
 		}
-		
+
 		public void update(Task task) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = task.getValues();
-			db.update(TABLE_TASK, values, "server_id = ?", new String[] { String
-					.valueOf(task.getServerId()) });
-			db.close();
+			db.update(TABLE_TASK, values, "server_id = ?",
+					new String[] { String.valueOf(task.getServerId()) });
 		}
-	
+
 		public long insert(Task task) {
-			SQLiteDatabase db = getWritableDatabase();
 			long id = db.insert(TABLE_TASK, null, task.getValues());
-			db.close();
 			return id;
 		}
-		
+
 		public int count(long projId) throws ParseException {
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASK, null,
-					"project_id=" + projId + " and type<>2", null, null, null, null, null);
+			Cursor c = db.query(TABLE_TASK, null, "project_id=" + projId
+					+ " and type<>2", null, null, null, null, null);
 			int numbers = c.getCount();
 			c.close();
-			db.close();
 			return numbers;
 		}
-	
+
 		public List<Task> get(long projId) throws ParseException {
 			List<Task> tasks = new LinkedList<Task>();
 			SQLiteDatabase db = getReadableDatabase();
-			//c1:select normal tasks ; c2:select undetermined tasks
-			Cursor c1 = db.query(TABLE_TASK, null,
-					"project_id=" + projId + " and finish=0 and due>= Datetime('now','localtime')",
-					null, null, null,
-					"due ASC", null);
-			Cursor c2 = db.query(TABLE_TASK, null,
-					"project_id=" + projId + " and finish=0 and due=''",
-					null, null, null, null, null);
+			// c1:select normal tasks ; c2:select undetermined tasks
+			Cursor c1 = db.query(TABLE_TASK, null, "project_id=" + projId
+					+ " and finish=0 and due>= Datetime('now','localtime')",
+					null, null, null, "due ASC", null);
+			Cursor c2 = db.query(TABLE_TASK, null, "project_id=" + projId
+					+ " and finish=0 and due=''", null, null, null, null, null);
 			while (c1.moveToNext()) {
-				Task task = new Task(c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
-							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
-							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-							(c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+				Task task = new Task(
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+						(c1.getInt(c1
+								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
 			c1.close();
 			while (c2.moveToNext()) {
-				Task task = new Task(c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
-							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-							null,
-							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-							(c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-							formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+				Task task = new Task(
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+						null,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+						(c2.getInt(c2
+								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
 			c2.close();
-			db.close();
 			return tasks;
 		}
-		
+
 		public List<Task> getFinished(long projId) throws ParseException {
 			List<Task> tasks = new LinkedList<Task>();
-			SQLiteDatabase db = getReadableDatabase();
-			//c1:select normal tasks ; c2:select undetermined tasks
-			Cursor c1 = db.query(TABLE_TASK, null,
-					"project_id=" + projId + " and finish=1",
-					null, null, null,
-					"due ASC", null);
-			Cursor c2 = db.query(TABLE_TASK, null,
-					"project_id=" + projId + " and finish=1 and due=''",
-					null, null, null, null, null);
+			// c1:select normal tasks ; c2:select undetermined tasks
+			Cursor c1 = db.query(TABLE_TASK, null, "project_id=" + projId
+					+ " and finish=1", null, null, null, "due ASC", null);
+			Cursor c2 = db.query(TABLE_TASK, null, "project_id=" + projId
+					+ " and finish=1 and due=''", null, null, null, null, null);
 			while (c1.moveToNext()) {
-				Task task = new Task(c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
-							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
-							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-							(c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+				Task task = new Task(
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+						(c1.getInt(c1
+								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
 			c1.close();
 			while (c2.moveToNext()) {
-				Task task = new Task(c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
-							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-							null,
-							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-							(c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-							formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+				Task task = new Task(
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+						null,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+						(c2.getInt(c2
+								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
 			c2.close();
-			db.close();
 			return tasks;
 		}
-		
+
 		public Task getTask(long id) throws ParseException {
 			Task task = null;
 			Date dueDate = null;
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASK, null,
-					"server_id=" + id,
-					null, null, null, null, null);
+			Cursor c = db.query(TABLE_TASK, null, "server_id=" + id, null,
+					null, null, null, null);
 			while (c.moveToNext()) {
-				String due = c.getString(c.getColumnIndexOrThrow(FIELD_TASK_DUEDATE));
-				if(!due.equals("")) {
+				String due = c.getString(c
+						.getColumnIndexOrThrow(FIELD_TASK_DUEDATE));
+				if (!due.equals("")) {
 					dueDate = formatter.parse(due);
 				}
-				task = new Task(c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_ID)),
+				task = new Task(
+						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_ID)),
 						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
 						c.getLong(c.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NAME)),
 						dueDate,
 						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-						(c.getInt(c.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-						formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+						(c.getInt(c.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c.getString(c
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 			}
 			c.close();
-			db.close();
 			return task;
 		}
-		
+
 		public List<Task> get() throws ParseException {
 			List<Task> tasks = new LinkedList<Task>();
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.query(TABLE_TASK, null, "finish=0 and due>= Datetime('now','localtime')", null, null, null,
-					"due ASC", null);
-			Cursor c2 = db.query(TABLE_TASK, null, "finish=0 and due=''",
-					null, null, null, null, null);
+			Cursor c1 = db.query(TABLE_TASK, null,
+					"finish=0 and due>= Datetime('now','localtime')", null,
+					null, null, "due ASC", null);
+			Cursor c2 = db.query(TABLE_TASK, null, "finish=0 and due=''", null,
+					null, null, null, null);
 			while (c1.moveToNext()) {
-				Task task = new Task(c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
-							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-							c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
-							c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-							(c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-							formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+				Task task = new Task(
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_TASK_DUEDATE))),
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+						(c1.getInt(c1
+								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
 			c1.close();
 			while (c2.moveToNext()) {
-				Task task = new Task(c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
-							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
-							c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
-							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
-							null,
-							c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
-							(c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1)? true : false,
-							formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
+				Task task = new Task(
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_TASK_ID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_TASK_PROJECTID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_TASK_SERVERID)),
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NAME)),
+						null,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
+						(c2.getInt(c2
+								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
+								: false, formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
 			c2.close();
-			db.close();
 			return tasks;
 		}
 	}
-	
+
 	public class TasksMembersDelegate {
 		public void delete(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASKS_MEMBERS, "member_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.delete(TABLE_TASKS_MEMBERS, "member_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-		
+
 		public void deleteUnderTask(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASKS_MEMBERS, "task_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.delete(TABLE_TASKS_MEMBERS, "task_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-		
+
 		public void deleteUnderProj(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_TASKS_MEMBERS, "project_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.delete(TABLE_TASKS_MEMBERS, "project_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-	
+
 		public void deleteAll() {
-			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_TASKS_MEMBERS, null, null);
-			db.close();
 		}
-	
+
 		public void insertSingleTask(Task task) {
-			SQLiteDatabase db = getWritableDatabase();
-			for(int i=0; i<task.getOwners().length; i++) {
+			for (int i = 0; i < task.getOwners().length; i++) {
 				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(i));
 			}
-			db.close();
 		}
-		
+
 		public void insertBatchTask(Task task) {
-			SQLiteDatabase db = getWritableDatabase();
-				db.insert(TABLE_TASKS_MEMBERS, null, task.getMemberValues());
-			db.close();
+			db.insert(TABLE_TASKS_MEMBERS, null, task.getMemberValues());
 		}
-		
+
 		public String[] getMembers(long taskId) {
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASKS_MEMBERS,  null, "task_id=" + taskId, null, null, null, null);
+			Cursor c = db.query(TABLE_TASKS_MEMBERS, null, "task_id=" + taskId,
+					null, null, null, null);
 			String[] names = null;
-			if(c.getCount() > 0) {
+			if (c.getCount() > 0) {
 				names = new String[c.getCount()];
 				while (c.moveToNext()) {
 					List<Member> members = null;
 					try {
-						QueryBuilder<Member, Integer> queryBuilder = memberDao.queryBuilder();
-						queryBuilder.where().eq("server_id", c.getLong((c.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
+						QueryBuilder<Member, Integer> queryBuilder = memberDao
+								.queryBuilder();
+						queryBuilder
+								.where()
+								.eq("server_id",
+										c.getLong((c
+												.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
 						queryBuilder.selectColumns("name");
 						members = memberDao.query(queryBuilder.prepare());
-						if(members.size() > 0) {
+						if (members.size() > 0) {
 							names[c.getPosition()] = members.get(0).name;
 						}
 					} catch (SQLException e) {
@@ -602,7 +594,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				}
 			}
 			c.close();
-			db.close();
 			return names;
 		}
 	}
@@ -611,182 +602,198 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		public void delete(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_EVENT, "server_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.delete(TABLE_EVENT, "server_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-		
+
 		public List<Long> getDeleted(long projId) throws ParseException {
 			List<Long> deletedServerIds = new LinkedList<Long>();
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_EVENT, new String[] { "server_id" },
-					"project_id=" + projId + " and type=2",
-					null, null, null,
+					"project_id=" + projId + " and type=2", null, null, null,
 					null, null);
 			while (c.moveToNext()) {
-				long deletedServerId = c.getLong(c.getColumnIndexOrThrow(FIELD_EVENT_SERVERID));
+				long deletedServerId = c.getLong(c
+						.getColumnIndexOrThrow(FIELD_EVENT_SERVERID));
 				deletedServerIds.add(deletedServerId);
 			}
 			c.close();
-			db.close();
 			return deletedServerIds;
 		}
-		
+
 		public void setDelete(long id) {
 			if (id < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
 			ContentValues values = new ContentValues();
 			values.put(DBUtils.FIELD_EVENT_TYPE, 2);
-			db.update(TABLE_EVENT, values, "server_id = ?", new String[] { String
-					.valueOf(id) });
-			db.close();
+			db.update(TABLE_EVENT, values, "server_id = ?",
+					new String[] { String.valueOf(id) });
 		}
-		
+
 		public void deleteAll(long projId) {
-			SQLiteDatabase db = getWritableDatabase();
 			db.delete(TABLE_EVENT, "project_id = ?", null);
-			db.close();
 		}
-		
+
 		public void deleteUnderProj(long projId) {
 			if (projId < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_EVENT, "project_id = ?", new String[] { String
-					.valueOf(projId) });
-			db.close();
+			db.delete(TABLE_EVENT, "project_id = ?",
+					new String[] { String.valueOf(projId) });
 		}
-		
+
 		public void update(Event event) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = event.getValues();
-			db.update(TABLE_EVENT, values, "server_id = ?", new String[] { String
-					.valueOf(event.getServerId()) });
-			db.close();
+			db.update(TABLE_EVENT, values, "server_id = ?",
+					new String[] { String.valueOf(event.getServerId()) });
 		}
-	
+
 		public long insert(Event event) {
-			SQLiteDatabase db = getWritableDatabase();
 			long id = db.insert(TABLE_EVENT, null, event.getValues());
-			db.close();
 			return id;
 		}
-		
+
 		public int count(long projId) throws ParseException {
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_EVENT, null,
-					"project_id=" + projId + " and type<>2", null, null, null, null, null);
+			Cursor c = db.query(TABLE_EVENT, null, "project_id=" + projId
+					+ " and type<>2", null, null, null, null, null);
 			int numbers = c.getCount();
 			c.close();
-			db.close();
 			return numbers;
 		}
-	
+
 		public List<Event> get(long projId) throws ParseException {
 			List<Event> events = new LinkedList<Event>();
-			//c1:select normal events ; c2:select undetermined events
+			// c1:select normal events ; c2:select undetermined events
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.query(TABLE_EVENT, null,
-					"project_id=" + projId + " and start_at>= Datetime('now','localtime')",
-					null, null, null,
-					"start_at ASC", null);
-			Cursor c2 = db.query(TABLE_EVENT, null,
-					"project_id=" + projId + " and start_at=''",
-					null, null, null ,null, null);			
+			Cursor c1 = db.query(TABLE_EVENT, null, "project_id=" + projId
+					+ " and start_at>= Datetime('now','localtime')", null,
+					null, null, "start_at ASC", null);
+			Cursor c2 = db.query(TABLE_EVENT, null, "project_id=" + projId
+					+ " and start_at=''", null, null, null, null, null);
 			while (c1.moveToNext()) {
-				Event event = new Event(c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_ID)),
-						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
-						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+				Event event = new Event(
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_START))),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_END))),
-						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_START))),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_END))),
+						c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NOTE)),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
 				events.add(event);
 			}
 			c1.close();
 			while (c2.moveToNext()) {
-				Event event = new Event(c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_ID)),
-						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
-						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+				Event event = new Event(
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
-						null,null,
-						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						null,
+						null,
+						c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NOTE)),
-						formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
+						formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
 				events.add(event);
 			}
 			c2.close();
-			db.close();
 			return events;
 		}
-		
+
 		public Event getEvent(long id) throws ParseException {
 			Event event = null;
 			Date startAtDate = null;
 			Date endAtDate = null;
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_EVENT, null,
-					"server_id=" + id,
-					null, null, null, null, null);
+			Cursor c = db.query(TABLE_EVENT, null, "server_id=" + id, null,
+					null, null, null, null);
 			while (c.moveToNext()) {
-				String startAt = c.getString(c.getColumnIndexOrThrow(FIELD_EVENT_START));
-				if(!startAt.equals("")) {
+				String startAt = c.getString(c
+						.getColumnIndexOrThrow(FIELD_EVENT_START));
+				if (!startAt.equals("")) {
 					startAtDate = formatter.parse(startAt);
-					endAtDate = formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_EVENT_END)));
+					endAtDate = formatter.parse(c.getString(c
+							.getColumnIndexOrThrow(FIELD_EVENT_END)));
 				}
-				event = new Event(c.getLong(c.getColumnIndexOrThrow(FIELD_EVENT_ID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+				event = new Event(
+						c.getLong(c.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
 						c.getLong(c.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
-						startAtDate, endAtDate,
-						c.getString(c.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						startAtDate,
+						endAtDate,
+						c.getString(c
+								.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
 						c.getString(c.getColumnIndexOrThrow(FIELD_EVENT_NOTE)),
-						formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
+						formatter.parse(c.getString(c
+								.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
 			}
 			c.close();
-			db.close();
 			return event;
 		}
-		
+
 		public List<Event> get() throws ParseException {
 			List<Event> events = new LinkedList<Event>();
-		
+
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c1 = db.query(TABLE_EVENT, null, " and start_at>= Datetime('now','localtime')", null, null, null,
-					"start_at ASC", null);
-			Cursor c2 = db.query(TABLE_EVENT, null, " and start_at=''", null, null, null,
-					"start_at ASC", null);
+			Cursor c1 = db.query(TABLE_EVENT, null,
+					" and start_at>= Datetime('now','localtime')", null, null,
+					null, "start_at ASC", null);
+			Cursor c2 = db.query(TABLE_EVENT, null, " and start_at=''", null,
+					null, null, "start_at ASC", null);
 			while (c1.moveToNext()) {
-				Event event = new Event(c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_ID)),
-						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
-						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+				Event event = new Event(
+						c1.getLong(c1.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c1.getLong(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_START))),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_END))),
-						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_START))),
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_END))),
+						c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_NOTE)),
-						formatter.parse(c1.getString(c1.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
+						formatter.parse(c1.getString(c1
+								.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
 				events.add(event);
 			}
 			c1.close();
 			while (c2.moveToNext()) {
-				Event event = new Event(c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_ID)),
-						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
-						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
+				Event event = new Event(
+						c2.getLong(c2.getColumnIndexOrThrow(FIELD_EVENT_ID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_PROJECTID)),
+						c2.getLong(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_SERVERID)),
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NAME)),
-						formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_START))),
-						formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_END))),
-						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
+						formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_START))),
+						formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_END))),
+						c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_LOCATION)),
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_NOTE)),
-						formatter.parse(c2.getString(c2.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
+						formatter.parse(c2.getString(c2
+								.getColumnIndexOrThrow(FIELD_EVENT_UPDATED_AT))));
 				events.add(event);
 			}
 			c2.close();
-			db.close();
 			return events;
 		}
 	}
@@ -794,59 +801,64 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public class TaskEventDelegate {
 		public static final int TYPE_TASK = 0;
 		public static final int TYPE_EVENT = 1;
-		
+
 		public List<TaskEvent> get(long projectId) {
-			return query("date >= Datetime('now','localtime') " +
-					"AND finish = 0 " +
-					"AND project_id = ?", new String[] {Long.toString(projectId)});
+			return query("date >= Datetime('now','localtime') "
+					+ "AND finish = 0 " + "AND project_id = ?",
+					new String[] { Long.toString(projectId) });
 		}
-		
+
 		public List<TaskEvent> getOwned() {
-			return query("date >= Datetime('now','localtime') " +
-					"AND finish = 0 " +
-					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))", 
-					new String[] {Long.toString(3)});
+			return query(
+					"date >= Datetime('now','localtime') "
+							+ "AND finish = 0 "
+							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))",
+					new String[] { Long.toString(3) });
 		}
-		
-		public List<TaskEvent> getOverDue(long projectId){
-			return query("date < Datetime('now','localtime') " +
-					"AND finish = 0 " +
-					"AND project_id = ?", new String[] {Long.toString(projectId)});
+
+		public List<TaskEvent> getOverDue(long projectId) {
+			return query("date < Datetime('now','localtime') "
+					+ "AND finish = 0 " + "AND project_id = ?",
+					new String[] { Long.toString(projectId) });
 		}
-		
-		//FIXME: now using mock userId, should be real
-		public List<TaskEvent> getOwnedOverDue(){
-			return query("date < Datetime('now','localtime') " +
-					"AND finish = 0 " +
-					"AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))", 
-					new String[] {Long.toString(3)}); 
+
+		// FIXME: now using mock userId, should be real
+		public List<TaskEvent> getOwnedOverDue() {
+			return query(
+					"date < Datetime('now','localtime') "
+							+ "AND finish = 0 "
+							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))",
+					new String[] { Long.toString(3) });
 		}
-		
-		private List<TaskEvent> query(String selection, String[] selectionArgs){
+
+		private List<TaskEvent> query(String selection, String[] selectionArgs) {
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor cursor = db.query("taskevents", null, selection, selectionArgs, null, null, null);
-			LinkedList<TaskEvent> taskEvents = new LinkedList<TaskEvent>(); 
-			while(cursor.moveToNext()){
-				TaskEvent taskevent = new TaskEvent(cursor.getLong(cursor.getColumnIndexOrThrow("server_id")),
+			Cursor cursor = db.query("taskevents", null, selection,
+					selectionArgs, null, null, null);
+			LinkedList<TaskEvent> taskEvents = new LinkedList<TaskEvent>();
+			while (cursor.moveToNext()) {
+				TaskEvent taskevent = new TaskEvent(cursor.getLong(cursor
+						.getColumnIndexOrThrow("server_id")),
 						cursor.getString(cursor.getColumnIndexOrThrow("name")),
-						cursor.getLong(cursor.getColumnIndexOrThrow("project_id")),
-						stringToDate(cursor.getString(cursor.getColumnIndex("date"))),
-						cursor.getInt(cursor.getColumnIndexOrThrow("finish")),
+						cursor.getLong(cursor
+								.getColumnIndexOrThrow("project_id")),
+						stringToDate(cursor.getString(cursor
+								.getColumnIndex("date"))), cursor.getInt(cursor
+								.getColumnIndexOrThrow("finish")),
 						cursor.getInt(cursor.getColumnIndexOrThrow("type")));
 				taskEvents.add(taskevent);
 			}
-			try{
+			try {
 				return taskEvents;
-			}finally{
+			} finally {
 				cursor.close();
-				db.close();
 			}
 		}
 	}
-	
-	private Date stringToDate(String dateString){
-		//TODO: is these two line needed?
-		if(dateString == null)
+
+	private Date stringToDate(String dateString) {
+		// TODO: is these two line needed?
+		if (dateString == null)
 			return null;
 		try {
 			return formatter.parse(dateString);
@@ -854,76 +866,80 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return null;
 		}
 	}
-	
+
 	public class NotificationDelegate {
 		public void insert(Notification notification) {
-			SQLiteDatabase db = getWritableDatabase();
 			db.insert(TABLE_NOTIFICATION, null, notification.getValues());
-			db.close();
 		}
 
 		public List<Notification> get() {
 			List<Notification> notifications = new LinkedList<Notification>();
-		
+
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_NOTIFICATION, null, null, null, null, null,
-					FIELD_NOTIFICATION_ID + " DESC");
+			Cursor c = db.query(TABLE_NOTIFICATION, null, null, null, null,
+					null, FIELD_NOTIFICATION_ID + " DESC");
 
 			while (c.moveToNext()) {
-				Notification notification = new Notification(c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_ID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_MEMBERID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_SERVERID)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_MESSAGE)),
-						(c.getInt(c.getColumnIndexOrThrow(FIELD_NOTIFICATION_READ)) == 1)? true : false);
+				Notification notification = new Notification(
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_NOTIFICATION_ID)),
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_NOTIFICATION_MEMBERID)),
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_NOTIFICATION_SERVERID)),
+						c.getString(c
+								.getColumnIndexOrThrow(FIELD_NOTIFICATION_MESSAGE)),
+						(c.getInt(c
+								.getColumnIndexOrThrow(FIELD_NOTIFICATION_READ)) == 1) ? true
+								: false);
 				notifications.add(notification);
 			}
 			c.close();
-			db.close();
 			return notifications;
 		}
 	}
-	
+
 	public class GroupDocDelegate {
 		public void insert(GroupDoc groupDoc) {
-			SQLiteDatabase db = getWritableDatabase();
 			db.insert(TABLE_GROUPDOC, null, groupDoc.getValues());
-			db.close();
 		}
-		
+
 		public void delete(long projId) {
 			if (projId < 0)
 				return;
-			SQLiteDatabase db = getWritableDatabase();
-			db.delete(TABLE_GROUPDOC, "project_id = ?", new String[] { String
-					.valueOf(projId) });
-			db.close();
+			db.delete(TABLE_GROUPDOC, "project_id = ?",
+					new String[] { String.valueOf(projId) });
 		}
 
 		public GroupDoc get(long projId) throws ParseException {
 			GroupDoc groupDoc = null;
-		
+
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_GROUPDOC, null, "project_id=" + projId, null, null, null, null);
+			Cursor c = db.query(TABLE_GROUPDOC, null, "project_id=" + projId,
+					null, null, null, null);
 
 			while (c.moveToNext()) {
-				groupDoc = new GroupDoc(c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_ID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_PROJECTID)),
-						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_SERVERID)),
-						c.getString(c.getColumnIndexOrThrow(FIELD_GROUPDOC_CONTENT)),
-						formatter.parse(c.getString(c.getColumnIndexOrThrow(FIELD_GROUPDOC_UPDATED_AT))));
+				groupDoc = new GroupDoc(
+						c.getLong(c.getColumnIndexOrThrow(FIELD_GROUPDOC_ID)),
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_GROUPDOC_PROJECTID)),
+						c.getLong(c
+								.getColumnIndexOrThrow(FIELD_GROUPDOC_SERVERID)),
+						c.getString(c
+								.getColumnIndexOrThrow(FIELD_GROUPDOC_CONTENT)),
+						formatter.parse(c.getString(c
+								.getColumnIndexOrThrow(FIELD_GROUPDOC_UPDATED_AT))));
 			}
 			c.close();
-			db.close();
 			return groupDoc;
 		}
-		
+
 		public void update(GroupDoc groupDoc) {
 			SQLiteDatabase db = getReadableDatabase();
 			ContentValues values = groupDoc.getValues();
-			db.update(TABLE_GROUPDOC, values, "server_id = ?", new String[] { String
-					.valueOf(groupDoc.getServerId()) });
-			db.close();
+			db.update(TABLE_GROUPDOC, values, "server_id = ?",
+					new String[] { String.valueOf(groupDoc.getServerId()) });
 		}
 	}
-	
+
 }

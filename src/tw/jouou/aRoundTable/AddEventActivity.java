@@ -96,7 +96,7 @@ public class AddEventActivity extends Activity {
         setContentView(R.layout.add_event_tab);
         
         if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
+        	dbUtils = DBUtils.getInstance(this);
     	}
         findViews();  //find basic views
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -413,10 +413,7 @@ public class AddEventActivity extends Activity {
 		
 		@Override
 		protected Integer doInBackground(String... params) {
-			try {	
-		    	if (dbUtils == null) {
-		    		dbUtils = new DBUtils(AddEventActivity.this);
-		    	}
+			try {
 		    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		    	if (mBundle.getInt("addOrEdit") == 0) {
 		    		if (!params[1].equals("")) {

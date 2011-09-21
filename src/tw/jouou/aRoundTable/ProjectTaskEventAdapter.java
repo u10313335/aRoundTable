@@ -3,6 +3,7 @@ package tw.jouou.aRoundTable;
 import java.util.List;
 
 import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.util.DBUtils;
 import tw.jouou.aRoundTable.util.DBUtils.TaskEventDelegate;
 import android.content.Context;
 import android.view.View;
@@ -13,6 +14,7 @@ public class ProjectTaskEventAdapter extends BaseTaskEventAdapter {
 	public ProjectTaskEventAdapter(Context context, List<TaskEvent> taskevents,
 			List<TaskEvent> overDue) {
 		super(context, taskevents, overDue);
+		
 	}
 	
 	@Override
@@ -28,17 +30,16 @@ public class ProjectTaskEventAdapter extends BaseTaskEventAdapter {
 	}
 
 	private String genMemberNames(long taskId){
-//	     String nameList = "";
-//	     String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
-//	     if(names != null) {
-//	     nameList = names[0];
-//	     int i = 1;
-//	     while(i < names.length) {
-//	     nameList = names[i] + ", " + nameList;
-//	     i++;
-//	     }
-//	     }
-//	     return nameList;
-		return "not implemented yet";
+	     String nameList = "";
+	     String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
+	     if(names != null) {
+	    	 nameList = names[0];
+	    	 int i = 1;
+	    	 while(i < names.length) {
+	    		 nameList = names[i] + ", " + nameList;
+	    		 i++;
+	    	 }
+	     }
+	     return nameList;
 	}
 }

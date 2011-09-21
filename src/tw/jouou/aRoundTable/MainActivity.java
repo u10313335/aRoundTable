@@ -125,7 +125,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
+        	dbUtils = DBUtils.getInstance(this);
     	}
         
         colors = getResources().obtainTypedArray(R.array.project_colors);
@@ -377,7 +377,6 @@ public class MainActivity extends Activity {
 	
     private String getMembersName(long taskId) {
     	String nameList = "";
-    	dbUtils = new DBUtils(this);
     	String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
     	if(names != null) {
     		nameList = names[0];
@@ -497,7 +496,7 @@ public class MainActivity extends Activity {
 	public void onResume() {
 		super.onResume();		
 		if (dbUtils == null) {
-			dbUtils = new DBUtils(this);
+			dbUtils = DBUtils.getInstance(this);
 		}
     	dataReceiver = new DataReceiver();
     	filter = new IntentFilter();

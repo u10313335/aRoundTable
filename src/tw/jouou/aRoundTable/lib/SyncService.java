@@ -54,7 +54,7 @@ public class SyncService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
-		DBUtils dbUtils = new DBUtils(this);
+		DBUtils dbUtils = DBUtils.getInstance(this);
 		sync(dbUtils, this, artApi);
 		return START_STICKY;
 	}

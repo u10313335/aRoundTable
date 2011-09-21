@@ -114,7 +114,7 @@ public class CreateProjectActivity extends Activity {
 		protected Integer doInBackground(String... params) {
 			try {
 		    	int serverId = ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
-		    	dbUtils = new DBUtils(CreateProjectActivity.this);
+		    	dbUtils = DBUtils.getInstance(CreateProjectActivity.this);
 		    	proj = new Project(params[0], serverId, Integer.parseInt(params[1]), new Date());
 		    	dbUtils.projectsDelegate.insert(proj);
 		    	//TODO: add server update here

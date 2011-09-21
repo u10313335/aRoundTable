@@ -46,7 +46,7 @@ public class ContactsActivity extends Activity {
 		public ContactsAdapter() {
 			super();
 			try {
-				DBUtils dbUtils =  new DBUtils(ContactsActivity.this);
+				DBUtils dbUtils = DBUtils.getInstance(ContactsActivity.this);
 				QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
 				queryBuilder.where().eq("project_id", project.getServerId());
 				members = dbUtils.memberDao.query(queryBuilder.prepare());

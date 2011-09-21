@@ -100,7 +100,7 @@ public class AddSingleTaskActivity extends Activity {
         setContentView(R.layout.add_single_task_tab);
         
         if(dbUtils == null) {
-    		dbUtils = new DBUtils(this);
+        	dbUtils = DBUtils.getInstance(this);
     	}
         findViews();  //find basic views
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -457,7 +457,6 @@ public class AddSingleTaskActivity extends Activity {
     private Member getMember(String email) {
     	List<Member> members = null;
 		try {
-			dbUtils = new DBUtils(this);
 			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
 			queryBuilder.where().eq("email", email);
 			members = dbUtils.memberDao.query(queryBuilder.prepare());
@@ -481,9 +480,6 @@ public class AddSingleTaskActivity extends Activity {
 		@Override
 		protected Integer doInBackground(String... params) {
 			try {
-		    	if (dbUtils == null) {
-		    		dbUtils = new DBUtils(AddSingleTaskActivity.this);
-		    	}
 		    	if (mBundle.getInt("addOrEdit") == 0) {
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)

@@ -32,7 +32,7 @@ public class ViewFinishedItemsActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.view_finished_items);
-		dbUtils = new DBUtils(this);
+		dbUtils = DBUtils.getInstance(this);
 		mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
 

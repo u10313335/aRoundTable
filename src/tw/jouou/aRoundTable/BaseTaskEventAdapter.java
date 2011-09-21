@@ -41,7 +41,7 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 		this.colors = context.getResources().obtainTypedArray(R.array.project_colors);
 		this.taskevents = taskevents;
 		this.overDue = overDue;
-		this.dbUtils = new DBUtils(context);
+		this.dbUtils = DBUtils.getInstance(context);
 	}
 
 	@Override
