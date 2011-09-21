@@ -2,11 +2,10 @@ package tw.jouou.aRoundTable.util;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
-import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
-import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 
 import java.sql.SQLException;
@@ -57,10 +56,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
 
-	public final static String TABLE_TASKS_MEMBERS = "tasks_members";
-	public final static String FIELD_TASKS_MEMBERS_TASKID = "task_id";
-	public final static String FIELD_TASKS_MEMBERS_PROJECTID = "project_id";
-	public final static String FIELD_TASKS_MEMBERS_MEMBERID = "member_id";
+	public final static String TABLE_TASKS_USERS = "tasks_users";
+	public final static String FIELD_TASKS_USERS_TASKID = "task_id";
+	public final static String FIELD_TASKS_USERS_PROJECTID = "project_id";
+	public final static String FIELD_TASKS_USERS_USERID = "user_id";
 
 	public final static String TABLE_EVENT = "event";
 	public final static String FIELD_EVENT_ID = "_id";
@@ -76,7 +75,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 
 	public final static String TABLE_NOTIFICATION = "notification";
 	public final static String FIELD_NOTIFICATION_ID = "_id";
-	public final static String FIELD_NOTIFICATION_MEMBERID = "member_id";
+	public final static String FIELD_NOTIFICATION_MEMBERID = "user_id";
 	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
 	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
 	public final static String FIELD_NOTIFICATION_READ = "read";
@@ -93,7 +92,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 
 	// This is for ORM Lite
 	private ConnectionSource connectionSource;
-	public Dao<Member, Integer> memberDao;
+	public Dao<User, Integer> userDao;
 
 	private static DBUtils instance;
 
@@ -102,7 +101,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		connectionSource = new AndroidConnectionSource(this);
 		 db = getReadableDatabase();
 		try {
-			memberDao = DaoManager.createDao(connectionSource, Member.class);
+			userDao = DaoManager.createDao(connectionSource, User.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -132,10 +131,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ " INTEGER, " + FIELD_TASK_UPDATED_AT + " DATETIME, "
 				+ FIELD_TASK_TYPE + " INTEGER )");
 
-		db.execSQL("CREATE TABLE " + TABLE_TASKS_MEMBERS + "( "
-				+ FIELD_TASKS_MEMBERS_TASKID + " INTEGER, "
-				+ FIELD_TASKS_MEMBERS_PROJECTID + " INTEGER, "
-				+ FIELD_TASKS_MEMBERS_MEMBERID + " INTEGER )");
+		db.execSQL("CREATE TABLE " + TABLE_TASKS_USERS + "( "
+				+ FIELD_TASKS_USERS_TASKID + " INTEGER, "
+				+ FIELD_TASKS_USERS_PROJECTID + " INTEGER, "
+				+ FIELD_TASKS_USERS_USERID + " INTEGER )");
 
 		db.execSQL("CREATE TABLE " + TABLE_EVENT + "( " + FIELD_EVENT_ID
 				+ " INTEGER PRIMARY KEY, " + FIELD_EVENT_NAME + " TEXT, "
@@ -170,7 +169,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_GROUPDOC_UPDATED_AT + " DATETIME )");
 
 		try {
-			TableUtils.createTable(conn, Member.class);
+			TableUtils.createTable(conn, User.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -183,50 +182,13 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		}
 	}
 
-	public UsersDelegate userDelegate = new UsersDelegate();
 	public ProjectsDelegate projectsDelegate = new ProjectsDelegate();
 	public TaskDelegate tasksDelegate = new TaskDelegate();
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
 	public NotificationDelegate notificationDelegate = new NotificationDelegate();
-	public TasksMembersDelegate tasksMembersDelegate = new TasksMembersDelegate();
+	public TasksUsersDelegate tasksUsersDelegate = new TasksUsersDelegate();
 	public GroupDocDelegate groupDocDelegate = new GroupDocDelegate();
-
-	public class UsersDelegate {
-		public void delete(User user) {
-			if (user.getId() < 0)
-				return;
-
-			db.delete(TABLE_USER, "_id = ?",
-					new String[] { String.valueOf(user.getId()) });
-		}
-
-		public void update(User user) {
-			SQLiteDatabase db = getReadableDatabase();
-			ContentValues values = user.getValues();
-			db.update(TABLE_USER, values, "_id = ?",
-					new String[] { String.valueOf(user.getId()) });
-		}
-
-		public void insert(User user) {
-			db.insert(TABLE_USER, null, user.getValues());
-		}
-
-		public List<User> get() {
-			List<User> users = new LinkedList<User>();
-			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_USER, null, null, null, null, null,
-					FIELD_USER_ID + " ASC");
-			while (c.moveToNext()) {
-				User user = new User(c.getLong(c
-						.getColumnIndexOrThrow(FIELD_USER_ID)), c.getString(c
-						.getColumnIndexOrThrow(FIELD_USER_TOKEN)));
-				users.add(user);
-			}
-			c.close();
-			return users;
-		}
-	}
 
 	public class ProjectsDelegate {
 		public void delete(Project proj) {
@@ -530,61 +492,61 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		}
 	}
 
-	public class TasksMembersDelegate {
+	public class TasksUsersDelegate {
 		public void delete(long id) {
 			if (id < 0)
 				return;
-			db.delete(TABLE_TASKS_MEMBERS, "member_id = ?",
+			db.delete(TABLE_TASKS_USERS, "user_id = ?",
 					new String[] { String.valueOf(id) });
 		}
 
 		public void deleteUnderTask(long id) {
 			if (id < 0)
 				return;
-			db.delete(TABLE_TASKS_MEMBERS, "task_id = ?",
+			db.delete(TABLE_TASKS_USERS, "task_id = ?",
 					new String[] { String.valueOf(id) });
 		}
 
 		public void deleteUnderProj(long id) {
 			if (id < 0)
 				return;
-			db.delete(TABLE_TASKS_MEMBERS, "project_id = ?",
+			db.delete(TABLE_TASKS_USERS, "project_id = ?",
 					new String[] { String.valueOf(id) });
 		}
 
 		public void deleteAll() {
-			db.delete(TABLE_TASKS_MEMBERS, null, null);
+			db.delete(TABLE_TASKS_USERS, null, null);
 		}
 
 		public void insertSingleTask(Task task) {
 			for (int i = 0; i < task.getOwners().length; i++) {
-				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(i));
+				db.insert(TABLE_TASKS_USERS, null, task.getOwnersValues(i));
 			}
 		}
 
 		public void insertBatchTask(Task task) {
-			db.insert(TABLE_TASKS_MEMBERS, null, task.getMemberValues());
+			db.insert(TABLE_TASKS_USERS, null, task.getOwnerValues());
 		}
 
-		public String[] getMembers(long taskId) {
+		public String[] getUsers(long taskId) {
 			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_TASKS_MEMBERS, null, "task_id=" + taskId,
+			Cursor c = db.query(TABLE_TASKS_USERS, null, "task_id=" + taskId,
 					null, null, null, null);
 			String[] names = null;
 			if (c.getCount() > 0) {
 				names = new String[c.getCount()];
 				while (c.moveToNext()) {
-					List<Member> members = null;
+					List<User> members = null;
 					try {
-						QueryBuilder<Member, Integer> queryBuilder = memberDao
+						QueryBuilder<User, Integer> queryBuilder = userDao
 								.queryBuilder();
 						queryBuilder
 								.where()
 								.eq("server_id",
 										c.getLong((c
-												.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
+												.getColumnIndexOrThrow(FIELD_TASKS_USERS_USERID))));
 						queryBuilder.selectColumns("name");
-						members = memberDao.query(queryBuilder.prepare());
+						members = userDao.query(queryBuilder.prepare());
 						if (members.size() > 0) {
 							names[c.getPosition()] = members.get(0).name;
 						}
@@ -812,7 +774,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return query(
 					"date >= Datetime('now','localtime') "
 							+ "AND finish = 0 "
-							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))",
+							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_users WHERE user_id = ?))",
 					new String[] { Long.toString(3) });
 		}
 
@@ -827,7 +789,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return query(
 					"date < Datetime('now','localtime') "
 							+ "AND finish = 0 "
-							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_members WHERE member_id = ?))",
+							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_users WHERE user_id = ?))",
 					new String[] { Long.toString(3) });
 		}
 

@@ -13,7 +13,7 @@ import java.util.TreeSet;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 
-import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
@@ -67,12 +67,12 @@ public class AddSingleTaskActivity extends Activity {
 	private Date mTaskDue;
 	private int mDueType = ASSIGN_DAY_PANEL;
 	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
-	private LinkedList<Member> mTaskOwners = new LinkedList<Member>();
+	private LinkedList<User> mTaskOwners = new LinkedList<User>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
-	private TableLayout mMemberField;
+	private TableLayout mUserField;
 	private List<Task> mTasks = null;
     private EditText mEdTitle;
     private TextView mTxCreateUnder;
@@ -113,7 +113,7 @@ public class AddSingleTaskActivity extends Activity {
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
         mAutoOwner.setAdapter(new ArrayAdapter<String>(AddSingleTaskActivity.this,
-        		R.layout.email_autocomplete_item, getMembersMail(mProj.getServerId())));
+        		R.layout.email_autocomplete_item, getUsersMail(mProj.getServerId())));
         try {
     		mTasks = dbUtils.tasksDelegate.get(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
@@ -207,7 +207,7 @@ public class AddSingleTaskActivity extends Activity {
       	  	public void onClick(View v) {
         		String getString = mAutoOwner.getText().toString();
         		if(!getString.equals("")) {
-        			findAddMemberView(getMember(getString));
+        			findAddUserView(getUser(getString));
         			mAutoOwner.getText().clear();
         		}
         	}
@@ -381,7 +381,7 @@ public class AddSingleTaskActivity extends Activity {
         mDateChooser.addView(add_single_task_undetermined);
 	}
 	
-	private void findAddMemberView(final Member member) {
+	private void findAddUserView(final User member) {
 		final TableRow tr = new TableRow(AddSingleTaskActivity.this);
 		mTaskOwners.add(member);
 		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
@@ -394,12 +394,12 @@ public class AddSingleTaskActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				mTaskOwners.remove(member);
-				mMemberField.removeView(tr);
+				mUserField.removeView(tr);
 			}
 		});
 		tr.addView(txName);
 		tr.addView(ib);
-		mMemberField.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+		mUserField.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 	}
 	
@@ -412,7 +412,7 @@ public class AddSingleTaskActivity extends Activity {
     	mBtnUndetermined = (ImageButton)findViewById(R.id.single_undetermined);
     	mAutoOwner = (AutoCompleteTextView)findViewById(R.id.single_owneradd_context);
     	mBtnAddOwner = (ImageButton)findViewById(R.id.single_owner_add);
-    	mMemberField = (TableLayout)findViewById(R.id.owners_field);
+    	mUserField = (TableLayout)findViewById(R.id.owners_field);
     	mEdRemarks = (EditText)findViewById(R.id.single_remarks_context);
     	mBtnFinish = (Button)findViewById(R.id.single_additem_finish);
     	mBtnCancel = (Button)findViewById(R.id.single_additem_cancel);
@@ -438,12 +438,12 @@ public class AddSingleTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
-    private String[] getMembersMail(long projId) {
-    	List<Member> members = null;
+    private String[] getUsersMail(long projId) {
+    	List<User> members = null;
 		try {
-			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
 			queryBuilder.where().eq("project_id", projId);
-			members = dbUtils.memberDao.query(queryBuilder.prepare());
+			members = dbUtils.userDao.query(queryBuilder.prepare());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -454,12 +454,12 @@ public class AddSingleTaskActivity extends Activity {
 		return emails;
     }
     
-    private Member getMember(String email) {
-    	List<Member> members = null;
+    private User getUser(String email) {
+    	List<User> members = null;
 		try {
-			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
 			queryBuilder.where().eq("email", email);
-			members = dbUtils.memberDao.query(queryBuilder.prepare());
+			members = dbUtils.userDao.query(queryBuilder.prepare());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -486,13 +486,13 @@ public class AddSingleTaskActivity extends Activity {
 								.createTask(mProjId, params[0], getOwnersId(), mDateToStr.parse(params[1]), params[2]);
 		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
-		    			dbUtils.tasksMembersDelegate.insertSingleTask(task);
+		    			dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 								.createTask(mProjId, params[0], getOwnersId(), null, params[3]);
 						Task task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
-						dbUtils.tasksMembersDelegate.insertSingleTask(task);
+						dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    		}	
 		    	} else {
 		    		if (!params[1].equals("")) {

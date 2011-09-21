@@ -167,7 +167,7 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 		@Override
 		protected JoinStatus[] doInBackground(String... emails) {
 			try {
-				return ArtApi.getInstance(InviteMemberActivity.this).addMember(project.getServerId(), emails);
+				return ArtApi.getInstance(InviteMemberActivity.this).addUser(project.getServerId(), emails);
 			} catch (ServerException e) {
 				exception = e;
 			} catch (ConnectionFailException e) {

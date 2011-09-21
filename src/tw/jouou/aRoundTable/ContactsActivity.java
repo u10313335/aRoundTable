@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 
-import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
@@ -41,15 +41,15 @@ public class ContactsActivity extends Activity {
 	}
 	
 	private class ContactsAdapter extends BaseAdapter{
-		private List<Member> members;
+		private List<User> members;
 		
 		public ContactsAdapter() {
 			super();
 			try {
 				DBUtils dbUtils = DBUtils.getInstance(ContactsActivity.this);
-				QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+				QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
 				queryBuilder.where().eq("project_id", project.getServerId());
-				members = dbUtils.memberDao.query(queryBuilder.prepare());
+				members = dbUtils.userDao.query(queryBuilder.prepare());
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -73,7 +73,7 @@ public class ContactsActivity extends Activity {
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			Member member = members.get(position);
+			User member = members.get(position);
 			if(convertView == null) {
 				convertView = ContactsActivity.this.getLayoutInflater().inflate(R.layout.contacts_item, parent, false);
 			}

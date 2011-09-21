@@ -24,7 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Event;
-import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -46,7 +46,7 @@ public class ArtApi {
 	private static final String projectPath = "/projects/%d";
 	private static final String taskPath = "/tasks/%d";
 	private static final String eventPath = "/events/%d";
-	private static final String addMemberPath = "/projects/%d/users";
+	private static final String addUserPath = "/projects/%d/users";
 	private static final String notificationsPath = "/projects/%d/notifications";
 	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
 	
@@ -437,14 +437,14 @@ public class ArtApi {
 	 * @throws ConnectionFailException 
 	 * @throws ServerException 
 	 */
-	public JoinStatus[] addMember(long projectId, String emails[]) throws ServerException, ConnectionFailException{
+	public JoinStatus[] addUser(long projectId, String emails[]) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash(); 
 		
 		for(int i=0; i< emails.length; i++){
 			params.put("email["+i+"]", emails[i]);
 		}
 		
-		HttpResponse response = performPost(String.format(addMemberPath, projectId), params);
+		HttpResponse response = performPost(String.format(addUserPath, projectId), params);
 		
 		try {
 			
@@ -472,14 +472,14 @@ public class ArtApi {
 		return null;
 	}
 	
-	public Member[] getMembers(long projectId) throws ServerException, ConnectionFailException {
+	public User[] getUsers(long projectId) throws ServerException, ConnectionFailException {
 		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(String.format(addMemberPath, projectId), params);
+		HttpResponse response = performGet(String.format(addUserPath, projectId), params);
 		JSONArray respArr = extractJsonArray(response);
-		Member[] result = new Member[respArr.length()];
+		User[] result = new User[respArr.length()];
 		try {
 			for(int i=0; i<respArr.length(); i++){
-				result[i] = new Member(projectId, respArr.getJSONObject(i));
+				result[i] = new User(projectId, respArr.getJSONObject(i));
 			}
 		}catch(JSONException e) {
 			e.printStackTrace();

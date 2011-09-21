@@ -25,13 +25,13 @@ public class ProjectTaskEventAdapter extends BaseTaskEventAdapter {
 		if(taskEvent.getType() == TaskEventDelegate.TYPE_EVENT){
 			metaTextView.setText("");
 		}else{
-			metaTextView.setText(genMemberNames(taskEvent.getServerId()));
+			metaTextView.setText(genUserNames(taskEvent.getServerId()));
 		}
 	}
 
-	private String genMemberNames(long taskId){
+	private String genUserNames(long taskId){
 	     String nameList = "";
-	     String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
+	     String[] names = dbUtils.tasksUsersDelegate.getUsers(taskId);
 	     if(names != null) {
 	    	 nameList = names[0];
 	    	 int i = 1;

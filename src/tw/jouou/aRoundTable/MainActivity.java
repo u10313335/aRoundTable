@@ -2,7 +2,7 @@ package tw.jouou.aRoundTable;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
-import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -375,9 +375,9 @@ public class MainActivity extends Activity {
         }
     }
 	
-    private String getMembersName(long taskId) {
+    private String getUsersName(long taskId) {
     	String nameList = "";
-    	String[] names = dbUtils.tasksMembersDelegate.getMembers(taskId);
+    	String[] names = dbUtils.tasksUsersDelegate.getUsers(taskId);
     	if(names != null) {
     		nameList = names[0];
     		int i = 1;
@@ -466,7 +466,7 @@ public class MainActivity extends Activity {
 				Task remoteTasks[] = ArtApi.getInstance(MainActivity.this).getTaskList(localProjs.get(i).getServerId());
 				for (int j=0 ; j < remoteTasks.length ; j++) {
 					dbUtils.tasksDelegate.insert(remoteTasks[j]);
-					dbUtils.tasksMembersDelegate.insertSingleTask(remoteTasks[j]);
+					dbUtils.tasksUsersDelegate.insertSingleTask(remoteTasks[j]);
 				}
 				Event remoteEvents[] = ArtApi.getInstance(MainActivity.this).getEventList(localProjs.get(i).getServerId());
 				for (int k=0 ; k < remoteEvents.length ; k++) {
@@ -476,8 +476,8 @@ public class MainActivity extends Activity {
 			}
 			for(Project project : localProjs) {
 				try {
-					for(Member member: ArtApi.getInstance(MainActivity.this).getMembers(project.getServerId())) {
-						dbUtils.memberDao.create(member);
+					for(User member: ArtApi.getInstance(MainActivity.this).getUsers(project.getServerId())) {
+						dbUtils.userDao.create(member);
 					}
 				} catch (SQLException e) {
 					e.printStackTrace();

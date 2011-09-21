@@ -170,19 +170,19 @@ public class Task implements Serializable {
 		return values;
 	}
 	
-	public ContentValues getMembersValues(int i) {
+	public ContentValues getOwnersValues(int i) {
 		ContentValues members_values = new ContentValues();
-			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_TASKID, serverId);
-			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_PROJECTID, projId);
-			members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, owners[i]);
+			members_values.put(DBUtils.FIELD_TASKS_USERS_TASKID, serverId);
+			members_values.put(DBUtils.FIELD_TASKS_USERS_PROJECTID, projId);
+			members_values.put(DBUtils.FIELD_TASKS_USERS_USERID, owners[i]);
 		return members_values;
 	}
 	
-	public ContentValues getMemberValues() {
+	public ContentValues getOwnerValues() {
 		ContentValues members_values = new ContentValues();
-		members_values.put(DBUtils.FIELD_TASKS_MEMBERS_TASKID, serverId);
-		members_values.put(DBUtils.FIELD_TASKS_MEMBERS_PROJECTID, projId);
-		members_values.put(DBUtils.FIELD_TASKS_MEMBERS_MEMBERID, owner);
+		members_values.put(DBUtils.FIELD_TASKS_USERS_TASKID, serverId);
+		members_values.put(DBUtils.FIELD_TASKS_USERS_PROJECTID, projId);
+		members_values.put(DBUtils.FIELD_TASKS_USERS_USERID, owner);
 		return members_values;
 	}
 }

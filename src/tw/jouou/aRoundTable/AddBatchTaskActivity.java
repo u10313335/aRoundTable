@@ -12,7 +12,7 @@ import java.util.TreeSet;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 
-import tw.jouou.aRoundTable.bean.Member;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
@@ -64,7 +64,7 @@ public class AddBatchTaskActivity extends Activity {
 	private Project mProj;
 	private int mDueType = ASSIGN_DAY_PANEL;
 	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
-	private LinkedList<Member> mTaskOwners = new LinkedList<Member>();
+	private LinkedList<User> mTaskOwners = new LinkedList<User>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private LinkedList<TableRow> mTasksTitle = new LinkedList<TableRow>();
 	private LinkedList<TableRow> mOwnersEmail = new LinkedList<TableRow>();
@@ -266,13 +266,13 @@ public class AddBatchTaskActivity extends Activity {
 		autoOwner.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
 		final TableRow.LayoutParams ownerParams = new TableRow.LayoutParams();
 		ownerParams.column = 1;
-		String[] membersMail = getMembersMail(mProj.getServerId());
+		String[] membersMail = getUsersMail(mProj.getServerId());
 		autoOwner.setAdapter(new ArrayAdapter<String>(AddBatchTaskActivity.this,
         		R.layout.email_autocomplete_item, membersMail));
 		autoOwner.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> membersMail, View v, int position, long l) {
     			ownerRow.removeView(autoOwner);
-    			final Member member = getMember(autoOwner.getText().toString());
+    			final User member = getUser(autoOwner.getText().toString());
 				mTaskOwners.add(member);
 				final TextView txEmail = new TextView(AddBatchTaskActivity.this);
 				txEmail.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
@@ -300,7 +300,7 @@ public class AddBatchTaskActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				final TableRow tr = new TableRow(AddBatchTaskActivity.this);
-				final Member member = getMember(autoOwner.getText().toString());
+				final User member = getUser(autoOwner.getText().toString());
 				mTaskOwners.add(member);
 				tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 				TextView txName = new TextView(AddBatchTaskActivity.this);
@@ -467,12 +467,12 @@ public class AddBatchTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
-    private String[] getMembersMail(long projId) {
-    	List<Member> members = null;
+    private String[] getUsersMail(long projId) {
+    	List<User> members = null;
 		try {
-			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
 			queryBuilder.where().eq("project_id", projId);
-			members = dbUtils.memberDao.query(queryBuilder.prepare());
+			members = dbUtils.userDao.query(queryBuilder.prepare());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -496,7 +496,7 @@ public class AddBatchTaskActivity extends Activity {
 		List<Long> list = new LinkedList<Long>();
 		for (int i=0; i < ownersEmail.size(); i++) {
 			String ownerEmail = ((TextView) ownersEmail.get(i).findViewWithTag("email")).getText().toString();
-			Member member = getMember(ownerEmail);
+			User member = getUser(ownerEmail);
 			list.add(member.serverId);
 		}
 		return list.toArray(new Long[list.size()]);
@@ -517,12 +517,12 @@ public class AddBatchTaskActivity extends Activity {
     	}
     }
     
-    private Member getMember(String email) {
-    	List<Member> members = null;
+    private User getUser(String email) {
+    	List<User> members = null;
 		try {
-			QueryBuilder<Member, Integer> queryBuilder = dbUtils.memberDao.queryBuilder();
+			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
 			queryBuilder.where().eq("email", email);
-			members = dbUtils.memberDao.query(queryBuilder.prepare());
+			members = dbUtils.userDao.query(queryBuilder.prepare());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -550,7 +550,7 @@ public class AddBatchTaskActivity extends Activity {
 								.createTask(mProjId, params[0].titles[i], params[0].owners[i], mDateToStr.parse(params[0].due), params[0].note);
 		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].owners[i], params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
-		    			dbUtils.tasksMembersDelegate.insertBatchTask(task);
+		    			dbUtils.tasksUsersDelegate.insertBatchTask(task);
 		    		}
 		    	} else {
 		    		for(int i=0; i < mTasksTitle.size(); i++) {
@@ -558,7 +558,7 @@ public class AddBatchTaskActivity extends Activity {
 								.createTask(mProjId, params[0].titles[i], params[0].owners[i], null, params[0].note);
 		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].owners[i], params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
-		    			dbUtils.tasksMembersDelegate.insertBatchTask(task);
+		    			dbUtils.tasksUsersDelegate.insertBatchTask(task);
 		    		}
 		    	}
 			} catch (ServerException e) {

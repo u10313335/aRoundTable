@@ -1,40 +1,36 @@
 package tw.jouou.aRoundTable.bean;
 
-import java.io.Serializable;
-import tw.jouou.aRoundTable.util.DBUtils;
-import android.content.ContentValues;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class User implements Serializable {
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
-	private static final long serialVersionUID = 1L;
-	private long id;
-	private String token;
-
-	public User(long id, String token){
-		this.id = id;
-		this.token = token;
+@DatabaseTable(tableName = "users")
+public class User {
+	@DatabaseField(generatedId = true)
+	public int id;
+	
+	@DatabaseField(columnName = "server_id")
+	public long serverId;
+	
+	@DatabaseField(columnName = "project_id")
+	public long projectId;
+	
+	@DatabaseField
+	public String name;
+	
+	@DatabaseField
+	public String email;
+	
+	public User(){
+		
 	}
 	
-	public User(String token){
-		this.token = token;
+	public User(long projectId, JSONObject jsonObject) throws JSONException{
+		this.serverId = jsonObject.getLong("id");
+		this.projectId = projectId;
+		this.name = jsonObject.getString("name");
+		this.email = jsonObject.getString("email");
 	}
-	
-	public long getId() {
-		return id;
-	}
-
-	public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public ContentValues getValues() {
-		ContentValues values = new ContentValues();
-		values.put(DBUtils.FIELD_USER_TOKEN, token);
-		return values;
-	}
-
 }
