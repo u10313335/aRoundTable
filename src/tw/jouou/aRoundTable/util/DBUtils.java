@@ -566,12 +566,17 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			db.close();
 		}
 	
-		public void insert(Task task) {
+		public void insertSingleTask(Task task) {
 			SQLiteDatabase db = getWritableDatabase();
-			Long[] owners = task.getOwners();
-			for(int i=0; i<owners.length; i++) {
-				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(owners[i]));
+			for(int i=0; i<task.getOwners().length; i++) {
+				db.insert(TABLE_TASKS_MEMBERS, null, task.getMembersValues(i));
 			}
+			db.close();
+		}
+		
+		public void insertBatchTask(Task task) {
+			SQLiteDatabase db = getWritableDatabase();
+				db.insert(TABLE_TASKS_MEMBERS, null, task.getMemberValues());
 			db.close();
 		}
 		
@@ -588,7 +593,9 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						queryBuilder.where().eq("server_id", c.getLong((c.getColumnIndexOrThrow(FIELD_TASKS_MEMBERS_MEMBERID))));
 						queryBuilder.selectColumns("name");
 						members = memberDao.query(queryBuilder.prepare());
-						names[c.getPosition()] = members.get(0).name;
+						if(members.size() > 0) {
+							names[c.getPosition()] = members.get(0).name;
+						}
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}

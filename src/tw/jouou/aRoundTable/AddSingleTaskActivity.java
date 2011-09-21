@@ -487,16 +487,16 @@ public class AddSingleTaskActivity extends Activity {
 		    	if (mBundle.getInt("addOrEdit") == 0) {
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-								.createTask(mProjId, params[0], mDateToStr.parse(params[1]), params[2]);
+								.createTask(mProjId, params[0], getOwnersId(), mDateToStr.parse(params[1]), params[2]);
 		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
-		    			dbUtils.tasksMembersDelegate.insert(task);
+		    			dbUtils.tasksMembersDelegate.insertSingleTask(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-								.createTask(mProjId, params[0], null, params[3]);
-						Task task = new Task(mProjId, serverId, params[0], null, params[2], false, new Date());
+								.createTask(mProjId, params[0], getOwnersId(), null, params[3]);
+						Task task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
-						dbUtils.tasksMembersDelegate.insert(task);
+						dbUtils.tasksMembersDelegate.insertSingleTask(task);
 		    		}	
 		    	} else {
 		    		if (!params[1].equals("")) {
