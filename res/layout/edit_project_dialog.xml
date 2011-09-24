@@ -9,7 +9,7 @@
 			  android:layout_width="wrap_content"
 			  android:layout_height="wrap_content"
 			  android:textAppearance="?android:attr/textAppearanceMedium"
-			  android:text="專案名稱："/>
+			  android:text="@string/project_title"/>
 			  
   		<EditText android:id="@+id/edit_projname_input"
     		  	  android:layout_width="250px"

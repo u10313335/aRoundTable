@@ -40,7 +40,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -55,6 +54,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.webkit.WebView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
@@ -96,9 +96,7 @@ public class MainActivity extends Activity {
 	protected static final int MENU_EditProj = Menu.FIRST;
 	protected static final int MENU_QuitProj = Menu.FIRST+1;
 	protected static final int MENU_ViewFinished = Menu.FIRST+2;
-    protected static final int MENU_Settings = Menu.FIRST+3;
-    protected static final int MENU_Feedbacks = Menu.FIRST+4;
-    protected static final int MENU_About = Menu.FIRST+5;
+    protected static final int MENU_About = Menu.FIRST+3;
     protected static final int MENU_EditItem = Menu.FIRST;
     protected static final int MENU_DeleteItem = Menu.FIRST+1;
     private static final int TASK = 0;
@@ -315,8 +313,8 @@ public class MainActivity extends Activity {
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v,
 					ContextMenuInfo menuInfo) {
-				menu.add(Menu.NONE,MENU_EditItem,0,getString(R.string.edit));
-				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
+				menu.add(Menu.NONE,MENU_EditItem, 0, R.string.edit);
+				menu.add(Menu.NONE,MENU_DeleteItem, 0, R.string.delete);
 				menu.setHeaderTitle(getString(R.string.item_operations));
 			}
     	});   	
@@ -370,8 +368,7 @@ public class MainActivity extends Activity {
     		ExpandableListContextMenuInfo menuInfo = (ExpandableListContextMenuInfo)item.getMenuInfo();
     		ExpandableListAdapter adapter = (position == 1)? ownedTaskEventAdapter : projectTaskEventAdapters[position - PROJECT_VIEWS_BORDER];
     		int group = ExpandableListView.getPackedPositionGroup(menuInfo.packedPosition), 
-    			 child = ExpandableListView.getPackedPositionChild(menuInfo.packedPosition);
-    		
+    			child = ExpandableListView.getPackedPositionChild(menuInfo.packedPosition);
     		TaskEvent taskEvent = (TaskEvent) ((child >= 0)? adapter.getChild(group, child): adapter.getGroup(group));
     		Intent additem_intent= new Intent();
             switch (item.getItemId()) {
@@ -561,8 +558,6 @@ public class MainActivity extends Activity {
 		menu.add(0, MENU_EditProj, 0, R.string.edit_project).setIcon(android.R.drawable.ic_menu_edit);
 		menu.add(0, MENU_QuitProj, 0, R.string.quit_project).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
 		menu.add(0, MENU_ViewFinished, 0, R.string.view_finished_items).setIcon(android.R.drawable.ic_menu_agenda);
-		menu.add(0, MENU_Settings, 0, R.string.settings).setIcon(android.R.drawable.ic_menu_preferences);
-		menu.add(0, MENU_Feedbacks, 0, R.string.feedbacks).setIcon(android.R.drawable.ic_menu_send);
 		menu.add(0, MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
 		this.openOptionsMenu();
 		return super.onCreateOptionsMenu(menu);
@@ -587,10 +582,10 @@ public class MainActivity extends Activity {
 		switch(item.getItemId()) {
 			case MENU_EditProj:
 				AlertDialog.Builder editDialog = new AlertDialog.Builder(this);
-				editDialog.setTitle(getString(R.string.edit_project));
-				View view = mInflater.inflate(R.layout.edit_project_dialog, null);
-				editDialog.setView(view);
-				final EditText edProjName = (EditText) view.findViewById(R.id.edit_projname_input);
+				editDialog.setTitle(R.string.edit_project);
+				View editView = mInflater.inflate(R.layout.edit_project_dialog, null);
+				editDialog.setView(editView);
+				final EditText edProjName = (EditText) editView.findViewById(R.id.edit_projname_input);
 				edProjName.setText(projs.get(position-2).getName());
 				editDialog.setIcon(android.R.drawable.ic_input_get);
 				editDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
@@ -647,16 +642,20 @@ public class MainActivity extends Activity {
 				viewFinished.putExtra("proj", projs.get(position-2));
     			startActivity(viewFinished);
 				break;
-			case MENU_Settings:
-				break;
-			case MENU_Feedbacks:
-				// TODO: replace feedback email here
-				Uri uri = Uri.parse("mailto:u103133.u103135@gmail.com");
-                Intent intent = new Intent(Intent.ACTION_SENDTO,uri);
-                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.feedback_mail_title));
-                startActivity(intent);
-				break;
 			case MENU_About:
+				AlertDialog.Builder aboutDialog = new AlertDialog.Builder(this);
+				aboutDialog.setTitle(R.string.about);
+				WebView aboutView = (WebView) mInflater.inflate(R.layout.about, null);
+				aboutView.loadUrl("file:///android_asset/about.html");
+				aboutDialog.setView(aboutView);
+				aboutDialog.setIcon(R.drawable.icon);
+				aboutDialog.setNegativeButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dialog.dismiss();
+    				}
+                });
+				aboutDialog.show();
 				break;
 		}
 		return super.onOptionsItemSelected(item);

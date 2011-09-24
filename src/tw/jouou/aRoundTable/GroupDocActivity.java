@@ -3,8 +3,6 @@ package tw.jouou.aRoundTable;
 import java.util.Date;
 
 import tw.jouou.aRoundTable.bean.GroupDoc;
-import tw.jouou.aRoundTable.bean.Project;
-import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
 import android.os.Bundle;

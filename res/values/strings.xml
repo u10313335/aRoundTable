@@ -15,7 +15,6 @@
     <string name="confirm_quit_project">確認退出專案</string>
     <string name="quit_project_prompt">退出專案會刪除所有此專案下的工作與事件。確定要這麼做？</string>
     <string name="view_finished_items">查看完成項目</string>
-    <string name="settings">設定</string>
     <string name="feedbacks">回報</string>
     <string name="about">關於</string>
     <string name="done">完成</string>
@@ -46,7 +45,9 @@
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>
     <string name="item_overdue"> %1$s 個項目已過期</string>
+    <string name="project_title">專案名稱：</string>
     <string name="finished_task_under_project"> 「%1$s」專案下已完成項目： </string>
+    <string name="set_undone">標記為未完成</string>
     <string name="syncing">同步中...</string>
     <string name="start_sync">已開始同步處理</string>
     <string name="internet_connection_problem">嘗試同步失敗（沒有資料連線）</string>

@@ -32,7 +32,6 @@ public class CreateProjectActivity extends Activity {
 	private DBUtils dbUtils;
 	private Project proj;
 	private RadioButtonManager radioButtonManagers = new RadioButtonManager();
-	private static String TAG = "CreateProjectActivity";
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

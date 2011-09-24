@@ -18,9 +18,8 @@ public class AddItemActivity extends TabActivity{
 	private TabHost tabHost;
 	private TabHost.TabSpec spec;
 	private int addOrEdit; // 0 add, 1 edit
-	private static String TAG = "AddItemActivity";
 	
-	
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.additem);
