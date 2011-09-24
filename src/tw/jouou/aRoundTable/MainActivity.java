@@ -25,6 +25,8 @@ import org.taptwo.android.widget.CircleFlowIndicator;
 import org.taptwo.android.widget.ViewFlow;
 import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 
+import com.j256.ormlite.stmt.PreparedQuery;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -190,25 +192,26 @@ public class MainActivity extends Activity {
     
 
     private void formNotification(View v) {
-    	ExpandableListView notificationView = (ExpandableListView) v.findViewById(R.id.dynamic_issue_list);
-    	List<Notification> notifications = dbUtils.notificationDelegate.get();
-    	mUnReadCount = 0;
+    	ListView notificationView = (ListView) v.findViewById(R.id.notifications);
+    	
+    	//FIXME: dirty
+    	List<Notification> notifications;
+		try {
+			notifications = dbUtils.notificationDao.queryForAll();
+			mUnReadCount = dbUtils.notificationDao.queryForEq(Notification.COLUMN_READ, true).size();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return;
+		}
+    	
     	List<HashMap <String, String>> groups = new ArrayList<HashMap <String, String>>();
-    	List<List <HashMap<String, String>>> childs = new ArrayList<List <HashMap<String, String>>>();
 	    for (int i=0; i < notifications.size(); i++) {
 	    	HashMap<String, String> group = new HashMap<String, String>();
-	    	group.put("g", notifications.get(i).getMessage());
-	    	if(!notifications.get(i).getRead()) {
-	    		mUnReadCount+=1;
-	    	}
+	    	group.put("g", notifications.get(i).message);
 	    	groups.add(group);
-	        List<HashMap <String, String>> child = new ArrayList<HashMap <String, String>>();
-	        HashMap<String, String> childdata = new HashMap<String, String>();
-	        childdata.put("c", "回應");
-	        child.add(childdata);
-	        childs.add(child);
 	    }
-        SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(this, groups, R.layout.notification_item, new String[] { "g" }, new int[] { R.id.notificaton_context }, childs, android.R.layout.simple_expandable_list_item_2, new String[] { "c" }, new int[] { android.R.id.text1});
+	    
+        SimpleAdapter adapter = new SimpleAdapter(this, groups, R.layout.notification_item, new String[] { "g" }, new int[] { R.id.notificaton_context });
         notificationView.setAdapter(adapter);
     }
     
