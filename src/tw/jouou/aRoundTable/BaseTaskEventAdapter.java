@@ -153,8 +153,10 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 		((TextView) view.findViewById(R.id.item_name)).setText(taskEvent.getName());
 		
 		TextView dueCountdown = ((TextView) view.findViewById(R.id.item_due_countdown));
+		TextView dueDate = (TextView) view.findViewById(R.id.item_duedate);
 		if(taskEvent.getDueDate() == null){
 			dueCountdown.setText(context.getString(R.string.undetermined));
+			dueDate.setVisibility(View.INVISIBLE);
 		}else{
 			int distance = calcDateDistance(taskEvent.getDueDate());
 			if(distance == 0){
@@ -164,9 +166,9 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 				dueCountdown.setTextColor(Color.WHITE);
 				//FIXME: use sprintf style instead
 				dueCountdown.setText(distance + context.getString(R.string.dayafter));
+				dueDate.setText(taskEvent.getDue());
 			}
 		}
-		((TextView) view.findViewById(R.id.item_duedate)).setText(taskEvent.getDue());
 	}
 	
 	private static int calcDateDistance(Date due) {

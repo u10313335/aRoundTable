@@ -24,6 +24,7 @@ import tw.jouou.aRoundTable.util.DBUtils;
 import tw.jouou.aRoundTable.widget.NumberPicker;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -39,7 +40,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -86,7 +86,6 @@ public class AddSingleTaskActivity extends Activity {
     private Button mBtnDatePicker;
     private Button mBtnFinish;
     private Button mBtnCancel;
-    private AutoCompleteTextView mAutoOwner;
     private EditText mEdRemarks;
     private SimpleDateFormat mDateToStr, mStrToDate;
     private Calendar mCalendar = Calendar.getInstance();
@@ -112,8 +111,6 @@ public class AddSingleTaskActivity extends Activity {
         mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
-        mAutoOwner.setAdapter(new ArrayAdapter<String>(AddSingleTaskActivity.this,
-        		R.layout.email_autocomplete_item, getUsersMail(mProj.getServerId())));
         try {
     		mTasks = dbUtils.tasksDelegate.get(mProj.getServerId());
 		} catch (IllegalArgumentException e) {
@@ -139,6 +136,12 @@ public class AddSingleTaskActivity extends Activity {
         	}
         	mEdTitle.setText(mTask.getName());
         	mTxCreateUnder.setText(mProj.getName());
+        	User[] users = dbUtils.tasksUsersDelegate.getUsers(mTask.getServerId());
+        	if(users!=null) {
+        		for(User user : users) {
+        			findAddOwnerView(user);
+        		}
+        	}
         	mEdRemarks.setText(mTask.getNote());
         	mTaskDue = mTask.getDueDate();
         	if(mTaskDue == null) {
@@ -205,11 +208,17 @@ public class AddSingleTaskActivity extends Activity {
         mBtnAddOwner.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		String getString = mAutoOwner.getText().toString();
-        		if(!getString.equals("")) {
-        			findAddUserView(getUser(getString));
-        			mAutoOwner.getText().clear();
-        		}
+        		final String[] usersMail = getUsersMail(mProj.getServerId());
+        		Builder dialog = new Builder(AddSingleTaskActivity.this);
+    			dialog.setTitle(R.string.add_owner);
+    			dialog.setSingleChoiceItems(usersMail, -1, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+						findAddOwnerView(getUser(usersMail[which]));
+					}
+    			});
+    			dialog.show();
         	}
     	});
     }
@@ -254,8 +263,7 @@ public class AddSingleTaskActivity extends Activity {
 	private void findAssignDateView() {
 		mDueType = ASSIGN_DAY_PANEL;
         RelativeLayout add_single_task_assign_date = 
-        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null)
-        		.findViewById(R.id.add_single_task_assign_date);
+        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null);
         mBtnDatePicker = (Button) add_single_task_assign_date.findViewById(R.id.single_date_picker_context);
         mBtnOneDay = (ImageButton) add_single_task_assign_date.findViewById(R.id.single_one_day);
         mBtnsSevenDay = (ImageButton) add_single_task_assign_date.findViewById(R.id.single_seven_day);
@@ -323,8 +331,7 @@ public class AddSingleTaskActivity extends Activity {
 				taskNames[i] = mTasks.get(i).getName();
 			}
 		
-        add_single_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null)
-        		.findViewById(R.id.add_single_task_dependency);
+        add_single_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
         final TableLayout single_depend_on_view = (TableLayout) add_single_task_dependency
 				.findViewById(R.id.single_depend_on_view);
         Spinner single_dependency_plus_minus = (Spinner) add_single_task_dependency.findViewById(R.id.single_dependency_plus_minus);
@@ -355,8 +362,7 @@ public class AddSingleTaskActivity extends Activity {
                 depend_on_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 sp.setAdapter(depend_on_adapter);
                 sp.setTag("sp");
-        		ImageButton ib = new ImageButton(AddSingleTaskActivity.this);
-        		ib.setImageResource(R.drawable.ic_delete);
+        		ImageButton ib = (ImageButton) mInflater.inflate(R.layout.delete_button, null);
         		ib.setOnClickListener( new OnClickListener() {
 					@Override
 					public void onClick(View v) {
@@ -376,24 +382,22 @@ public class AddSingleTaskActivity extends Activity {
 	
 	private void findUndeterminedView() {
 		mDueType = UNDETERMINED_PANEL;
-        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
-        		.findViewById(R.id.add_single_task_undetermined);
+        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null);
         mDateChooser.addView(add_single_task_undetermined);
 	}
 	
-	private void findAddUserView(final User member) {
+	private void findAddOwnerView(final User user) {
 		final TableRow tr = new TableRow(AddSingleTaskActivity.this);
-		mTaskOwners.add(member);
+		mTaskOwners.add(user);
 		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		TextView txName = new TextView(AddSingleTaskActivity.this);
 		txName.setTextAppearance(AddSingleTaskActivity.this, android.R.style.TextAppearance_Medium);
-		txName.setText(member.name);
-		ImageButton ib = new ImageButton(AddSingleTaskActivity.this);
-		ib.setImageResource(R.drawable.ic_delete);
+		txName.setText(user.name);
+		ImageButton ib = (ImageButton) mInflater.inflate(R.layout.delete_button, null);
 		ib.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mTaskOwners.remove(member);
+				mTaskOwners.remove(user);
 				mUserField.removeView(tr);
 			}
 		});
@@ -410,7 +414,6 @@ public class AddSingleTaskActivity extends Activity {
     	mBtnAssignDate = (ImageButton)findViewById(R.id.single_date);
     	mBtnDependency = (ImageButton)findViewById(R.id.single_dependency);
     	mBtnUndetermined = (ImageButton)findViewById(R.id.single_undetermined);
-    	mAutoOwner = (AutoCompleteTextView)findViewById(R.id.single_owneradd_context);
     	mBtnAddOwner = (ImageButton)findViewById(R.id.single_owner_add);
     	mUserField = (TableLayout)findViewById(R.id.owners_field);
     	mEdRemarks = (EditText)findViewById(R.id.single_remarks_context);
@@ -489,7 +492,7 @@ public class AddSingleTaskActivity extends Activity {
 		    			dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
-								.createTask(mProjId, params[0], getOwnersId(), null, params[3]);
+								.createTask(mProjId, params[0], getOwnersId(), null, params[2]);
 						Task task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
 						dbUtils.tasksUsersDelegate.insertSingleTask(task);
@@ -497,12 +500,17 @@ public class AddSingleTaskActivity extends Activity {
 		    	} else {
 		    		if (!params[1].equals("")) {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
-			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), params[2], false, new Date());
+			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.update(task);
+						dbUtils.tasksUsersDelegate.deleteUnderTask(task.getServerId());
+						dbUtils.tasksUsersDelegate.insertSingleTask(task);
+		    			
 		    		} else {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
-		    					mTask.getServerId(), params[0], null, params[2], false, new Date());
+		    					mTask.getServerId(), params[0], null, getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.update(task);
+						dbUtils.tasksUsersDelegate.deleteUnderTask(task.getServerId());
+						dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    		}
 		    		Intent syncIntent = new Intent(AddSingleTaskActivity.this, SyncService.class);
 		    		startService(syncIntent);

@@ -13,8 +13,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -28,17 +26,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -46,8 +38,7 @@ import android.widget.Toast;
 public class AddEventActivity extends Activity {
 	
     private static final int ASSIGN_TIME_PANEL = 0;
-    private static final int DEPENDENCY_PANEL = 1;
-    private static final int UNDETERMINED_PANEL = 2;
+    private static final int UNDETERMINED_PANEL = 1;
     private static final int FROM_DATE_CHOOSER = 0;
     private static final int TO_DATE_CHOOSER = 1;
     private static final int FROM_TIME_CHOOSER = 2;
@@ -61,11 +52,9 @@ public class AddEventActivity extends Activity {
 	private Date mEventStartAt;
 	private Date mEventEndAt;
 	private int mDueType = ASSIGN_TIME_PANEL;
-	private LinkedList<TableRow> mDependableEvents = new LinkedList<TableRow>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mTimeChooser;
-	private List<Event> mEvents = null;
     private EditText mEdTitle;
     private TextView mTxCreateUnder;
     private ImageButton mBtnAssignDate;
@@ -182,9 +171,6 @@ public class AddEventActivity extends Activity {
         						mEdLocation.getText().toString(),
         						mEdRemarks.getText().toString());
         				break;
-        			case DEPENDENCY_PANEL:
-        				// TODO:temporary disable dependency for event
-        				break;
         			case UNDETERMINED_PANEL:
         				(new CreateEventTask()).execute(mEdTitle.getText().toString(),
         						"", "", mEdLocation.getText().toString(), mEdRemarks.getText().toString());
@@ -241,8 +227,7 @@ public class AddEventActivity extends Activity {
     
 	private void findAssignTimeView() {
         RelativeLayout add_event_assign_time = 
-        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_time, null)
-        		.findViewById(R.id.add_event_assign_time);
+        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_time, null);
         mBtnFromDatePicker = (Button) add_event_assign_time.findViewById(R.id.event_from_date_picker_context);
         mBtnFromTimePicker = (Button) add_event_assign_time.findViewById(R.id.event_from_time_picker_context);
         mBtnToDatePicker = (Button) add_event_assign_time.findViewById(R.id.event_to_date_picker_context);
@@ -277,80 +262,12 @@ public class AddEventActivity extends Activity {
         updateTime(TO_TIME_CHOOSER, mEndAtHour, mEndAtMinute);
         mTimeChooser.addView(add_event_assign_time);
 	}
-
-	private void findDependencyView() {
-		RelativeLayout add_event_dependency;
-		if (mEvents.isEmpty()) {
-			add_event_dependency = new RelativeLayout(this);
-			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
-			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			noDependable.setText("無可相依工作");
-			add_event_dependency.addView(noDependable);
-		} else {
-			final String taskNames[] = new String[mEvents.size()];
-			for (int i=0; i < mEvents.size(); i++) {
-				taskNames[i] = mEvents.get(i).getName();
-			}
-		
-			add_event_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null)
-        		.findViewById(R.id.add_single_task_dependency);
-        final TableLayout single_depend_on_view = (TableLayout) add_event_dependency
-				.findViewById(R.id.single_depend_on_view);
-        Spinner single_dependency_plus_minus = (Spinner) add_event_dependency.findViewById(R.id.single_dependency_plus_minus);
-        ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
-        		android.R.layout.simple_spinner_item, new String[]{"加","減"});
-        plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        single_dependency_plus_minus.setAdapter(plus_minus_adapter);
-        single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> arg0, View view,
-					int position, long id) {
-			}
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-			}
-        });
-        ImageButton single_depend_add_task = (ImageButton) add_event_dependency
-				.findViewById(R.id.single_depend_add_task);
-        single_depend_add_task.setOnClickListener( new OnClickListener() {
-        	@Override
-        	public void onClick(View v) {
-        		final TableRow tr = new TableRow(AddEventActivity.this);
-        		mDependableEvents.add(tr);
-        		tr.setTag("tr");
-        		tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-        		final Spinner sp = new Spinner(AddEventActivity.this);
-        		ArrayAdapter<String> depend_on_adapter = new ArrayAdapter<String>(AddEventActivity.this
-        				,android.R.layout.simple_spinner_item, taskNames);
-                depend_on_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                sp.setAdapter(depend_on_adapter);
-                sp.setTag("sp");
-        		ImageButton ib = new ImageButton(AddEventActivity.this);
-        		ib.setImageResource(R.drawable.ic_delete);
-        		ib.setOnClickListener( new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						mDependableEvents.remove(tr);
-						single_depend_on_view.removeView(tr);
-					}
-        		});
-        		tr.addView(sp);
-        		tr.addView(ib);
-        		single_depend_on_view.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-        				LayoutParams.WRAP_CONTENT));
-        	}
-        });
-		}
-        mTimeChooser.addView(add_event_dependency);
-	}
 	
 	private void findUndeterminedView() {
-        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
-        		.findViewById(R.id.add_single_task_undetermined);
+        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null);
         mTimeChooser.addView(add_single_task_undetermined);
 	}
-    
-            
+           
 	private void updateDate(int addOrEdit, int year, int month, int day){
 		// Month is 0 based so add 1
 		String fromStr = year+" "+(month+1)+" "+day;

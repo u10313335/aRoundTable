@@ -100,10 +100,11 @@ public class SyncService extends Service {
 				if(taskDiff == 0) {
 					for (int j=0 ; j<remoteTasks.length ; j++) {
 						Task task = dbUtils.tasksDelegate.getTask(remoteTasks[j].getServerId());
+						Long[] usersId = dbUtils.tasksUsersDelegate.getUsersId(remoteTasks[j].getServerId());
 						Log.v(TAG, "[task] local: " + task.getServerId() + " remote: " + remoteTasks[j].getServerId());
 						if (!(task.getUpdateAt().compareTo(remoteTasks[j].getUpdateAt())==0)) {
 							if(task.getUpdateAt().after(remoteTasks[j].getUpdateAt())) {
-								artApi.updateTask(task.getServerId(), task.getName(), task.getDueDate(), task.getNote(), task.getDone());
+								artApi.updateTask(task.getServerId(), task.getName(), usersId, task.getDueDate(), task.getNote(), task.getDone());
 								task.setUpdateAt(artApi.getTask(task.getServerId()).getUpdateAt());
 								dbUtils.tasksDelegate.update(task);
 							} else {
@@ -158,14 +159,14 @@ public class SyncService extends Service {
 						}
 					}
 				} else {
-					Log.v(TAG, "event numbers vary, rebuild events db...");
+					Log.v(TAG, "Proj: " + localProjs.get(i).getName() + " : event numbers vary, rebuild events db...");
 					List<Long> deletedEvents = dbUtils.eventsDelegate.getDeleted(localProjs.get(i).getServerId());
 					for (int j=0 ; j < deletedEvents.size() ; j++) {
 						artApi.deleteEvent(deletedEvents.get(j));
 						dbUtils.eventsDelegate.delete(deletedEvents.get(j));
 					}
 					//rebuild events
-					dbUtils.eventsDelegate.deleteAll(localProjs.get(i).getServerId());
+					dbUtils.eventsDelegate.deleteUnderProj(localProjs.get(i).getServerId());
 					remoteEvents = artApi.getEventList(localProjs.get(i).getServerId());
 					for (int k=0 ; k < remoteEvents.length ; k++) {
 						Event event = new Event(remoteEvents[k].getProjId(), remoteEvents[k].getServerId(), remoteEvents[k].getName(), remoteEvents[k].getStartAt(), remoteEvents[k].getEndAt(), remoteEvents[k].getLocation(), remoteEvents[k].getNote(), remoteEvents[k].getUpdateAt());

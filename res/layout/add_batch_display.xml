@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow
+  	xmlns:android="http://schemas.android.com/apk/res/android">
+		<TextView android:layout_width="wrap_content"
+				  android:layout_height="wrap_content"
+				  android:text="@string/owner"
+				  android:textAppearance="?android:attr/textAppearanceMedium"/>
+				  
+		<TextView android:id="@+id/batch_task_owner_context"
+		          android:layout_width="wrap_content"
+				  android:layout_height="wrap_content"
+				  android:text=""
+				  android:textAppearance="?android:attr/textAppearanceMedium"/>
+				  
+		<ImageButton android:id="@+id/batch_owner_delete"
+					 android:layout_width="wrap_content"
+					 android:layout_height="wrap_content"
+					 style="@style/MinusButton"/>
+</TableRow>

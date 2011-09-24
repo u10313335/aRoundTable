@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, aRoundTable!</string>
+    <string name="hello">Hello World, aRound Table!</string>
     <string name="app_name">aRound Table</string>
     <string name="title">Deadline/Event</string>
     <string name="welcome_message_title">歡迎使用 aRound Table！</string>
@@ -37,14 +37,16 @@
     <string name="add_task">單一工作</string>
     <string name="add_batch">多個工作</string>
     <string name="add_event">事件</string>
-    <string name="all_item_event">我的項目</string>
+    <string name="owned_task_event">我的項目</string>
+    <string name="project_task_event">「%1$s」的項目</string>
     <string name="notification">所有動態</string>
-    <string name="feedback_mail_title">[aRoundTable] Feedback</string>
+    <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">成員列表</string>
     <string name="email_to_invite">電子郵件地址</string>
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>
-    <string name="item_overdue">%1$s 個項目已過期</string>
+    <string name="item_overdue"> %1$s 個項目已過期</string>
+    <string name="finished_task_under_project"> 「%1$s」專案下已完成項目： </string>
     <string name="syncing">同步中...</string>
     <string name="start_sync">已開始同步處理</string>
     <string name="internet_connection_problem">嘗試同步失敗（沒有資料連線）</string>
@@ -64,9 +66,13 @@
     <string name="to">到：</string>
     <string name="location">地點：</string>
     <string name="no_dependable_task">無可相依工作</string>
+    <string name="satisfy_following_task">滿足以下條件後：</string>
+    <string name="more">再</string>
     <string name="plus">加</string>
     <string name="minus">減</string>
+    <string name="days">天</string>
     <string name="owner">負責：</string>
+    <string name="add_owner">新增負責人</string>
     <string name="note">備註：</string>
     <string name="last_update">上次更新時間：</string>
 </resources>

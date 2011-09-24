@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:id="@+id/add_single_task_dependency"
-				xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 				android:layout_height="wrap_content"
 				android:layout_width="wrap_content"
 				android:layout_column="1"
@@ -21,14 +20,14 @@
 				  	  android:layout_height="wrap_content"
 				  	  android:layout_gravity="center_vertical"
 				  	  android:layout_centerVertical="true"
-				  	  android:text="滿足以下條件後："
+				  	  android:text="@string/satisfy_following_task"
 				  	  android:layout_weight="1"
 				  	  android:textStyle="bold"
 				  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 			<ImageButton android:id="@+id/single_depend_add_task" 
 						 android:layout_width="wrap_content"
 						 android:layout_height="wrap_content"
-						 android:src="@drawable/ic_input_add"/>
+						 style="@style/PlusButton"/>
 			</LinearLayout>
 		</TableRow>
 		
@@ -47,7 +46,7 @@
 				<TextView android:id="@+id/single_dependency_more" 
 				 	 	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="再"
+				  	  	  android:text="@string/more"
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
 			
@@ -72,7 +71,7 @@
 				<TextView android:id="@+id/single_dependency_day" 
 				 	  	  android:layout_width="wrap_content"
 				  	  	  android:layout_height="wrap_content"
-				  	  	  android:text="天"
+				  	  	  android:text="@string/days"
 				  	  	  android:textStyle="bold"
 				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"
 				  	  	  android:layout_toRightOf="@id/single_dependency_day_context"/>

@@ -21,8 +21,6 @@ import android.widget.TextView;
 
 public class ViewFinishedItemsActivity extends Activity {
 	
-	//TODO:dummy test data, remove them ASAP
-	private String itemOwners[] = { "小羽、小熊", "albb", "洞洞", "所有人", "小羽、小熊", "albb", "洞洞", "所有人" };
 	private DBUtils dbUtils;
 	private Bundle mBundle;
 	private Project mProj;
@@ -37,9 +35,8 @@ public class ViewFinishedItemsActivity extends Activity {
         mProj = (Project)mBundle.get("proj");
 
         TextView txProjName = (TextView) findViewById(R.id.finished_item_title);
-        txProjName.setText("\"" + mProj.getName() + "\"專案下已完成項目：");
-        
-		ArrayList<HashMap <String, Object>> items = new ArrayList<HashMap <String, Object>> ();
+        txProjName.setText(getString(R.string.finished_task_under_project, mProj.getName()));
+
 		List<Task> tasks = null;
     	try {
     		tasks = dbUtils.tasksDelegate.getFinished(mProj.getServerId());
@@ -48,26 +45,11 @@ public class ViewFinishedItemsActivity extends Activity {
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse error");
 		}
-    	
 		ListView finishedItemListView = (ListView) findViewById(R.id.finished_item_list);
 
-	    for (int i=0; i < tasks.size(); i++) {
-	    	Date due = tasks.get(i).getDueDate();
-	    	HashMap< String, Object > item = new HashMap< String, Object >();
-	    	item.put("itemName", tasks.get(i).getName());
-	    	item.put("itemOwner", itemOwners[0]);
-    		if (due==null) {
-				item.put("dueDate", getString(R.string.undetermined));
-    		} else {
-    			item.put("dueDate", tasks.get(i).getDue());
-    		}
-	    	items.add(item);
-	    }
-	    
-	    finishedItemListView.setAdapter(new SpecialAdapter(this,items,R.layout.view_finished_items_item,
-    			new String[] { "itemName", "itemOwner", "dueDate" },
-    			new int[] { R.id.finished_item_name,
-						R.id.finished_item_owner, R.id.finished_item_duedate }));
+		FinishedTaskAdapter finishedTaskAdapter = new FinishedTaskAdapter(this, tasks);
+    
+	    finishedItemListView.setAdapter(finishedTaskAdapter);
 
 	}
 	
@@ -77,22 +59,6 @@ public class ViewFinishedItemsActivity extends Activity {
 		if (dbUtils != null) {
 			dbUtils.close();
 			dbUtils = null;
-		}
-	}
-	
-
-	private class SpecialAdapter extends SimpleAdapter {
-		ArrayList<HashMap<String, Object>> items;
-		public SpecialAdapter(Context context, ArrayList<HashMap<String, Object>> items,
-				int resource, String[] from, int[] to) {
-			super(context, items, resource, from, to);
-			this.items = items;
-		}
-
-		@Override
-		public View getView(final int position, View convertView, ViewGroup parent) {
-		  View view = super.getView(position, convertView, parent);  
-		  return view;
 		}
 	}
 	

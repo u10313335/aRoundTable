@@ -16,11 +16,8 @@ import tw.jouou.aRoundTable.util.DBUtils.TaskEventDelegate;
 
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -58,20 +55,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -101,7 +91,6 @@ public class MainActivity extends Activity {
 	private int position = 1;  // screen position
 	private TypedArray colors;
 	private SharedPreferences mPrefs;
-	//private ArrayList<List<TaskEvent>> mAllTaskEvents = new ArrayList<List<TaskEvent>>();
 	private DataReceiver dataReceiver;
 	private IntentFilter filter;
 	protected static final int MENU_EditProj = Menu.FIRST;
@@ -188,10 +177,10 @@ public class MainActivity extends Activity {
     		        	txTitle.setText(getString(R.string.notification));
     		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else if(position==1) {
-    		        	txTitle.setText(getString(R.string.all_item_event));
+    		        	txTitle.setText(getString(R.string.owned_task_event));
     		        	txTitle.setTextColor(Color.parseColor("#F6F6F7"));
     		        } else {
-    		        	txTitle.setText("「" + projs.get(position-2).getName() + "」的工作");
+    		        	txTitle.setText(getString(R.string.project_task_event, projs.get(position-2).getName()));
     		        	txTitle.setTextColor(colors.getColor(projs.get(position-2).getColor(), 0));
     		        }
     		    }
@@ -265,7 +254,6 @@ public class MainActivity extends Activity {
 					@Override
 					public void run() { 
 						try {
-							//FIXME: probably FC due to Dao not open?
 							SyncService.sync(dbUtils, MainActivity.this, artApi);
 						}
 						finally {
@@ -366,7 +354,6 @@ public class MainActivity extends Activity {
     	});
 	}
 	
-	
 	private void getLastUpdate() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String prefLastUpdate = prefs.getString(SyncService.PREF_LAST_UPDATE, "");
@@ -374,21 +361,7 @@ public class MainActivity extends Activity {
         		txLastUpdate.setText(getString(R.string.last_update) + prefLastUpdate);
         }
     }
-	
-    private String getUsersName(long taskId) {
-    	String nameList = "";
-    	String[] names = dbUtils.tasksUsersDelegate.getUsers(taskId);
-    	if(names != null) {
-    		nameList = names[0];
-    		int i = 1;
-    		while(i < names.length) {
-    			nameList = names[i] + ", " + nameList;
-    			i++;
-    		}
-    	}
-    	return nameList;
-    }
-	
+
     public boolean onContextItemSelected(MenuItem item) {
     	if(position == 0){
     		//TODO: Notification context menu
@@ -437,8 +410,6 @@ public class MainActivity extends Activity {
     				case 1:
     					dbUtils.eventsDelegate.setDelete(taskEvent.getServerId());
         		}
-	    		Intent syncIntent = new Intent(MainActivity.this, SyncService.class);
-	    		startService(syncIntent);
         		MainActivity.this.update();
             }	
     	}

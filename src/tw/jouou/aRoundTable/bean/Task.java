@@ -41,6 +41,19 @@ public class Task implements Serializable {
 		this.updateAt = updateAt;
 	}
 	
+	public Task(long id, long projId, long serverId, String name, Date due, Long[] owners, 
+			String note, boolean done, Date updateAt) {
+		this.id = id;
+		this.projId = projId;
+		this.serverId = serverId;
+		this.name = name;
+		this.due = due;
+		this.owners = owners;
+		this.note = note;
+		this.done = done;
+		this.updateAt = updateAt;
+	}
+	
 	public Task(long projId, long serverId, String name, Date due, Long owner,
 			String note, boolean done, Date updateAt) {
 		this.projId = projId;
@@ -74,9 +87,9 @@ public class Task implements Serializable {
 			this.projId = taskJson.getLong("project_id");
 			if(!(taskJson.getString("due").equals("null"))) {
 				this.due = formatter.parse(taskJson.getString("due"));
-			}
+			} 
 			this.note = taskJson.getString("note");
-			this.done = (taskJson.getString("finished").equals("1")) ? true : false;
+			this.done = (taskJson.getString("finished").equals("true")) ? true : false;
 			this.updateAt = formatter.parse(taskJson.getString("updated_at"));
 			JSONArray jsonArray = taskJson.getJSONArray("user_ids");
 			this.owners = new Long[jsonArray.length()];

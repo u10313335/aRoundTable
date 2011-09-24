@@ -4,10 +4,12 @@ import java.util.List;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.TaskEvent;
+import tw.jouou.aRoundTable.util.DBUtils.TaskEventDelegate;
 
 public class OwnedTaskEventAdapter extends BaseTaskEventAdapter {
 
@@ -19,7 +21,10 @@ public class OwnedTaskEventAdapter extends BaseTaskEventAdapter {
 	protected void fillEntry(View view, TaskEvent taskEvent){
 		super.fillEntry(view, taskEvent);
 		Project project = dbUtils.projectsDelegate.get(taskEvent.getProjId());
-		
+		CheckBox metaCheckBox = (CheckBox) view.findViewById(R.id.item_done);
+		if(taskEvent.getType() == TaskEventDelegate.TYPE_EVENT){
+			metaCheckBox.setVisibility(View.INVISIBLE);
+		}
 		((TextView) view.findViewById(R.id.item_meta)).setText(project.getName());
 	}
 }

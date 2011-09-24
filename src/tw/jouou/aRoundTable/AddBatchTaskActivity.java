@@ -25,24 +25,23 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
@@ -64,15 +63,13 @@ public class AddBatchTaskActivity extends Activity {
 	private Project mProj;
 	private int mDueType = ASSIGN_DAY_PANEL;
 	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
-	private LinkedList<User> mTaskOwners = new LinkedList<User>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
-	private LinkedList<TableRow> mTasksTitle = new LinkedList<TableRow>();
-	private LinkedList<TableRow> mOwnersEmail = new LinkedList<TableRow>();
+	private LinkedList<TaskField> mOwners = new LinkedList<TaskField>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
 	private List<Task> mTasks = null;
-	private TableLayout add_batch;
+	private LinearLayout mAddBatch;
     private TextView mTxCreateUnder;
     private ImageButton mBtnAddBatch;
     private ImageButton mBtnOneDay;
@@ -160,8 +157,8 @@ public class AddBatchTaskActivity extends Activity {
         mBtnFinish.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		String[] titles = getTasksTitle(mTasksTitle);
-        		Long[] owners = getOwnersId(mOwnersEmail);
+        		String[] titles = getTasksTitle(mOwners);
+        		Long[] owners = getOwnersId(mOwners);
         		Tasks tasks = null;
         		switch(mDueType) {
         			case 0:
@@ -224,104 +221,71 @@ public class AddBatchTaskActivity extends Activity {
     }
 	
 	private void findAddBatchView() {
-		final TableRow titleRow = new TableRow(AddBatchTaskActivity.this);
-		titleRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		final TableRow ownerRow = new TableRow(AddBatchTaskActivity.this);
-		ownerRow.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		mTasksTitle.add(titleRow);
-		mOwnersEmail.add(ownerRow);
+		final TableLayout addBatchField = (TableLayout) mInflater.inflate(R.layout.add_batch_field, null);
+		final TableRow titleRow = (TableRow) addBatchField.findViewById(R.id.batch_task_title_row);
+		final TableRow ownerSelectRow = (TableRow) addBatchField.findViewById(R.id.batch_task_owner_row);
+		//mTasksTitle.add(titleRow);
+		//mOwnersEmail.add(ownerSelectRow);
+		final TaskField taskField = new TaskField(titleRow);
+		mOwners.add(taskField);
 		//widgets for titleRow
-		TextView title = new TextView(AddBatchTaskActivity.this);
-		title.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-		title.setText(R.string.item_title);
-		EditText ed = new EditText(AddBatchTaskActivity.this);
-		ed.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
+		EditText ed = (EditText) titleRow.findViewById(R.id.batch_task_title_context);
 		ed.setTag("title");
-		ImageButton delTask = new ImageButton(AddBatchTaskActivity.this);
-		delTask.setImageResource(R.drawable.ic_delete);
+		ImageButton addOwner = (ImageButton) ownerSelectRow.findViewById(R.id.batch_btn_add_owner);
+		addOwner.setOnClickListener(new OnClickListener() {
+	        	@Override
+	      	  	public void onClick(View v) {
+	        		final String[] usersMail = getUsersMail(mProj.getServerId());
+	        		Builder dialog = new Builder(AddBatchTaskActivity.this);
+	    			dialog.setTitle(R.string.add_owner);
+	    			dialog.setSingleChoiceItems(usersMail, -1, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							addBatchField.removeView(ownerSelectRow);
+							final User member = getUser(usersMail[which]);
+							//mTaskOwners.add(member);
+							taskField.setOwner(member);
+							final TableRow ownerDisplayRow = (TableRow) mInflater.inflate(R.layout.add_batch_display, null);
+							TextView tx = (TextView) ownerDisplayRow.findViewById(R.id.batch_task_owner_context);
+							tx.setText(member.name);
+							ImageButton delOwner = (ImageButton) ownerDisplayRow.findViewById(R.id.batch_owner_delete);
+							delOwner.setOnClickListener( new OnClickListener() {
+								@Override
+								public void onClick(View v) {
+									//mTaskOwners.remove(member);
+									taskField.setOwner(null);
+									addBatchField.removeView(ownerDisplayRow);
+									addBatchField.addView(ownerSelectRow);
+								}
+							});
+							addBatchField.addView(ownerDisplayRow);
+						}
+	    			});
+	    			dialog.show();
+	        	}
+	    });
+		
+		ImageButton delTask = (ImageButton) titleRow.findViewById(R.id.batch_task_delete);
 		delTask.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mTasksTitle.remove(titleRow);
-				mOwnersEmail.remove(ownerRow);
-				add_batch.removeView(titleRow);
-				add_batch.removeView(ownerRow);
+				//mTasksTitle.remove(titleRow);
+				//mOwnersEmail.remove(ownerSelectRow);
+				//mTaskOwners.add(member);
+				mOwners.remove(taskField);
+				mAddBatch.removeView(addBatchField);
 			}
 		});
-		titleRow.addView(title);
-		titleRow.addView(ed);
-		titleRow.addView(delTask);
 		
-		//widgets for ownerRow
-		TextView owner = new TextView(AddBatchTaskActivity.this);
-		owner.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-		owner.setText(R.string.owner);
-		final RelativeLayout memberField = new RelativeLayout(AddBatchTaskActivity.this);
-		memberField.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		ownerRow.addView(owner);
-
-		//widgets for selectOwnerRow
-		final AutoCompleteTextView autoOwner = new AutoCompleteTextView(AddBatchTaskActivity.this);
-		autoOwner.setHint(R.string.email_to_invite);
-		autoOwner.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-		final TableRow.LayoutParams ownerParams = new TableRow.LayoutParams();
-		ownerParams.column = 1;
-		String[] membersMail = getUsersMail(mProj.getServerId());
-		autoOwner.setAdapter(new ArrayAdapter<String>(AddBatchTaskActivity.this,
-        		R.layout.email_autocomplete_item, membersMail));
-		autoOwner.setOnItemClickListener(new OnItemClickListener() {
-            public void onItemClick(AdapterView<?> membersMail, View v, int position, long l) {
-    			ownerRow.removeView(autoOwner);
-    			final User member = getUser(autoOwner.getText().toString());
-				mTaskOwners.add(member);
-				final TextView txEmail = new TextView(AddBatchTaskActivity.this);
-				txEmail.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-				txEmail.setText(member.email);
-				txEmail.setTag("email");
-				ownerRow.addView(txEmail, ownerParams);
-				final ImageButton delOwner = new ImageButton(AddBatchTaskActivity.this);
-				delOwner.setImageResource(R.drawable.ic_delete);
-				delOwner.setOnClickListener( new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						ownerRow.removeView(txEmail);
-						ownerRow.removeView(delOwner);
-						mTaskOwners.remove(member);
-						autoOwner.setText("");
-						ownerRow.addView(autoOwner, ownerParams);
-					}
-				});
-				ownerRow.addView(delOwner);
-            }
-        });
-
-		ImageButton addOwner = new ImageButton(AddBatchTaskActivity.this);
-		addOwner.setOnClickListener( new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				final TableRow tr = new TableRow(AddBatchTaskActivity.this);
-				final User member = getUser(autoOwner.getText().toString());
-				mTaskOwners.add(member);
-				tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-				TextView txName = new TextView(AddBatchTaskActivity.this);
-				txName.setTextAppearance(AddBatchTaskActivity.this, android.R.style.TextAppearance_Medium);
-				txName.setText(member.name);
-				tr.addView(txName);
-			}
-		});
-		ownerRow.addView(autoOwner);
 		
 		//add rows onto add_batch panel
-		add_batch.addView(titleRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.WRAP_CONTENT));
-		add_batch.addView(ownerRow, new TableLayout.LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.WRAP_CONTENT));
+		mAddBatch.addView(addBatchField);
 	}
 
 	private void findAssignDateView() {
         RelativeLayout add_single_task_assign_date = 
-        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null)
-        		.findViewById(R.id.add_single_task_assign_date);
+        		(RelativeLayout) mInflater.inflate(R.layout.add_item_assign_date, null);
         mBtnDatePicker = (Button) add_single_task_assign_date.findViewById(R.id.single_date_picker_context);
         mBtnOneDay = (ImageButton) add_single_task_assign_date.findViewById(R.id.single_one_day);
         mBtnsSevenDay = (ImageButton) add_single_task_assign_date.findViewById(R.id.single_seven_day);
@@ -375,23 +339,22 @@ public class AddBatchTaskActivity extends Activity {
 	}
 
 	private void findDependencyView() {
-		RelativeLayout add_single_task_dependency;
+		RelativeLayout add_batch_task_dependency;
 		if (mTasks.isEmpty()) {
-			add_single_task_dependency = new RelativeLayout(this);
+			add_batch_task_dependency = new RelativeLayout(this);
 			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
 			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			noDependable.setText(R.string.no_dependable_task);
-			add_single_task_dependency.addView(noDependable);
+			add_batch_task_dependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
 			for (int i=0; i < mTasks.size(); i++) {
 				taskNames[i] = mTasks.get(i).getName();
 			}
-			add_single_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null)
-        			.findViewById(R.id.add_single_task_dependency);
-			final TableLayout single_depend_on_view = (TableLayout) add_single_task_dependency
+			add_batch_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
+			final TableLayout single_depend_on_view = (TableLayout) add_batch_task_dependency
 					.findViewById(R.id.single_depend_on_view);
-			Spinner single_dependency_plus_minus = (Spinner) add_single_task_dependency
+			Spinner single_dependency_plus_minus = (Spinner) add_batch_task_dependency
 					.findViewById(R.id.single_dependency_plus_minus);
 			ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
 					android.R.layout.simple_spinner_item, new String[]{getString(R.string.plus), getString(R.string.minus)});
@@ -404,9 +367,9 @@ public class AddBatchTaskActivity extends Activity {
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
 			}});
-			ImageButton single_depend_add_task = (ImageButton) add_single_task_dependency
+			ImageButton batch_depend_add_task = (ImageButton) add_batch_task_dependency
 					.findViewById(R.id.single_depend_add_task);
-			single_depend_add_task.setOnClickListener( new OnClickListener() {
+			batch_depend_add_task.setOnClickListener( new OnClickListener() {
         	@Override
         	public void onClick(View v) {
         		final TableRow tr = new TableRow(AddBatchTaskActivity.this);
@@ -434,17 +397,16 @@ public class AddBatchTaskActivity extends Activity {
         	}
         });
 		}
-        mDateChooser.addView(add_single_task_dependency);
+        mDateChooser.addView(add_batch_task_dependency);
 	}
 	
 	private void findUndeterminedView() {
-        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null)
-        		.findViewById(R.id.add_single_task_undetermined);
+        RelativeLayout add_single_task_undetermined = (RelativeLayout) mInflater.inflate(R.layout.add_item_undetermined, null);
         mDateChooser.addView(add_single_task_undetermined);
 	}
 	
     private void findViews() {
-    	add_batch = (TableLayout)findViewById(R.id.add_batch);
+    	mAddBatch = (LinearLayout)findViewById(R.id.add_batch);
     	mBtnAddBatch = (ImageButton)findViewById(R.id.batch_add);
     	mDateChooser = (RelativeLayout)findViewById(R.id.batch_time_chooser);
     	mTxCreateUnder = (TextView)findViewById(R.id.batch_create_under_context);
@@ -483,21 +445,24 @@ public class AddBatchTaskActivity extends Activity {
 		return emails;
     }
     
-    private String[] getTasksTitle(LinkedList<TableRow> tasksTitle) {
+    private String[] getTasksTitle(LinkedList<TaskField> taskField) {
 		List<String> list = new LinkedList<String>();
-		for (int i=0; i < tasksTitle.size(); i++) {
-			String taskTitle = ((EditText) tasksTitle.get(i).findViewWithTag("title")).getText().toString();
+		for (int i=0; i < taskField.size(); i++) {
+			String taskTitle = ((EditText) taskField.get(i).title.findViewWithTag("title")).getText().toString();
 			list.add(taskTitle);
 		}
 		return list.toArray(new String[list.size()]);
     }
     
-    private Long[] getOwnersId(LinkedList<TableRow> ownersEmail) {
+    private Long[] getOwnersId(LinkedList<TaskField> taskField) {
 		List<Long> list = new LinkedList<Long>();
-		for (int i=0; i < ownersEmail.size(); i++) {
-			String ownerEmail = ((TextView) ownersEmail.get(i).findViewWithTag("email")).getText().toString();
-			User member = getUser(ownerEmail);
-			list.add(member.serverId);
+		for (int i=0; i < taskField.size(); i++) {
+			User owner =  taskField.get(i).owner;
+			if(owner!=null) {
+				list.add(owner.serverId);
+			} else {
+				list.add((long)-1);
+			}
 		}
 		return list.toArray(new Long[list.size()]);
     }
@@ -514,6 +479,19 @@ public class AddBatchTaskActivity extends Activity {
     		this.owners = owners;
     		this.due = due;
     		this.note = note;
+    	}
+    }
+    
+    private class TaskField extends Object {
+    	private TableRow title;
+    	private User owner;
+    	
+    	TaskField(TableRow title) {
+    		this.title = title;
+    	}
+    	
+    	private void setOwner(User owner) {
+    		this.owner = owner;
     	}
     }
     
@@ -545,7 +523,7 @@ public class AddBatchTaskActivity extends Activity {
 		protected Integer doInBackground(Tasks... params) { 	
 			try {
 		    	if (!params[0].due.equals("")) {
-		    		for(int i=0; i < mTasksTitle.size(); i++) {
+		    		for(int i=0; i < mOwners.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], params[0].owners[i], mDateToStr.parse(params[0].due), params[0].note);
 		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].owners[i], params[0].note, false, new Date());
@@ -553,7 +531,7 @@ public class AddBatchTaskActivity extends Activity {
 		    			dbUtils.tasksUsersDelegate.insertBatchTask(task);
 		    		}
 		    	} else {
-		    		for(int i=0; i < mTasksTitle.size(); i++) {
+		    		for(int i=0; i < mOwners.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], params[0].owners[i], null, params[0].note);
 		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].owners[i], params[0].note, false, new Date());

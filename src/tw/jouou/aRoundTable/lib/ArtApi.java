@@ -171,7 +171,9 @@ public class ArtApi {
 		} else {
 			params.put("task[due]", "");
 		}
-		params.put("task[user_ids][]", owner.toString());
+		if(owner!=-1) {
+			params.put("task[user_ids][]", owner.toString());
+		}
 		params.put("task[note]", note);
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
 		try{
@@ -196,13 +198,15 @@ public class ArtApi {
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		
 		params.add(new BasicNameValuePair("task[name]", name));
-		if(!(due == null)) {
+		if(due != null) {
 			params.add(new BasicNameValuePair("task[due]", due.toString()));
 		} else {
 			params.add(new BasicNameValuePair("task[due]", ""));
 		}
 		for(int i=0; i<owners.length; i++) {
-			params.add(new BasicNameValuePair("task[user_ids][]", owners[i].toString()));
+			if(owners[i]!=-1) {
+				params.add(new BasicNameValuePair("task[user_ids][]", owners[i].toString()));
+			}
 		}
 		params.add(new BasicNameValuePair("task[note]", note));
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
@@ -223,21 +227,25 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public void updateTask(long taskId, String name, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		//SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		//formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-		params.put("task[name]", name);
-		if(!(due == null)) {
-			params.put("task[due]", due.toString());
-		} else {
-			params.put("task[due]", "");
-		}
-		//params.put("task[due]", formatter.format(due));
-		params.put("task[note]", note);
-		params.put("task[finished]", (finished)? "1" : "0");
+	public void updateTask(long taskId, String name, Long[] owners, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("task[name]", name));
+		if(!(due == null)) {
+			params.add(new BasicNameValuePair("task[due]", due.toString()));
+		} else {
+			params.add(new BasicNameValuePair("task[due]", ""));
+		}
+		if(owners!=null) {
+			for(int i=0; i<owners.length; i++) {
+				if(owners[i]!=-1) {
+					params.add(new BasicNameValuePair("task[user_ids][]", owners[i].toString()));
+				}
+			}
+		}
+		params.add(new BasicNameValuePair("task[note]", note));
+		params.add(new BasicNameValuePair("task[finished]", (finished)? "1" : "0"));
 		performPut(String.format(taskPath, taskId), params);
 	}
 	
@@ -637,6 +645,37 @@ public class ArtApi {
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		try {
 			HttpResponse response = httpClient.execute(post);
+			if(response.getStatusLine().getStatusCode() != 200)
+				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
+			else
+				return response;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ConnectionFailException();
+		}
+	}
+	
+	/**
+	 * Perform HTTP PUT Request
+	 * @param path path to API endpoint
+	 * @param params HTTP Parameters
+	 * @return HttpResponse object
+	 * @throws ClientProtocolException 
+	 * @throws IOException
+	 */
+	private HttpResponse performPut(String path, List<NameValuePair> params) throws ServerException, ConnectionFailException{
+		HttpPut put = new HttpPut(baseURL + path);
+		
+		// Perform request
+		try {
+			put.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		try {
+			HttpResponse response = httpClient.execute(put);
 			if(response.getStatusLine().getStatusCode() != 200)
 				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
 			else

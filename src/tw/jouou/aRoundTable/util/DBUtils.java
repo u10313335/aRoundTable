@@ -294,10 +294,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 					new String[] { String.valueOf(id) });
 		}
 
-		public void deleteAll(long projId) {
-			db.delete(TABLE_TASK, "project_id = ?", null);
-		}
-
 		public void deleteUnderProj(long projId) {
 			if (projId < 0)
 				return;
@@ -528,7 +524,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			db.insert(TABLE_TASKS_USERS, null, task.getOwnerValues());
 		}
 
-		public String[] getUsers(long taskId) {
+		public String[] getUsersName(long taskId) {
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_TASKS_USERS, null, "task_id=" + taskId,
 					null, null, null, null);
@@ -557,6 +553,67 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			}
 			c.close();
 			return names;
+		}
+		
+		public User[] getUsers(long taskId) {
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASKS_USERS, null, "task_id=" + taskId,
+					null, null, null, null);
+			User[] users = null;
+			if (c.getCount() > 0) {
+				users = new User[c.getCount()];
+				while (c.moveToNext()) {
+					List<User> members = null;
+					try {
+						QueryBuilder<User, Integer> queryBuilder = userDao
+								.queryBuilder();
+						queryBuilder
+								.where()
+								.eq("server_id",
+										c.getLong((c
+												.getColumnIndexOrThrow(FIELD_TASKS_USERS_USERID))));
+						members = userDao.query(queryBuilder.prepare());
+						if (members.size() > 0) {
+							users[c.getPosition()] = members.get(0);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			c.close();
+			return users;
+		}
+		
+		public Long[] getUsersId(long taskId) {
+			SQLiteDatabase db = getReadableDatabase();
+			Cursor c = db.query(TABLE_TASKS_USERS, null, "task_id=" + taskId,
+					null, null, null, null);
+			Long[] usersId = null;
+			if (c.getCount() > 0) {
+				usersId = new Long[c.getCount()];
+				while (c.moveToNext()) {
+					List<User> members = null;
+					try {
+						QueryBuilder<User, Integer> queryBuilder = userDao
+								.queryBuilder();
+						queryBuilder
+								.where()
+								.eq("server_id",
+										c.getLong((c
+												.getColumnIndexOrThrow(FIELD_TASKS_USERS_USERID))));
+						queryBuilder.selectColumns("server_id");
+						members = userDao.query(queryBuilder.prepare());
+						if (members.size() > 0) {
+							usersId[c.getPosition()] = members.get(0).serverId;
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			c.close();
+			return usersId;
 		}
 	}
 
@@ -590,10 +647,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			values.put(DBUtils.FIELD_EVENT_TYPE, 2);
 			db.update(TABLE_EVENT, values, "server_id = ?",
 					new String[] { String.valueOf(id) });
-		}
-
-		public void deleteAll(long projId) {
-			db.delete(TABLE_EVENT, "project_id = ?", null);
 		}
 
 		public void deleteUnderProj(long projId) {

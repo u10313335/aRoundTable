@@ -7,8 +7,7 @@
 	
 	<RelativeLayout android:layout_height="wrap_content"
 				  	android:layout_width="fill_parent"
-				  	android:orientation="horizontal"
-    		  		android:background="#AFAFAE">
+				  	android:orientation="horizontal">
     		  		
     	<LinearLayout android:layout_height="wrap_content" 
 				  	  android:layout_width="wrap_content">
@@ -17,18 +16,12 @@
               	  	  android:layout_width="wrap_content" 
               	  	  android:layout_height="wrap_content"
               	  	  android:textColor="#F6F6F7"
-              	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>             	  	  
-		</LinearLayout>	  		
+              	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+        </LinearLayout>	  		
 
 	</RelativeLayout>
-		 	  	
-    <ListView android:id="@+id/finished_item_list"
-			  android:layout_width="fill_parent"
-			  android:layout_height="wrap_content"
-			  android:divider="@drawable/divider"
-			  android:dividerHeight="1dp"
-			  android:scrollbars="vertical"
-			  android:cacheColorHint="@android:color/transparent"
-			  android:layout_weight="1"/>
-			  	
+	
+	<ListView android:id="@+id/finished_item_list"
+    		  style="@style/FinishedTaskList"/>
+    								  	
 </LinearLayout>
