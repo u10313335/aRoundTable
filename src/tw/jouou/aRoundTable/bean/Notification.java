@@ -8,7 +8,7 @@ import com.j256.ormlite.field.DatabaseField;
 public class Notification{
 	public static final String COLUMN_READ = "read";
 	
-	@DatabaseField(generatedId = true)
+	@DatabaseField(id = true)
 	public int id;
 	
 	@DatabaseField(columnName = "user_id")
