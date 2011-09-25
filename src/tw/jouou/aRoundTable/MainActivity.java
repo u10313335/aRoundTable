@@ -258,7 +258,7 @@ public class MainActivity extends Activity {
 					@Override
 					public void run() { 
 						try {
-							SyncService.sync(dbUtils, MainActivity.this, artApi);
+							//FIXME: NOT implemented
 						}
 						finally {
 							handler.sendEmptyMessage(0);
@@ -450,7 +450,7 @@ public class MainActivity extends Activity {
 			}
 			for(Project project : localProjs) {
 				try {
-					for(User member: ArtApi.getInstance(MainActivity.this).getUsers(project.getServerId())) {
+					for(User member: ArtApi.getInstance(MainActivity.this).getUsers((int) project.getServerId())) {
 						dbUtils.userDao.create(member);
 					}
 				} catch (SQLException e) {

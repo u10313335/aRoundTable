@@ -12,10 +12,10 @@ public class User {
 	public int id;
 	
 	@DatabaseField(columnName = "server_id")
-	public long serverId;
+	public int serverId;
 	
 	@DatabaseField(columnName = "project_id")
-	public long projectId;
+	public int projectId;
 	
 	@DatabaseField
 	public String name;
@@ -27,8 +27,8 @@ public class User {
 		
 	}
 	
-	public User(long projectId, JSONObject jsonObject) throws JSONException{
-		this.serverId = jsonObject.getLong("id");
+	public User(int projectId, JSONObject jsonObject) throws JSONException{
+		this.serverId = jsonObject.getInt("id");
 		this.projectId = projectId;
 		this.name = jsonObject.getString("name");
 		this.email = jsonObject.getString("email");

@@ -9,13 +9,16 @@ public class Notification{
 	public static final String COLUMN_READ = "read";
 	
 	@DatabaseField(generatedId = true)
-	public long id;
-	
-	@DatabaseField(columnName = "server_id")
-	public long serverId;
+	public int id;
 	
 	@DatabaseField(columnName = "user_id")
-	public long userId;
+	public int userId;
+	
+	@DatabaseField(columnName = "notifiable_type")
+	public String notifiableType;
+	
+	@DatabaseField(columnName = "notifiable_id")
+	public int notifiableId;
 	
 	@DatabaseField
 	public String message;
@@ -27,8 +30,10 @@ public class Notification{
 	}
 	
 	public Notification(JSONObject notificationJson) throws JSONException {
+		this.id = notificationJson.getInt("id");
+		this.userId = notificationJson.getInt("user_id");
+		this.notifiableType = notificationJson.getString("notifiable_type");
+		this.notifiableId = notificationJson.getInt("notifiable_id");
 		this.message = notificationJson.getString("message");
-		this.serverId = notificationJson.getLong("id");
-		this.userId = notificationJson.getLong("user_id");
 	}
 }

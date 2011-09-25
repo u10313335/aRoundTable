@@ -479,7 +479,7 @@ public class ArtApi {
 		return null;
 	}
 	
-	public User[] getUsers(long projectId) throws ServerException, ConnectionFailException {
+	public User[] getUsers(int projectId) throws ServerException, ConnectionFailException {
 		HashMap<String, String> params = makeTokenHash();
 		HttpResponse response = performGet(String.format(addUserPath, projectId), params);
 		JSONArray respArr = extractJsonArray(response);
