@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="libs/ormlite-android-4.25.jar"/>
 	<classpathentry kind="lib" path="libs/ormlite-core-4.25.jar"/>
 	<classpathentry kind="lib" path="libs/flowwidget.jar"/>
+	<classpathentry kind="lib" path="libs/Hami_Apps_SDK_Dev_V1.06_20110621.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
