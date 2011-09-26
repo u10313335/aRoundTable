@@ -531,6 +531,7 @@ public class ArtApi {
 				}
 				return notifications;
 			} catch (JSONException e) {
+				e.printStackTrace();
 				throw new ServerException("Server return invalid json");
 			}
 	}
