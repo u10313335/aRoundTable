@@ -88,6 +88,7 @@ public class MainActivity extends Activity {
     private TextView txLastUpdate;
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
+	private NotificationsAdapter notificationsAdapter;
 	private OwnedTaskEventAdapter ownedTaskEventAdapter;
 	private ProjectTaskEventAdapter[] projectTaskEventAdapters;
 	private int position = 1;  // screen position
@@ -193,26 +194,14 @@ public class MainActivity extends Activity {
 
     private void formNotification(View v) {
     	ListView notificationView = (ListView) v.findViewById(R.id.notifications);
-    	
-    	//FIXME: dirty
-    	List<Notification> notifications;
 		try {
-			notifications = dbUtils.notificationDao.queryForAll();
 			mUnReadCount = dbUtils.notificationDao.queryForEq(Notification.COLUMN_READ, true).size();
+			notificationsAdapter = new NotificationsAdapter(this);
+			notificationView.setAdapter(notificationsAdapter);
+			notificationView.setOnItemClickListener(notificationsAdapter);
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return;
 		}
-    	
-    	List<HashMap <String, String>> groups = new ArrayList<HashMap <String, String>>();
-	    for (int i=0; i < notifications.size(); i++) {
-	    	HashMap<String, String> group = new HashMap<String, String>();
-	    	group.put("g", notifications.get(i).message);
-	    	groups.add(group);
-	    }
-	    
-        SimpleAdapter adapter = new SimpleAdapter(this, groups, R.layout.notification_item, new String[] { "g" }, new int[] { R.id.notificaton_context });
-        notificationView.setAdapter(adapter);
     }
     
     
