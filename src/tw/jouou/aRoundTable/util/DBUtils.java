@@ -593,7 +593,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						queryBuilder.selectColumns("server_id");
 						members = userDao.query(queryBuilder.prepare());
 						if (members.size() > 0) {
-							usersId[c.getPosition()] = members.get(0).serverId;
+							usersId[c.getPosition()] = (long) members.get(0).serverId;
 						}
 					} catch (SQLException e) {
 						e.printStackTrace();
