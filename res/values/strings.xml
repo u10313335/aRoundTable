@@ -49,10 +49,12 @@
     <string name="start_sync">Start syncing</string>
     <string name="internet_connection_problem">Sync Failure (No Internet Connection)</string>
     <string name="remote_server_problem">Remote Server Error. Try again later.</string>
-    <string name="cannot_add_task_connection_problem">Unable to add new tasks (No Internet Connection)</string>
-    <string name="cannot_add_task_server_problem">Unable to add new tasks (Remote Server Error)</string>
-    <string name="cannot_add_event_connection_problem">Unable to add new events (No Internet Connection)</string>
-    <string name="cannot_add_event_server_problem">Unable to add new events (Remote Server Error)</string>
+    <string name="cannot_add_task_connection_problem">Unable to add new task(s) (No Internet Connection)</string>
+    <string name="cannot_add_task_server_problem">Unable to add new task(s) (Remote Server Error)</string>
+    <string name="cannot_add_event_connection_problem">Unable to add new event(s) (No Internet Connection)</string>
+    <string name="cannot_add_event_server_problem">Unable to add new event(s) (Remote Server Error)</string>
+    <string name="cannot_add_project_connection_problem">Unable to create new project (No Internet Connection)</string>
+    <string name="cannot_add_project_server_problem">Unable to create new project (Remote Server Error)</string>
     <string name="cannot_quit_project_connection_problem">Unable to quit project (No Internet Connection)</string>
     <string name="cannot_quit_project_server_problem">Unable to quit project (Remote Server Error)</string>
 	<string name="cannot_update_notepad_connection_problem">Unable to update group notepad (No Internet Connection)</string>

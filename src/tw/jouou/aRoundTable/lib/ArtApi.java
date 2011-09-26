@@ -395,7 +395,7 @@ public class ArtApi {
 		}
 		params.put("task[duration]", Integer.toString(duration));
 		
-		performPost(String.format(taskPath, taskeventId), params);
+		performPut(String.format(taskPath, taskeventId), params);
 	}
 	
 	/**
@@ -498,7 +498,7 @@ public class ArtApi {
 		HashMap<String, String> params = makeTokenHash();
 		params.put("notepad[content]", content);
 		
-		performPost(String.format(notepadPath, projectId), params);
+		performPut(String.format(notepadPath, projectId), params);
 	}
 
 	public GroupDoc getNotepad(long projectId) throws ServerException, ConnectionFailException{
