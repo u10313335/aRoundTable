@@ -112,11 +112,11 @@ public class CreateProjectActivity extends Activity {
 		@Override
 		protected Integer doInBackground(String... params) {
 			try {
-		    	int serverId = ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
 		    	dbUtils = DBUtils.getInstance(CreateProjectActivity.this);
+		    	int serverId = ArtApi.getInstance(CreateProjectActivity.this).createProject(params[0], params[1]);
+		    	ArtApi.getInstance(CreateProjectActivity.this).updateNotepad(serverId, "");
 		    	proj = new Project(params[0], serverId, Integer.parseInt(params[1]), new Date());
 		    	dbUtils.projectsDelegate.insert(proj);
-		    	//TODO: add server update here
 		    	GroupDoc groupDoc = new GroupDoc(serverId, 0, "", new Date());
 		    	dbUtils.groupDocDelegate.insert(groupDoc);
 			} catch (ServerException e) {
@@ -131,10 +131,10 @@ public class CreateProjectActivity extends Activity {
         protected void onPostExecute(Integer serverId) {
 			dialog.dismiss();
 			if(exception instanceof ServerException) {
-				Toast.makeText(CreateProjectActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+				Toast.makeText(CreateProjectActivity.this, getString(R.string.cannot_add_project_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
 				return;
 			}else if(exception instanceof ConnectionFailException){
-				Toast.makeText(CreateProjectActivity.this, "Network not ok, try later", Toast.LENGTH_LONG).show();
+				Toast.makeText(CreateProjectActivity.this, R.string.cannot_add_project_connection_problem, Toast.LENGTH_LONG).show();
 				return;
 			}
 				dbUtils.close();

@@ -1,8 +1,13 @@
 package tw.jouou.aRoundTable.bean;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.ContentValues;
@@ -29,6 +34,18 @@ public class GroupDoc implements Serializable {
 		this.serverId = serverId;
 		this.content = content;
 		this.updateAt = updateAt;
+	}
+	
+	public GroupDoc(JSONObject groupDocJson) throws JSONException {
+		try {
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+			this.content = groupDocJson.getString("content");
+			this.serverId = groupDocJson.getLong("id");
+			this.updateAt = formatter.parse(groupDocJson.getString("updated_at"));
+		} catch (ParseException e) {
+			System.out.println("Parse error");
+		}
 	}
 	
 	public long getId(){

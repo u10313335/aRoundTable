@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<resources>
+	<array name="project_colors">
+		<item>#00B0CF</item>
+		<item>#A2CA30</item>
+		<item>#F2E423</item>
+		<item>#CA4483</item>
+		<item>#E99314</item>
+		<item>#C02B20</item>
+		<item>#F7F7CF</item>
+		<item>#225DAB</item>
+	</array>
+</resources>

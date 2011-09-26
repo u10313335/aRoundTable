@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
@@ -49,6 +50,7 @@ public class ArtApi {
 	private static final String addUserPath = "/projects/%d/users";
 	private static final String notificationsPath = "/projects/%d/notifications";
 	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
+	private static final String notepadPath = "/projects/%d/notepad";
 	
 	private String token;
 	
@@ -490,6 +492,25 @@ public class ArtApi {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	public void updateNotepad(long projectId, String content) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		params.put("notepad[content]", content);
+		
+		performPost(String.format(notepadPath, projectId), params);
+	}
+
+	public GroupDoc getNotepad(long projectId) throws ServerException, ConnectionFailException{
+		HashMap<String, String> params = makeTokenHash();
+		HttpResponse response = performGet(String.format(notepadPath, projectId), params);
+		
+		JSONObject eventsJson = extractJsonObject(response);
+		try {
+			return new GroupDoc(eventsJson);
+		} catch (JSONException e) {
+			throw new ServerException("Server returned unexpected data");
+		}
 	}
 
 	/**

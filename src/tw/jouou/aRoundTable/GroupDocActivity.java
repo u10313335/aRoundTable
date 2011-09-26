@@ -3,13 +3,19 @@ package tw.jouou.aRoundTable;
 import java.util.Date;
 
 import tw.jouou.aRoundTable.bean.GroupDoc;
+import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
+import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class GroupDocActivity extends Activity {
 	
@@ -39,6 +45,9 @@ public class GroupDocActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				String content = Groupdocs_text.getText().toString();
+				(new UpdateGroupDocTask()).execute(content);
+				
+				
 				GroupDoc groupDoc = new GroupDoc(mGroupDoc.getId(), mGroupDoc.getProjId(), mGroupDoc.getServerId(), 
 						content, new Date());
 				dbUtils.groupDocDelegate.update(groupDoc);
@@ -59,4 +68,46 @@ public class GroupDocActivity extends Activity {
 		Groupdocs_cancel = (Button)findViewById(R.id.groupdocs_cancel);
 		Groupdocs_text = (EditText)findViewById(R.id.groupdocs_text);
     }
+    
+    
+	private class UpdateGroupDocTask extends AsyncTask<String, Void, Integer> {
+		private ProgressDialog dialog;
+		private Exception exception;
+		
+		@Override
+		protected void onPreExecute() {
+			dialog = new ProgressDialog(GroupDocActivity.this);
+			dialog.setMessage(getString(R.string.processing));
+			dialog.show();
+		}
+		
+		@Override
+		protected Integer doInBackground(String... params) {
+			try {
+				ArtApi.getInstance(GroupDocActivity.this).updateNotepad(mGroupDoc.getProjId(), params[1]);
+				GroupDoc groupDoc = new GroupDoc(mGroupDoc.getId(), mGroupDoc.getProjId(), mGroupDoc.getServerId(), 
+						params[1], new Date());
+				dbUtils.groupDocDelegate.update(groupDoc);
+			} catch (ServerException e) {
+				exception = e;
+			} catch (ConnectionFailException e) {
+				exception = e;
+			}
+			return 0;
+		}
+		
+		@Override
+        protected void onPostExecute(Integer serverId) {
+			dialog.dismiss();
+			if(exception instanceof ServerException) {
+				Toast.makeText(GroupDocActivity.this, getString(R.string.cannot_update_notepad_server_problem) + exception.getMessage(), Toast.LENGTH_LONG).show();
+				return;
+			}else if(exception instanceof ConnectionFailException){
+				Toast.makeText(GroupDocActivity.this, R.string.cannot_update_notepad_connection_problem, Toast.LENGTH_LONG).show();
+				return;
+			}
+				dbUtils.close();
+				GroupDocActivity.this.finish();
+		}
+	}
 }

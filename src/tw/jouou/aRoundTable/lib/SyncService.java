@@ -10,6 +10,7 @@ import com.j256.ormlite.stmt.DeleteBuilder;
 
 import tw.jouou.aRoundTable.R;
 import tw.jouou.aRoundTable.bean.Event;
+import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -188,6 +189,14 @@ public class SyncService extends Service {
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
+			}
+			for(Project project : localProjs) {
+				// Delete all notpad of project
+				dbUtils.groupDocDelegate.delete(project.getServerId());
+
+				// Add new version
+				GroupDoc groupDoc = artApi.getNotepad(project.getServerId());
+				dbUtils.groupDocDelegate.insert(groupDoc);
 			}
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 			String now = formatter.format(new Date());

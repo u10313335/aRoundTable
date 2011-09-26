@@ -15,7 +15,7 @@
 					  android:layout_width="wrap_content"
 					  android:layout_height="wrap_content"
 					  android:layout_centerVertical="true"
-					  android:text="從："
+					  android:text="@string/from"
 					  android:textStyle="bold"
 					  android:textAppearance="?android:attr/textAppearanceMedium"/>
 			
@@ -41,7 +41,7 @@
 					  android:layout_width="wrap_content"
 					  android:layout_height="wrap_content"
 					  android:layout_centerVertical="true"
-					  android:text="到："
+					  android:text="@string/to"
 					  android:textStyle="bold"
 					  android:textAppearance="?android:attr/textAppearanceMedium"/>
 			
