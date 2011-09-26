@@ -823,12 +823,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 					new String[] { Long.toString(projectId) });
 		}
 
-		public List<TaskEvent> getOwned() {
+		public List<TaskEvent> getOwned(int userId) {
 			return query(
 					"(date >= Datetime('now','localtime') OR date = '')"
 							+ "AND finish = 0 "
 							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_users WHERE user_id = ?))",
-					new String[] { Long.toString(3) });
+					new String[] { Long.toString(userId) });
 		}
 
 		public List<TaskEvent> getOverDue(long projectId) {

@@ -137,10 +137,10 @@ public class CreateProjectActivity extends Activity {
 				Toast.makeText(CreateProjectActivity.this, R.string.cannot_add_project_connection_problem, Toast.LENGTH_LONG).show();
 				return;
 			}
-				dbUtils.close();
-				Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
-				intent.putExtra("proj", proj);
-				startActivity(intent);
+			dbUtils.close();
+			Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
+			intent.putExtra("proj", proj);
+			startActivity(intent);
 		}
 	}
 }

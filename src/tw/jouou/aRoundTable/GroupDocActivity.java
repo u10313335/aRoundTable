@@ -46,12 +46,6 @@ public class GroupDocActivity extends Activity {
 			public void onClick(View v) {
 				String content = Groupdocs_text.getText().toString();
 				(new UpdateGroupDocTask()).execute(content);
-				
-				
-				GroupDoc groupDoc = new GroupDoc(mGroupDoc.getId(), mGroupDoc.getProjId(), mGroupDoc.getServerId(), 
-						content, new Date());
-				dbUtils.groupDocDelegate.update(groupDoc);
-				GroupDocActivity.this.finish();
 			}
 		});
 				
@@ -84,9 +78,9 @@ public class GroupDocActivity extends Activity {
 		@Override
 		protected Integer doInBackground(String... params) {
 			try {
-				ArtApi.getInstance(GroupDocActivity.this).updateNotepad(mGroupDoc.getProjId(), params[1]);
+				ArtApi.getInstance(GroupDocActivity.this).updateNotepad(mGroupDoc.getProjId(), params[0]);
 				GroupDoc groupDoc = new GroupDoc(mGroupDoc.getId(), mGroupDoc.getProjId(), mGroupDoc.getServerId(), 
-						params[1], new Date());
+						params[0], new Date());
 				dbUtils.groupDocDelegate.update(groupDoc);
 			} catch (ServerException e) {
 				exception = e;
@@ -106,8 +100,8 @@ public class GroupDocActivity extends Activity {
 				Toast.makeText(GroupDocActivity.this, R.string.cannot_update_notepad_connection_problem, Toast.LENGTH_LONG).show();
 				return;
 			}
-				dbUtils.close();
-				GroupDocActivity.this.finish();
+			dbUtils.close();
+			GroupDocActivity.this.finish();
 		}
 	}
 }

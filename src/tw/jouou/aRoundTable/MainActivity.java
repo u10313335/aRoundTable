@@ -222,7 +222,9 @@ public class MainActivity extends Activity {
 		txLastUpdate = (TextView) v.findViewById(R.id.last_update);
 		TaskEventDelegate taskEventDelegate = dbUtils.taskEventDelegate;
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		allItemListView.setAdapter(ownedTaskEventAdapter = new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue(Integer.parseInt(prefs.getString("UID", "0")))));
+		allItemListView.setAdapter(ownedTaskEventAdapter = 
+				new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(Integer.parseInt(prefs.getString("UID", "0"))), 
+				taskEventDelegate.getOwnedOverDue(Integer.parseInt(prefs.getString("UID", "0")))));
 
     	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override

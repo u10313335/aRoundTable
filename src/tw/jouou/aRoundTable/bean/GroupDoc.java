@@ -41,6 +41,7 @@ public class GroupDoc implements Serializable {
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 			this.content = groupDocJson.getString("content");
+			this.projId = groupDocJson.getLong("project_id");
 			this.serverId = groupDocJson.getLong("id");
 			this.updateAt = formatter.parse(groupDocJson.getString("updated_at"));
 		} catch (ParseException e) {
@@ -90,5 +91,3 @@ public class GroupDoc implements Serializable {
 		return values;
 	}
 }
-
-
