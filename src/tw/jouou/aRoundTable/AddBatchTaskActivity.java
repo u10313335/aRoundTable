@@ -35,7 +35,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -62,12 +61,12 @@ public class AddBatchTaskActivity extends Activity {
 	private String mProjName;
 	private Project mProj;
 	private int mDueType = ASSIGN_DAY_PANEL;
-	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private LinkedList<TaskField> mOwners = new LinkedList<TaskField>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
+	private RelativeLayout mTaskDependency;
 	private List<Task> mTasks = null;
 	private LinearLayout mAddBatch;
     private TextView mTxCreateUnder;
@@ -166,6 +165,8 @@ public class AddBatchTaskActivity extends Activity {
         				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 1:
+        				tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString());
+        				(new CreateTaskTask()).execute(tasks);
         				break;
         			case 2:
         				tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString());
@@ -224,8 +225,6 @@ public class AddBatchTaskActivity extends Activity {
 		final TableLayout addBatchField = (TableLayout) mInflater.inflate(R.layout.add_batch_field, null);
 		final TableRow titleRow = (TableRow) addBatchField.findViewById(R.id.batch_task_title_row);
 		final TableRow ownerSelectRow = (TableRow) addBatchField.findViewById(R.id.batch_task_owner_row);
-		//mTasksTitle.add(titleRow);
-		//mOwnersEmail.add(ownerSelectRow);
 		final TaskField taskField = new TaskField(titleRow);
 		mOwners.add(taskField);
 		//widgets for titleRow
@@ -244,7 +243,6 @@ public class AddBatchTaskActivity extends Activity {
 							dialog.dismiss();
 							addBatchField.removeView(ownerSelectRow);
 							final User member = getUser(usersMail[which]);
-							//mTaskOwners.add(member);
 							taskField.setOwner(member);
 							final TableRow ownerDisplayRow = (TableRow) mInflater.inflate(R.layout.add_batch_display, null);
 							TextView tx = (TextView) ownerDisplayRow.findViewById(R.id.batch_task_owner_context);
@@ -253,7 +251,6 @@ public class AddBatchTaskActivity extends Activity {
 							delOwner.setOnClickListener( new OnClickListener() {
 								@Override
 								public void onClick(View v) {
-									//mTaskOwners.remove(member);
 									taskField.setOwner(null);
 									addBatchField.removeView(ownerDisplayRow);
 									addBatchField.addView(ownerSelectRow);
@@ -270,14 +267,10 @@ public class AddBatchTaskActivity extends Activity {
 		delTask.setOnClickListener( new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				//mTasksTitle.remove(titleRow);
-				//mOwnersEmail.remove(ownerSelectRow);
-				//mTaskOwners.add(member);
 				mOwners.remove(taskField);
 				mAddBatch.removeView(addBatchField);
 			}
 		});
-		
 		
 		//add rows onto add_batch panel
 		mAddBatch.addView(addBatchField);
@@ -339,35 +332,21 @@ public class AddBatchTaskActivity extends Activity {
 	}
 
 	private void findDependencyView() {
-		RelativeLayout add_batch_task_dependency;
 		if (mTasks.isEmpty()) {
-			add_batch_task_dependency = new RelativeLayout(this);
+			mTaskDependency = new RelativeLayout(this);
 			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
 			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			noDependable.setText(R.string.no_dependable_task);
-			add_batch_task_dependency.addView(noDependable);
+			mTaskDependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
 			for (int i=0; i < mTasks.size(); i++) {
 				taskNames[i] = mTasks.get(i).getName();
 			}
-			add_batch_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
-			final TableLayout single_depend_on_view = (TableLayout) add_batch_task_dependency
+			mTaskDependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
+			final TableLayout single_depend_on_view = (TableLayout) mTaskDependency
 					.findViewById(R.id.single_depend_on_view);
-			Spinner single_dependency_plus_minus = (Spinner) add_batch_task_dependency
-					.findViewById(R.id.single_dependency_plus_minus);
-			ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
-					android.R.layout.simple_spinner_item, new String[]{getString(R.string.plus), getString(R.string.minus)});
-			plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-			single_dependency_plus_minus.setAdapter(plus_minus_adapter);
-			single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> arg0, View view, int position, long id) {
-			}
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-			}});
-			ImageButton batch_depend_add_task = (ImageButton) add_batch_task_dependency
+			ImageButton batch_depend_add_task = (ImageButton) mTaskDependency
 					.findViewById(R.id.single_depend_add_task);
 			batch_depend_add_task.setOnClickListener( new OnClickListener() {
         	@Override
@@ -397,7 +376,7 @@ public class AddBatchTaskActivity extends Activity {
         	}
         });
 		}
-        mDateChooser.addView(add_batch_task_dependency);
+        mDateChooser.addView(mTaskDependency);
 	}
 	
 	private void findUndeterminedView() {
@@ -427,6 +406,13 @@ public class AddBatchTaskActivity extends Activity {
 			set.add(taskEventId);
 		}
 		return set.toArray(new Long[set.size()]);
+    }
+    
+    // get depended duration
+    private int getDependedDuration() {
+		int duration = Integer.parseInt((((EditText) mTaskDependency
+				.findViewById(R.id.single_dependency_day_context)).getText().toString()));
+		return duration;
     }
     
     private String[] getUsersMail(long projId) {
@@ -537,6 +523,10 @@ public class AddBatchTaskActivity extends Activity {
 		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].owners[i], params[0].note, false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    			dbUtils.tasksUsersDelegate.insertBatchTask(task);
+		    			if( mDueType == DEPENDENCY_PANEL) {
+			    			ArtApi.getInstance(AddBatchTaskActivity.this)
+								.setDependencies(task.getServerId(), getDependedTasks(), getDependedDuration());
+			    		}
 		    		}
 		    	}
 			} catch (ServerException e) {

@@ -386,10 +386,10 @@ public class ArtApi {
 	 * @throws ServerException
 	 * @throws ConnectionFailException
 	 */
-	public void setDependencies(int taskeventId, int dependencies[], int duration) throws ServerException, ConnectionFailException{
+	public void setDependencies(long taskeventId, Long dependencies[], int duration) throws ServerException, ConnectionFailException{
 		HashMap<String, String> params = makeTokenHash();
-		for(int id: dependencies){
-			params.put("task[dependency_ids][]", Integer.toString(id));
+		for(long id: dependencies){
+			params.put("task[dependency_ids][]", Long.toString(id));
 		}
 		params.put("task[duration]", Integer.toString(duration));
 		

@@ -221,7 +221,8 @@ public class MainActivity extends Activity {
 		ImageView btnAddProj = (ImageView) v.findViewById(R.id.all_item_add_project);
 		txLastUpdate = (TextView) v.findViewById(R.id.last_update);
 		TaskEventDelegate taskEventDelegate = dbUtils.taskEventDelegate;
-		allItemListView.setAdapter(ownedTaskEventAdapter = new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue()));
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		allItemListView.setAdapter(ownedTaskEventAdapter = new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(), taskEventDelegate.getOwnedOverDue(Integer.parseInt(prefs.getString("UID", "0")))));
 
     	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
 			@Override

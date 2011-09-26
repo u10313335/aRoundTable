@@ -38,7 +38,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -66,12 +65,12 @@ public class AddSingleTaskActivity extends Activity {
 	private Project mProj;
 	private Date mTaskDue;
 	private int mDueType = ASSIGN_DAY_PANEL;
-	private boolean mPlusMinusFlag = true; //fasle:minus ; true:plus
 	private LinkedList<User> mTaskOwners = new LinkedList<User>();
 	private LinkedList<TableRow> mDependableTasks = new LinkedList<TableRow>();
 	private long mProjId;
 	private LayoutInflater mInflater;
 	private RelativeLayout mDateChooser;
+	private RelativeLayout mTaskDependency;
 	private TableLayout mUserField;
 	private List<Task> mTasks = null;
     private EditText mEdTitle;
@@ -185,14 +184,16 @@ public class AddSingleTaskActivity extends Activity {
         		switch(mDueType) {       		
         			case ASSIGN_DAY_PANEL:
         				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
-        							mBtnDatePicker.getText().toString(),
-        							mEdRemarks.getText().toString());
+        						mBtnDatePicker.getText().toString(),
+        						mEdRemarks.getText().toString());
         				break;
         			case DEPENDENCY_PANEL:
+        				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
+        						"", mEdRemarks.getText().toString());
         				break;
         			case UNDETERMINED_PANEL:
         				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
-        							"", mEdRemarks.getText().toString());
+        						"", mEdRemarks.getText().toString());
         				break;
         		}
       	  	}
@@ -318,37 +319,22 @@ public class AddSingleTaskActivity extends Activity {
 
 	private void findDependencyView() {
 		mDueType = DEPENDENCY_PANEL;
-		RelativeLayout add_single_task_dependency;
 		if (mTasks.isEmpty()) {
-			add_single_task_dependency = new RelativeLayout(this);
+			mTaskDependency = new RelativeLayout(this);
 			TextView noDependable = new TextView(this, null, android.R.style.TextAppearance_Medium);
 			noDependable.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			noDependable.setText(R.string.no_dependable_task);
-			add_single_task_dependency.addView(noDependable);
+			mTaskDependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
 			for (int i=0; i < mTasks.size(); i++) {
 				taskNames[i] = mTasks.get(i).getName();
 			}
 		
-        add_single_task_dependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
-        final TableLayout single_depend_on_view = (TableLayout) add_single_task_dependency
+        mTaskDependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
+        final TableLayout single_depend_on_view = (TableLayout) mTaskDependency
 				.findViewById(R.id.single_depend_on_view);
-        Spinner single_dependency_plus_minus = (Spinner) add_single_task_dependency.findViewById(R.id.single_dependency_plus_minus);
-        ArrayAdapter<String> plus_minus_adapter = new ArrayAdapter<String>(this,
-        		android.R.layout.simple_spinner_item, new String[]{getString(R.string.plus), getString(R.string.minus)});
-        plus_minus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        single_dependency_plus_minus.setAdapter(plus_minus_adapter);
-        single_dependency_plus_minus.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> arg0, View view,
-					int position, long id) {
-			}
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-			}
-        });
-        ImageButton single_depend_add_task = (ImageButton) add_single_task_dependency
+        ImageButton single_depend_add_task = (ImageButton) mTaskDependency
 				.findViewById(R.id.single_depend_add_task);
         single_depend_add_task.setOnClickListener( new OnClickListener() {
         	@Override
@@ -375,9 +361,9 @@ public class AddSingleTaskActivity extends Activity {
         		single_depend_on_view.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         				LayoutParams.WRAP_CONTENT));
         	}
-        });
+        });    
 		}
-        mDateChooser.addView(add_single_task_dependency);
+        mDateChooser.addView(mTaskDependency);
 	}
 	
 	private void findUndeterminedView() {
@@ -432,6 +418,13 @@ public class AddSingleTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
+    // get depended duration
+    private int getDependedDuration() {
+		int duration = Integer.parseInt((((EditText) mTaskDependency
+				.findViewById(R.id.single_dependency_day_context)).getText().toString()));
+		return duration;
+    }
+    
     private Long[] getOwnersId() {
 		Set<Long> set = new TreeSet<Long>();
 		for (int i=0; i < mTaskOwners.size(); i++) {
@@ -484,19 +477,24 @@ public class AddSingleTaskActivity extends Activity {
 		protected Integer doInBackground(String... params) {
 			try {
 		    	if (mBundle.getInt("addOrEdit") == 0) {
+		    		Task task = null;
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 								.createTask(mProjId, params[0], getOwnersId(), mDateToStr.parse(params[1]), params[2]);
-		    			Task task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
+		    			task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    			dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 								.createTask(mProjId, params[0], getOwnersId(), null, params[2]);
-						Task task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, new Date());
+						task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, new Date());
 						dbUtils.tasksDelegate.insert(task);
 						dbUtils.tasksUsersDelegate.insertSingleTask(task);
-		    		}	
+						if( mDueType == DEPENDENCY_PANEL) {
+			    			ArtApi.getInstance(AddSingleTaskActivity.this)
+								.setDependencies(task.getServerId(), getDependedTasks(), getDependedDuration());
+			    		}
+		    		}
 		    	} else {
 		    		if (!params[1].equals("")) {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),

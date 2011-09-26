@@ -68,9 +68,7 @@
     <string name="location">地點：</string>
     <string name="no_dependable_task">無可相依工作</string>
     <string name="satisfy_following_task">滿足以下條件後：</string>
-    <string name="more">再</string>
-    <string name="plus">加</string>
-    <string name="minus">減</string>
+    <string name="more">再加</string>
     <string name="days">天</string>
     <string name="owner">負責：</string>
     <string name="add_owner">新增負責人</string>

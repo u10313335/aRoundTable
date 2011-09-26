@@ -818,32 +818,31 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		public static final int TYPE_EVENT = 1;
 
 		public List<TaskEvent> get(long projectId) {
-			return query("date >= Datetime('now','localtime') "
+			return query("(date >= Datetime('now','localtime') OR date = '')"
 					+ "AND finish = 0 " + "AND project_id = ?",
 					new String[] { Long.toString(projectId) });
 		}
 
 		public List<TaskEvent> getOwned() {
 			return query(
-					"date >= Datetime('now','localtime') "
+					"(date >= Datetime('now','localtime') OR date = '')"
 							+ "AND finish = 0 "
 							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_users WHERE user_id = ?))",
 					new String[] { Long.toString(3) });
 		}
 
 		public List<TaskEvent> getOverDue(long projectId) {
-			return query("date < Datetime('now','localtime') "
+			return query("(date < Datetime('now','localtime') AND date <> '')"
 					+ "AND finish = 0 " + "AND project_id = ?",
 					new String[] { Long.toString(projectId) });
 		}
 
-		// FIXME: now using mock userId, should be real
-		public List<TaskEvent> getOwnedOverDue() {
+		public List<TaskEvent> getOwnedOverDue(int userId) {
 			return query(
-					"date < Datetime('now','localtime') "
+					"(date < Datetime('now','localtime') AND date <> '')"
 							+ "AND finish = 0 "
 							+ "AND (type = 1 OR server_id IN (SELECT task_id FROM tasks_users WHERE user_id = ?))",
-					new String[] { Long.toString(3) });
+					new String[] { Integer.toString(userId) });
 		}
 
 		private List<TaskEvent> query(String selection, String[] selectionArgs) {
