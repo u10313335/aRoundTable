@@ -115,9 +115,7 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(dbUtils == null) {
-        	dbUtils = DBUtils.getInstance(this);
-    	}
+    	dbUtils = DBUtils.getInstance(this);
         
         colors = getResources().obtainTypedArray(R.array.project_colors);
     	
@@ -444,9 +442,6 @@ public class MainActivity extends Activity {
     @Override
 	public void onResume() {
 		super.onResume();		
-		if (dbUtils == null) {
-			dbUtils = DBUtils.getInstance(this);
-		}
     	dataReceiver = new DataReceiver();
     	filter = new IntentFilter();
         filter.addAction("tw.jouou.aRoundTable.MainActivity"); 
