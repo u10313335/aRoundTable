@@ -12,7 +12,7 @@ import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.ContentValues;
-import android.util.Log;
+
 
 public class Task implements Serializable {
 	
@@ -25,12 +25,14 @@ public class Task implements Serializable {
 	private String note;
 	private boolean done;
 	private Date updateAt;
+	private String dependOn;
+	private int duration;
 	private int type = 0;
 	private Long owner;
 	private Long[] owners;
 	
 	public Task(long id, long projId, long serverId, String name, Date due,
-			String note, boolean done, Date updateAt) {
+			String note, boolean done, String dependOn, int duration, Date updateAt) {
 		this.id = id;
 		this.projId = projId;
 		this.serverId = serverId;
@@ -38,11 +40,13 @@ public class Task implements Serializable {
 		this.due = due;
 		this.note = note;
 		this.done = done;
+		this.dependOn = dependOn;
+		this.duration = duration;
 		this.updateAt = updateAt;
 	}
 	
 	public Task(long id, long projId, long serverId, String name, Date due, Long[] owners, 
-			String note, boolean done, Date updateAt) {
+			String note, boolean done, String dependOn, int duration, Date updateAt) {
 		this.id = id;
 		this.projId = projId;
 		this.serverId = serverId;
@@ -51,11 +55,13 @@ public class Task implements Serializable {
 		this.owners = owners;
 		this.note = note;
 		this.done = done;
+		this.dependOn = dependOn;
+		this.duration = duration;
 		this.updateAt = updateAt;
 	}
 	
 	public Task(long projId, long serverId, String name, Date due, Long owner,
-			String note, boolean done, Date updateAt) {
+			String note, boolean done, String dependOn, int duration, Date updateAt) {
 		this.projId = projId;
 		this.serverId = serverId;
 		this.name = name;
@@ -63,11 +69,13 @@ public class Task implements Serializable {
 		this.owner = owner;
 		this.note = note;
 		this.done = done;
+		this.dependOn = dependOn;
+		this.duration = duration;
 		this.updateAt = updateAt;
 	}
 	
 	public Task(long projId, long serverId, String name, Date due, Long[] owners, 
-			String note, boolean done, Date updateAt) {
+			String note, boolean done, String dependOn, int duration, Date updateAt) {
 		this.projId = projId;
 		this.serverId = serverId;
 		this.name = name;
@@ -75,6 +83,8 @@ public class Task implements Serializable {
 		this.owners = owners;
 		this.note = note;
 		this.done = done;
+		this.dependOn = dependOn;
+		this.duration = duration;
 		this.updateAt = updateAt;
 	}
 	
@@ -91,11 +101,17 @@ public class Task implements Serializable {
 			this.note = taskJson.getString("note");
 			this.done = (taskJson.getString("finished").equals("true")) ? true : false;
 			this.updateAt = formatter.parse(taskJson.getString("updated_at"));
-			JSONArray jsonArray = taskJson.getJSONArray("user_ids");
-			this.owners = new Long[jsonArray.length()];
-			for(int i=0; i<this.owners.length; i++){
-				this.owners[i] = jsonArray.getLong(i);
-				Log.v("Task", "task_id: " + this.serverId + " user_ids: " + this.owners[i]);
+			JSONArray ownersArray = taskJson.getJSONArray("user_ids");
+			this.owners = new Long[ownersArray.length()];
+			for(int i=0; i<this.owners.length; i++) {
+				this.owners[i] = ownersArray.getLong(i);
+			}
+			JSONArray dependArray = taskJson.getJSONArray("dependency_ids");
+			this.dependOn = dependArray.toString();
+			if(!(taskJson.getString("duration").equals("null"))) {
+				this.duration = Integer.parseInt(taskJson.getString("duration"));
+			}else {
+				this.duration = 1;
 			}
 		} catch (ParseException e) {
 			System.out.println("Parse error");
@@ -151,6 +167,14 @@ public class Task implements Serializable {
 		return done;
 	}
 	
+	public String getDependOn() {
+		return dependOn;
+	}
+	
+	public int getDuration() {
+		return duration;
+	}
+	
 	public void setUpdateAt(Date updateAt) {
 		this.updateAt = updateAt;
 	}
@@ -178,6 +202,8 @@ public class Task implements Serializable {
 		}
 		values.put(DBUtils.FIELD_TASK_NOTE, note);
 		values.put(DBUtils.FIELD_TASK_FINISHED, (done)? "1" : "0");
+		values.put(DBUtils.FIELD_TASK_DEPEND_ON, dependOn);
+		values.put(DBUtils.FIELD_TASK_DEPEND_DURATION, duration);
 		values.put(DBUtils.FIELD_TASK_UPDATED_AT, sdf.format(updateAt));
 		values.put(DBUtils.FIELD_TASK_TYPE, type);
 		return values;

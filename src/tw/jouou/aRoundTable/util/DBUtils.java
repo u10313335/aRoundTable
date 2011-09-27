@@ -53,6 +53,8 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_TASK_DUEDATE = "due";
 	public final static String FIELD_TASK_NOTE = "note";
 	public final static String FIELD_TASK_FINISHED = "finish";
+	public final static String FIELD_TASK_DEPEND_ON = "depend_on";
+	public final static String FIELD_TASK_DEPEND_DURATION = "depend_duration";
 	public final static String FIELD_TASK_UPDATED_AT = "updated_at";
 	public final static String FIELD_TASK_TYPE = "type";
 
@@ -128,7 +130,9 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_TASK_PROJECTID + " INTEGER, " + FIELD_TASK_SERVERID
 				+ " INTEGER, " + FIELD_TASK_DUEDATE + " DATETIME, "
 				+ FIELD_TASK_NOTE + " TEXT, " + FIELD_TASK_FINISHED
-				+ " INTEGER, " + FIELD_TASK_UPDATED_AT + " DATETIME, "
+				+ " INTEGER, " + FIELD_TASK_DEPEND_ON + " TEXT, "
+				+ FIELD_TASK_DEPEND_DURATION + " INTEGER, "
+				+ FIELD_TASK_UPDATED_AT + " DATETIME, "
 				+ FIELD_TASK_TYPE + " INTEGER )");
 
 		db.execSQL("CREATE TABLE " + TABLE_TASKS_USERS + "( "
@@ -327,10 +331,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			SQLiteDatabase db = getReadableDatabase();
 			// c1:select normal tasks ; c2:select undetermined tasks
 			Cursor c1 = db.query(TABLE_TASK, null, "project_id=" + projId
-					+ " and finish=0 and due>= Datetime('now','localtime')",
+					+ " and finish=0 and due>= Datetime('now','localtime') and type<> 2",
 					null, null, null, "due ASC", null);
 			Cursor c2 = db.query(TABLE_TASK, null, "project_id=" + projId
-					+ " and finish=0 and due=''", null, null, null, null, null);
+					+ " and finish=0 and due='' and type<> 2", null, null, null, null, null);
 			while (c1.moveToNext()) {
 				Task task = new Task(
 						c1.getLong(c1.getColumnIndexOrThrow(FIELD_TASK_ID)),
@@ -344,7 +348,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c1.getInt(c1
 								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c1.getString(c1
+								: false, 
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c1.getString(c1
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
@@ -361,7 +368,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c2.getInt(c2
 								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c2.getString(c2
+								: false,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c2.getString(c2
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
@@ -389,7 +399,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c1.getInt(c1
 								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c1.getString(c1
+								: false,
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c1.getString(c1
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
@@ -406,7 +419,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c2.getInt(c2
 								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c2.getString(c2
+								: false,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c2.getString(c2
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
@@ -434,7 +450,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						dueDate,
 						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c.getInt(c.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c.getString(c
+								: false,
+						c.getString(c.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c.getInt(c.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c.getString(c
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 			}
 			c.close();
@@ -462,7 +481,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c1.getInt(c1
 								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c1.getString(c1
+								: false,
+						c1.getString(c1.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c1.getInt(c1.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c1.getString(c1
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}
@@ -479,7 +501,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_NOTE)),
 						(c2.getInt(c2
 								.getColumnIndexOrThrow(FIELD_TASK_FINISHED)) == 1) ? true
-								: false, formatter.parse(c2.getString(c2
+								: false,
+						c2.getString(c2.getColumnIndexOrThrow(FIELD_TASK_DEPEND_ON)),
+						c2.getInt(c2.getColumnIndexOrThrow(FIELD_TASK_DEPEND_DURATION)),
+						formatter.parse(c2.getString(c2
 								.getColumnIndexOrThrow(FIELD_TASK_UPDATED_AT))));
 				tasks.add(task);
 			}

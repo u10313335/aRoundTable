@@ -68,6 +68,7 @@
     <string name="to">到：</string>
     <string name="location">地點：</string>
     <string name="no_dependable_task">無可相依工作</string>
+    <string name="select_a_dependable_task">請至少選擇一欲相依事件</string>
     <string name="satisfy_following_task">滿足以下條件後：</string>
     <string name="more">再加</string>
     <string name="days">天</string>

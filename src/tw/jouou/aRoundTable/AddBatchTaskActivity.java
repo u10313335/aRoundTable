@@ -3,12 +3,15 @@ package tw.jouou.aRoundTable;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.json.JSONArray;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 
@@ -160,16 +163,21 @@ public class AddBatchTaskActivity extends Activity {
         		Long[] owners = getOwnersId(mOwners);
         		Tasks tasks = null;
         		switch(mDueType) {
-        			case 0:
-        				tasks = new Tasks(titles, owners, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString());
+        			case ASSIGN_DAY_PANEL:
+        				tasks = new Tasks(titles, owners, mBtnDatePicker.getText().toString(), mEdRemarks.getText().toString(), 0);
         				(new CreateTaskTask()).execute(tasks);
         				break;
-        			case 1:
-        				tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString());
-        				(new CreateTaskTask()).execute(tasks);
+        			case DEPENDENCY_PANEL:
+        				if(!mDependableTasks.isEmpty()) {
+        					String duration = ((EditText) mTaskDependency.findViewById(R.id.single_dependency_day_context)).getText().toString();
+        					tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString(), Integer.parseInt(duration));
+        					(new CreateTaskTask()).execute(tasks);
+        				} else {
+        					Toast.makeText(AddBatchTaskActivity.this, R.string.select_a_dependable_task, Toast.LENGTH_LONG).show();
+        				}
         				break;
-        			case 2:
-        				tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString());
+        			case UNDETERMINED_PANEL:
+        				tasks = new Tasks(titles, owners, "", mEdRemarks.getText().toString(), 0);
         				(new CreateTaskTask()).execute(tasks);
         				break;
         		}
@@ -415,6 +423,11 @@ public class AddBatchTaskActivity extends Activity {
 		return duration;
     }
     
+    private String dependedTasksToJSONArray(Long dependedTasks[]) {
+    	JSONArray jsonArray = new JSONArray(Arrays.asList(getDependedTasks()));
+    	return jsonArray.toString();
+    }
+    
     private String[] getUsersMail(long projId) {
     	List<User> members = null;
 		try {
@@ -459,12 +472,14 @@ public class AddBatchTaskActivity extends Activity {
     	private Long [] owners;
     	private String due;
     	private String note;
+    	private int duration;
     	
-    	Tasks(String[] titles, Long[] owners, String due, String note) {
+    	Tasks(String[] titles, Long[] owners, String due, String note, int duration) {
     		this.titles = titles;
     		this.owners = owners;
     		this.due = due;
     		this.note = note;
+    		this.duration = duration;
     	}
     }
     
@@ -512,7 +527,7 @@ public class AddBatchTaskActivity extends Activity {
 		    		for(int i=0; i < mOwners.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], params[0].owners[i], mDateToStr.parse(params[0].due), params[0].note);
-		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].owners[i], params[0].note, false, new Date());
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], mDateToStr.parse(params[0].due), params[0].owners[i], params[0].note, false, dependedTasksToJSONArray(getDependedTasks()), params[0].duration, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    			dbUtils.tasksUsersDelegate.insertBatchTask(task);
 		    		}
@@ -520,7 +535,7 @@ public class AddBatchTaskActivity extends Activity {
 		    		for(int i=0; i < mOwners.size(); i++) {
 		    			int serverId = ArtApi.getInstance(AddBatchTaskActivity.this)
 								.createTask(mProjId, params[0].titles[i], params[0].owners[i], null, params[0].note);
-		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].owners[i], params[0].note, false, new Date());
+		    			Task task = new Task(mProjId, serverId, params[0].titles[i], null, params[0].owners[i], params[0].note, false, dependedTasksToJSONArray(getDependedTasks()), params[0].duration, new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    			dbUtils.tasksUsersDelegate.insertBatchTask(task);
 		    			if( mDueType == DEPENDENCY_PANEL) {

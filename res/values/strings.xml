@@ -68,7 +68,8 @@
     <string name="to">To:</string>
     <string name="location">Place:</string>
     <string name="no_dependable_task">No Dependent Task</string>
-    <string name="satisfy_following_task">When accomplishing following condition：</string>
+    <string name="select_a_dependable_task">Select at least one task to depend on</string>
+    <string name="satisfy_following_task">When accomplishing following condition:</string>
     <string name="more">more</string>
     <string name="days">day(s)</string>
     <string name="owner">Owner:</string>

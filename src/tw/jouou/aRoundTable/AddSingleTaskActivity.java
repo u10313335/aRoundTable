@@ -3,6 +3,7 @@ package tw.jouou.aRoundTable;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -10,6 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 
@@ -60,6 +64,7 @@ public class AddSingleTaskActivity extends Activity {
     private static String TAG = "AddSingleTaskActivity";
 	private DBUtils dbUtils;
 	private Task mTask;
+	private long[] dependOnIds;
 	private Bundle mBundle;
 	private String mProjName;
 	private Project mProj;
@@ -144,7 +149,12 @@ public class AddSingleTaskActivity extends Activity {
         	mEdRemarks.setText(mTask.getNote());
         	mTaskDue = mTask.getDueDate();
         	if(mTaskDue == null) {
-        		findUndeterminedView();
+        		if(!mTask.getDependOn().equals("")) {
+                	dependOnIds = getDependedTaskFromJSON(mTask.getDependOn());
+            		findDependencyView(dependOnIds);
+        		} else {
+        			findUndeterminedView();
+        		}
         	} else {
         		mCalendar.setTime(mTaskDue);
         		mYear = mCalendar.get(Calendar.YEAR);
@@ -166,7 +176,7 @@ public class AddSingleTaskActivity extends Activity {
         	@Override
       	  	public void onClick(View v) {
         		mDateChooser.removeAllViews();
-        		findDependencyView();
+        		findDependencyView(dependOnIds);
       	  	}
     	});
         
@@ -185,15 +195,20 @@ public class AddSingleTaskActivity extends Activity {
         			case ASSIGN_DAY_PANEL:
         				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
         						mBtnDatePicker.getText().toString(),
-        						mEdRemarks.getText().toString());
+        						mEdRemarks.getText().toString(), "0");
         				break;
         			case DEPENDENCY_PANEL:
-        				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
-        						"", mEdRemarks.getText().toString());
+        				if(!mDependableTasks.isEmpty()) {
+        					String duration = ((EditText) mTaskDependency.findViewById(R.id.single_dependency_day_context)).getText().toString();
+        					(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
+        							"", mEdRemarks.getText().toString(), duration);
+        				} else {
+        					Toast.makeText(AddSingleTaskActivity.this, R.string.select_a_dependable_task, Toast.LENGTH_LONG).show();
+        				}
         				break;
         			case UNDETERMINED_PANEL:
         				(new CreateTaskTask()).execute(mEdTitle.getText().toString(),
-        						"", mEdRemarks.getText().toString());
+        						"", mEdRemarks.getText().toString(), "0");
         				break;
         		}
       	  	}
@@ -316,8 +331,9 @@ public class AddSingleTaskActivity extends Activity {
         updateDisplay(mYear, mMonth, mDay);
         mDateChooser.addView(add_single_task_assign_date);
 	}
-
-	private void findDependencyView() {
+	
+	private void findDependencyView(long[] dependOnIds) {
+        int i, j, k;
 		mDueType = DEPENDENCY_PANEL;
 		if (mTasks.isEmpty()) {
 			mTaskDependency = new RelativeLayout(this);
@@ -327,17 +343,48 @@ public class AddSingleTaskActivity extends Activity {
 			mTaskDependency.addView(noDependable);
 		} else {
 			final String taskNames[] = new String[mTasks.size()];
-			for (int i=0; i < mTasks.size(); i++) {
+			for (i=0; i < mTasks.size(); i++) {
 				taskNames[i] = mTasks.get(i).getName();
 			}
 		
-        mTaskDependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
-        final TableLayout single_depend_on_view = (TableLayout) mTaskDependency
-				.findViewById(R.id.single_depend_on_view);
-        ImageButton single_depend_add_task = (ImageButton) mTaskDependency
-				.findViewById(R.id.single_depend_add_task);
-        single_depend_add_task.setOnClickListener( new OnClickListener() {
-        	@Override
+			mTaskDependency = (RelativeLayout) mInflater.inflate(R.layout.add_item_dependency, null);
+			final TableLayout single_depend_on_view = (TableLayout) mTaskDependency
+					.findViewById(R.id.single_depend_on_view);
+			ImageButton single_depend_add_task = (ImageButton) mTaskDependency
+					.findViewById(R.id.single_depend_add_task);
+			((EditText) mTaskDependency.findViewById(R.id.single_dependency_day_context)).setText(""+mTask.getDuration());
+			if(dependOnIds != null) {
+				for(j = 0; j < dependOnIds.length; j++) {
+					final TableRow tr = new TableRow(AddSingleTaskActivity.this);
+					mDependableTasks.add(tr);
+					tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+					final Spinner sp = new Spinner(AddSingleTaskActivity.this);
+					ArrayAdapter<String> depend_on_adapter = new ArrayAdapter<String>(AddSingleTaskActivity.this
+							,android.R.layout.simple_spinner_item, taskNames);
+					depend_on_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+					for(k=0; k< mTasks.size(); k++) {
+						if(mTasks.get(k).getServerId() == dependOnIds[j])
+							break;
+					}
+					sp.setAdapter(depend_on_adapter);
+					sp.setSelection(depend_on_adapter.getPosition(taskNames[k]));
+					sp.setTag("sp");
+					ImageButton ib = (ImageButton) mInflater.inflate(R.layout.delete_button, null);
+					ib.setOnClickListener( new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							mDependableTasks.remove(tr);
+							single_depend_on_view.removeView(tr);
+						}
+					});
+					tr.addView(sp);
+					tr.addView(ib);
+					single_depend_on_view.addView(tr, new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+							LayoutParams.WRAP_CONTENT));
+				}
+			}
+			single_depend_add_task.setOnClickListener( new OnClickListener() {
+				@Override
         	public void onClick(View v) {
         		final TableRow tr = new TableRow(AddSingleTaskActivity.this);
         		mDependableTasks.add(tr);
@@ -425,6 +472,25 @@ public class AddSingleTaskActivity extends Activity {
 		return duration;
     }
     
+    private long[] getDependedTaskFromJSON(String dependArray) {
+    	long dependencies[] = null;
+    	try {
+			JSONArray jsonArray = new JSONArray(dependArray);
+			dependencies = new long[jsonArray.length()];
+			for(int i=0; i<dependencies.length; i++) {
+				dependencies[i] = jsonArray.getLong(i);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return dependencies;
+    }
+    
+    private String dependedTasksToJSONArray(Long dependedTasks[]) {
+    	JSONArray jsonArray = new JSONArray(Arrays.asList(getDependedTasks()));
+    	return jsonArray.toString();
+    }
+    
     private Long[] getOwnersId() {
 		Set<Long> set = new TreeSet<Long>();
 		for (int i=0; i < mTaskOwners.size(); i++) {
@@ -481,16 +547,16 @@ public class AddSingleTaskActivity extends Activity {
 		    		if (!params[1].equals("")) {
 						int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 								.createTask(mProjId, params[0], getOwnersId(), mDateToStr.parse(params[1]), params[2]);
-		    			task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
+		    			task = new Task(mProjId, serverId, params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, dependedTasksToJSONArray(getDependedTasks()), Integer.parseInt(params[3]), new Date());
 		    			dbUtils.tasksDelegate.insert(task);
 		    			dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    		} else {
 		    			int serverId = ArtApi.getInstance(AddSingleTaskActivity.this)
 								.createTask(mProjId, params[0], getOwnersId(), null, params[2]);
-						task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, new Date());
+						task = new Task(mProjId, serverId, params[0], null, getOwnersId(), params[2], false, dependedTasksToJSONArray(getDependedTasks()), Integer.parseInt(params[3]), new Date());
 						dbUtils.tasksDelegate.insert(task);
 						dbUtils.tasksUsersDelegate.insertSingleTask(task);
-						if( mDueType == DEPENDENCY_PANEL) {
+						if(mDueType == DEPENDENCY_PANEL) {
 			    			ArtApi.getInstance(AddSingleTaskActivity.this)
 								.setDependencies(task.getServerId(), getDependedTasks(), getDependedDuration());
 			    		}
@@ -498,14 +564,14 @@ public class AddSingleTaskActivity extends Activity {
 		    	} else {
 		    		if (!params[1].equals("")) {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
-			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, new Date());
+			    				mTask.getServerId(), params[0], mDateToStr.parse(params[1]), getOwnersId(), params[2], false, dependedTasksToJSONArray(getDependedTasks()), Integer.parseInt(params[3]), new Date());
 		    			dbUtils.tasksDelegate.update(task);
 						dbUtils.tasksUsersDelegate.deleteUnderTask(task.getServerId());
 						dbUtils.tasksUsersDelegate.insertSingleTask(task);
 		    			
 		    		} else {
 		    			Task task = new Task(mTask.getServerId(), mTask.getProjId(),
-		    					mTask.getServerId(), params[0], null, getOwnersId(), params[2], false, new Date());
+		    					mTask.getServerId(), params[0], null, getOwnersId(), params[2], false, dependedTasksToJSONArray(getDependedTasks()), Integer.parseInt(params[3]), new Date());
 		    			dbUtils.tasksDelegate.update(task);
 						dbUtils.tasksUsersDelegate.deleteUnderTask(task.getServerId());
 						dbUtils.tasksUsersDelegate.insertSingleTask(task);

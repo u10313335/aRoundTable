@@ -361,27 +361,6 @@ public class ArtApi {
 	}
 	
 	/**
-	 * Get dependency list of an taskevent
-	 * @param taskeventId
-	 * @return an array contains dependency taskevent ids
-	 * @throws ServerException
-	 * @throws ConnectionFailException
-	 */
-	public int[] getDependencies(int taskeventId) throws ServerException, ConnectionFailException{
-		HttpResponse response = performGet(String.format(taskPath, taskeventId), makeTokenHash());
-		try {
-			JSONArray jsonArray = extractJsonObject(response).getJSONArray("dependency_ids");
-			int dependencies[] = new int[jsonArray.length()];
-			for(int i=0; i<dependencies.length; i++){
-				dependencies[i] = jsonArray.getInt(i);
-			}
-			return dependencies;
-		} catch (JSONException e) {
-			throw new ServerException("fail to get dependency array from json");
-		}
-	}
-	
-	/**
 	 * Set dependencies for taskevent
 	 * @param taskeventId
 	 * @param dependencies
