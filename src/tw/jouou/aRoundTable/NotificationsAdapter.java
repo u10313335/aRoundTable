@@ -24,11 +24,24 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 	private LayoutInflater inflater;
 	private DBUtils dbUtils;
 
-	public NotificationsAdapter(Context context) throws SQLException {
+	public NotificationsAdapter(Context context){
 		this.context = context;
-		this.notifications = DBUtils.getInstance(context.getApplicationContext()).notificationDao.queryForAll();
-		this.inflater =  (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		this.dbUtils = DBUtils.getInstance(context);
+		try {
+			this.notifications = dbUtils.notificationDao.queryForAll();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		this.inflater =  (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	}
+	
+	public void rebase(){
+		try {
+			this.notifications = dbUtils.notificationDao.queryForAll();
+			notifyDataSetChanged();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public View	getView(int position, View convertView, ViewGroup parent){

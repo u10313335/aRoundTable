@@ -43,6 +43,12 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 		this.overDue = overDue;
 		this.dbUtils = DBUtils.getInstance(context);
 	}
+	
+	public void replaceDataSet(List<TaskEvent> taskevents, List<TaskEvent> overDue){
+		this.taskevents = taskevents;
+		this.overDue = overDue;
+		notifyDataSetChanged();
+	}
 
 	@Override
 	public Object getChild(int groupPosition, int childPosition) {

@@ -6,100 +6,160 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import com.j256.ormlite.stmt.DeleteBuilder;
-
 import tw.jouou.aRoundTable.R;
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.Notification;
-import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
+import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Binder;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.j256.ormlite.stmt.DeleteBuilder;
 
 public class SyncService extends Service {
 	
 	private ArtApi artApi;
 	private DBUtils dbUtils;
-	private static SyncService SYNC_SERVICE = null;
-	public static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-	public static final String PREF = "SYNC_PREF";
-    public static final String PREF_LAST_UPDATE = "SYNC_LAST_UPDATE";
-    public static final int SERVER_FAILED = 0;
-    public static final int CONNECTION_FAILED = 1;
+	private Thread syncThread;
+	private SharedPreferences sharedPreferences;
 	private static String TAG = "SyncService";
+	public static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+	public static final int RESULT_OK = -1;
+	public static final int RESULT_SERVER_FAILED = 1;
+	public static final int RESULT_CONNECTION_FAILED = 2;
+    public static final String PREF_LAST_UPDATE = "SYNC_LAST_UPDATE";
+    public static final String ACTION_SYNC_RESULT = "tw.jouou.aRoundTable.SYNC_RESULT";
+    public static final String EXTRA_SYNC_RESULT_CODE = "SYNCE_RESULT_CODE";
+    public static final String EXTRA_SYNC_RESULT_STRING = "SYNC_RESULT_STRING";
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		SYNC_SERVICE = this;
 		artApi = ArtApi.getInstance(this);
 		dbUtils = DBUtils.getInstance(this);
-	}
-
-	@Override
-	public IBinder onBind(Intent arg0) {
-		return null;
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		// Periodic run
+		PendingIntent pendingIntent = PendingIntent.getService(this, 0, new Intent(this, SyncService.class), 0);
+		AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+		long firstTime = SystemClock.elapsedRealtime();
+		alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+					firstTime, 15*60*1000, pendingIntent);
 	}
 	
-	public static Service getService() {
-		return SYNC_SERVICE;
+	public void updateResult(int resultCode, String resultString){
+		sharedPreferences.edit().putString(PREF_LAST_UPDATE, resultString).commit();
+		Intent intent = new Intent(ACTION_SYNC_RESULT);
+		intent.putExtra(EXTRA_SYNC_RESULT_CODE, resultCode);
+		intent.putExtra(EXTRA_SYNC_RESULT_STRING, resultString);
+		sendBroadcast(intent);
 	}
+	
+	@Override
+	public IBinder onBind(Intent arg0) {
+		return mBinder;
+	}
+	
+	private SyncBinder mBinder = new SyncBinder();
+	public class SyncBinder extends Binder{
+		public SyncService getService() {
+			return SyncService.this;
+	    }
+	};
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
+		
 		sync();
 		return START_STICKY;
 	}
 	
 	public void sync() {
-		Intent intent = new Intent();
-        intent.setAction("tw.jouou.aRoundTable.MainActivity");
-		try {
-			Project remoteProjs[] = artApi.getProjectList();
-			List<Project> localProjs = dbUtils.projectsDelegate.get();
-			int projDiff = remoteProjs.length - localProjs.size();
-			if(projDiff == 0) {
-				for (int i=0 ; i<localProjs.size() ; i++) {
-					Project proj = dbUtils.projectsDelegate.get(remoteProjs[i].getServerId());
-					Log.v(TAG, "[project] local: " + proj.getServerId() + " remote: " + remoteProjs[i].getServerId());
-					if (!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
-						if(proj.getUpdateAt().after(remoteProjs[i].getUpdateAt())) {
-							Log.v(TAG, "project: " + proj.getServerId() + " local update to server (push)");
-							artApi.updateProject(proj.getServerId(), proj.getName(), Integer.toString(proj.getColor()));
-							proj.setUpdateAt(artApi.getProject(proj.getServerId()).getUpdateAt());
-							dbUtils.projectsDelegate.update(proj);
-						} else {
-							Log.v(TAG, "project: " + proj.getServerId() + " server update to local (pull)");
-							dbUtils.projectsDelegate.update(artApi.getProject(proj.getServerId()));
-						}
-					} else {
-						Log.v(TAG, "project: " + proj.getServerId() + " nothing changed");
-						continue;
+		if(syncThread != null && syncThread.isAlive())
+			return;
+		
+		syncThread = new Thread(new Runnable() {
+			Project[] remoteProjs;
+			List<Project> localProjs;
+			
+			@Override
+			public void run() {
+				try {
+					remoteProjs = artApi.getProjectList();
+					localProjs = dbUtils.projectsDelegate.get();
+					syncProjects();
+					
+					for(Project project: localProjs){
+						syncProjectTasks(project);
+						syncProjectEvents(project);
+						syncProjectMembers(project);
+						syncProjectGroupDocs(project);
 					}
+		
+					syncNotifications();
+					
+					updateResult(RESULT_OK, formatter.format(new Date()));
+				} catch (ServerException e) {
+					updateResult(RESULT_SERVER_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
+				} catch (ConnectionFailException e) {
+					updateResult(RESULT_CONNECTION_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
-			} else {
-				Log.v(TAG, "project numbers vary, rebuild projects db...");
-				dbUtils.projectsDelegate.deleteAll();
-				for (int i=0 ; i < remoteProjs.length ; i++) {
-					Project proj = new Project(remoteProjs[i].getName(), remoteProjs[i].getServerId(), remoteProjs[i].getColor(), remoteProjs[i].getUpdateAt());
-					dbUtils.projectsDelegate.insert(proj);
+				stopSelf();
+			}
+			
+			private void syncProjects() throws ServerException, ConnectionFailException, ParseException{
+				if(remoteProjs.length == localProjs.size()) {
+					for (int i=0 ; i<localProjs.size() ; i++) {
+						Project proj = dbUtils.projectsDelegate.get(remoteProjs[i].getServerId());
+						Log.v(TAG, "[project] local: " + proj.getServerId() + " remote: " + remoteProjs[i].getServerId());
+						if (!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
+							if(proj.getUpdateAt().after(remoteProjs[i].getUpdateAt())) {
+								Log.v(TAG, "project: " + proj.getServerId() + " local update to server (push)");
+								artApi.updateProject(proj.getServerId(), proj.getName(), Integer.toString(proj.getColor()));
+								proj.setUpdateAt(artApi.getProject(proj.getServerId()).getUpdateAt());
+								dbUtils.projectsDelegate.update(proj);
+							} else {
+								Log.v(TAG, "project: " + proj.getServerId() + " server update to local (pull)");
+								dbUtils.projectsDelegate.update(artApi.getProject(proj.getServerId()));
+							}
+						} else {
+							Log.v(TAG, "project: " + proj.getServerId() + " nothing changed");
+							continue;
+						}
+					}
+				} else {
+					Log.v(TAG, "project numbers vary, rebuild projects db...");
+					dbUtils.projectsDelegate.deleteAll();
+					for (int i=0 ; i < remoteProjs.length ; i++) {
+						Project proj = new Project(remoteProjs[i].getName(), remoteProjs[i].getServerId(), remoteProjs[i].getColor(), remoteProjs[i].getUpdateAt());
+						dbUtils.projectsDelegate.insert(proj);
+					}
+					localProjs = dbUtils.projectsDelegate.get();
 				}
 			}
-			localProjs = dbUtils.projectsDelegate.get();
-			for (int i=0 ; i<localProjs.size() ; i++) {
-				Task remoteTasks[] = artApi.getTaskList(localProjs.get(i).getServerId());
-				int taskDiff = remoteTasks.length - dbUtils.tasksDelegate.count(localProjs.get(i).getServerId());
+			
+			private void syncProjectTasks(Project project) throws ParseException, ServerException, ConnectionFailException{
+				long projectServerId = project.getServerId();
+				Task remoteTasks[] = artApi.getTaskList(projectServerId);
+				int taskDiff = remoteTasks.length - dbUtils.tasksDelegate.count(projectServerId);
 				if(taskDiff == 0) {
 					for (int j=0 ; j<remoteTasks.length ; j++) {
 						Task task = dbUtils.tasksDelegate.getTask(remoteTasks[j].getServerId());
@@ -121,7 +181,7 @@ public class SyncService extends Service {
 					}
 				} else {
 					Log.v(TAG, "task numbers vary, rebuild tasks db...");
-					List<Long> deletedTasks = dbUtils.tasksDelegate.getDeleted(localProjs.get(i).getServerId());
+					List<Long> deletedTasks = dbUtils.tasksDelegate.getDeleted(projectServerId);
 					if(!deletedTasks.isEmpty()) {
 						for (int j=0 ; j < deletedTasks.size() ; j++) {
 							artApi.deleteTask(deletedTasks.get(j));
@@ -130,18 +190,20 @@ public class SyncService extends Service {
 						}
 					}
 					//rebuild tasks
-					dbUtils.tasksDelegate.deleteUnderProj(localProjs.get(i).getServerId());
-					dbUtils.tasksUsersDelegate.deleteUnderProj(localProjs.get(i).getServerId());
-					remoteTasks = artApi.getTaskList(localProjs.get(i).getServerId());
+					dbUtils.tasksDelegate.deleteUnderProj(projectServerId);
+					dbUtils.tasksUsersDelegate.deleteUnderProj(projectServerId);
+					remoteTasks = artApi.getTaskList(projectServerId);
 					for (int k=0 ; k < remoteTasks.length ; k++) {
 						dbUtils.tasksDelegate.insert(remoteTasks[k]);
 						dbUtils.tasksUsersDelegate.insertSingleTask(remoteTasks[k]);
 					}
 				}
 			}
-			for (int i=0 ; i<localProjs.size() ; i++) {
-				Event remoteEvents[] = artApi.getEventList(localProjs.get(i).getServerId());
-				int taskDiff = remoteEvents.length - dbUtils.eventsDelegate.count(localProjs.get(i).getServerId());
+			
+			private void syncProjectEvents(Project project) throws ServerException, ConnectionFailException, ParseException{
+				long projectServerId = project.getServerId();
+				Event remoteEvents[] = artApi.getEventList(projectServerId);
+				int taskDiff = remoteEvents.length - dbUtils.eventsDelegate.count(projectServerId);
 				if(taskDiff == 0) {
 					for (int j=0 ; j<remoteEvents.length ; j++) {
 						Event event = dbUtils.eventsDelegate.getEvent(remoteEvents[j].getServerId());
@@ -162,38 +224,35 @@ public class SyncService extends Service {
 						}
 					}
 				} else {
-					Log.v(TAG, "Proj: " + localProjs.get(i).getName() + " : event numbers vary, rebuild events db...");
-					List<Long> deletedEvents = dbUtils.eventsDelegate.getDeleted(localProjs.get(i).getServerId());
+					Log.v(TAG, "Proj: " + project.getName() + " : event numbers vary, rebuild events db...");
+					List<Long> deletedEvents = dbUtils.eventsDelegate.getDeleted(projectServerId);
 					for (int j=0 ; j < deletedEvents.size() ; j++) {
 						artApi.deleteEvent(deletedEvents.get(j));
 						dbUtils.eventsDelegate.delete(deletedEvents.get(j));
 					}
 					//rebuild events
-					dbUtils.eventsDelegate.deleteUnderProj(localProjs.get(i).getServerId());
-					remoteEvents = artApi.getEventList(localProjs.get(i).getServerId());
+					dbUtils.eventsDelegate.deleteUnderProj(projectServerId);
+					remoteEvents = artApi.getEventList(projectServerId);
 					for (int k=0 ; k < remoteEvents.length ; k++) {
 						Event event = new Event(remoteEvents[k].getProjId(), remoteEvents[k].getServerId(), remoteEvents[k].getName(), remoteEvents[k].getStartAt(), remoteEvents[k].getEndAt(), remoteEvents[k].getLocation(), remoteEvents[k].getNote(), remoteEvents[k].getUpdateAt());
 						dbUtils.eventsDelegate.insert(event);
 					}
 				}
 			}
-			for(Project project : localProjs) {
-				try {
-					// Delete all member of project
-					DeleteBuilder<User, Integer> del = dbUtils.userDao.deleteBuilder();
-					del.where().eq("project_id", project.getServerId());
-					dbUtils.userDao.delete(del.prepare());
-					
-					// Add new version
-					for(User user: artApi.getUsers((int)project.getServerId())) {
-						dbUtils.userDao.create(user);
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
+			
+			private void syncProjectMembers(Project project) throws SQLException, ServerException, ConnectionFailException{
+				// Delete all member of project
+				DeleteBuilder<User, Integer> del = dbUtils.userDao.deleteBuilder();
+				del.where().eq("project_id", project.getServerId());
+				dbUtils.userDao.delete(del.prepare());
+				
+				// Add new version
+				for(User user: artApi.getUsers((int)project.getServerId())) {
+					dbUtils.userDao.create(user);
 				}
 			}
-
-			for(Project project : localProjs) {
+			
+			private void syncProjectGroupDocs(Project project) throws ServerException, ConnectionFailException{
 				// Delete all notpad of project
 				dbUtils.groupDocDelegate.delete(project.getServerId());
 
@@ -201,33 +260,16 @@ public class SyncService extends Service {
 				GroupDoc groupDoc = artApi.getNotepad(project.getServerId());
 				dbUtils.groupDocDelegate.insert(groupDoc);
 			}
-
-			syncNotifications();
 			
-			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-			String now = formatter.format(new Date());
-			prefs.edit().putString(PREF_LAST_UPDATE, now).commit();
-			intent.putExtra("service_data", getString(R.string.last_update) + now);
-            sendBroadcast(intent);
-		} catch (ServerException e) {
-            intent.putExtra("service_data", getString(R.string.remote_server_problem) + " " + e.getMessage());
-            sendBroadcast(intent);
-		} catch (ConnectionFailException e) {
-            intent.putExtra("service_data", getString(R.string.internet_connection_problem));
-            sendBroadcast(intent);
-		} catch (ParseException e) {
-			Log.v(TAG, "Parse Error");
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	private void syncNotifications() throws ServerException, ConnectionFailException, SQLException {
-		// Assume notifications can't be deleted
-		for(Notification notification : artApi.getNotifications()) {
-			if(dbUtils.notificationDao.queryForId(notification.id) == null)
-				dbUtils.notificationDao.create(notification);
-		}
+			private void syncNotifications() throws ServerException, ConnectionFailException, SQLException {
+				// Assume notifications can't be deleted
+				for(Notification notification : artApi.getNotifications()) {
+					if(dbUtils.notificationDao.queryForId(notification.id) == null)
+						dbUtils.notificationDao.create(notification);
+				}
+			}
+			
+		}, "SyncThread");
+		syncThread.start();
 	}
 }
