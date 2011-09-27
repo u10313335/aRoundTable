@@ -54,6 +54,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.webkit.WebView;
@@ -218,15 +219,7 @@ public class MainActivity extends Activity {
 				new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(Integer.parseInt(prefs.getString("UID", "0"))), 
 				taskEventDelegate.getOwnedOverDue(Integer.parseInt(prefs.getString("UID", "0")))));
 
-    	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View v,
-					ContextMenuInfo menuInfo) {
-				menu.add(Menu.NONE,MENU_EditItem,0,getString(R.string.edit));
-				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
-				menu.setHeaderTitle(getString(R.string.item_operations));
-			}
-    	});
+    	allItemListView.setOnCreateContextMenuListener(new ExpandableCreateContextMenuListener());
     	
     	btnRefresh.setOnClickListener(new OnClickListener() {
     		@Override
@@ -304,15 +297,7 @@ public class MainActivity extends Activity {
 		projectTaskEventAdapters[projectPos] = new ProjectTaskEventAdapter(this, taskEventDelegate.get(projectId), taskEventDelegate.getOverDue(projectId));
 		projItemListView.setAdapter(projectTaskEventAdapters[projectPos]);
 
-		projItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View v,
-					ContextMenuInfo menuInfo) {
-				menu.add(Menu.NONE,MENU_EditItem, 0, R.string.edit);
-				menu.add(Menu.NONE,MENU_DeleteItem, 0, R.string.delete);
-				menu.setHeaderTitle(getString(R.string.item_operations));
-			}
-    	});   	
+		projItemListView.setOnCreateContextMenuListener(new ExpandableCreateContextMenuListener());   	
 		btnDocs.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View arg0) {
@@ -364,6 +349,7 @@ public class MainActivity extends Activity {
     		ExpandableListAdapter adapter = (position == 1)? ownedTaskEventAdapter : projectTaskEventAdapters[position - PROJECT_VIEWS_BORDER];
     		int group = ExpandableListView.getPackedPositionGroup(menuInfo.packedPosition), 
     			child = ExpandableListView.getPackedPositionChild(menuInfo.packedPosition);
+    		
     		TaskEvent taskEvent = (TaskEvent) ((child >= 0)? adapter.getChild(group, child): adapter.getGroup(group));
     		Intent additem_intent= new Intent();
             switch (item.getItemId()) {
@@ -655,6 +641,23 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	};
+	
+	private class ExpandableCreateContextMenuListener implements OnCreateContextMenuListener{
+		@Override
+		public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+    		ExpandableListContextMenuInfo info = (ExpandableListContextMenuInfo) menuInfo;
+    		int group = ExpandableListView.getPackedPositionGroup(info.packedPosition), 
+    			child = ExpandableListView.getPackedPositionChild(info.packedPosition);
+    		
+    		// This item have no function
+    		if(group == 0 && child == -1)
+    			return;
+    		
+			menu.add(Menu.NONE,MENU_EditItem, 0, R.string.edit);
+			menu.add(Menu.NONE,MENU_DeleteItem, 0, R.string.delete);
+			menu.setHeaderTitle(getString(R.string.item_operations));
+		}
+	}
 	
     private class DataReceiver extends BroadcastReceiver {
         @Override  
