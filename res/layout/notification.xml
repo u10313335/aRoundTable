@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-			  android:orientation="vertical"
-			  android:layout_width="fill_parent"
-		 	  android:layout_height="fill_parent">
-	
-	<ExpandableListView android:id="@+id/dynamic_issue_list"
-    		  android:layout_width="fill_parent" 
-    		  android:layout_height="wrap_content"
-    		  android:groupIndicator="@null"
-    		  android:divider="@drawable/divider"
-			  android:dividerHeight="0.5dp"
-    		  android:scrollbars="vertical"
-			  android:cacheColorHint="@android:color/transparent"/>
-
-</LinearLayout>
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+		  android:id="@+id/notifications"
+   		  android:layout_width="fill_parent" 
+   		  android:layout_height="fill_parent"
+   		  android:divider="@drawable/divider"
+		  android:dividerHeight="0.5dp"
+   		  android:scrollbars="vertical"
+		  android:cacheColorHint="@android:color/transparent"/>

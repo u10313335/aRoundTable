@@ -8,52 +8,37 @@
 	<RelativeLayout android:layout_height="wrap_content"
 				  	android:layout_width="fill_parent"
 				  	android:orientation="horizontal">
-    		  		
-    	<LinearLayout android:layout_height="wrap_content" 
-				  	  android:layout_width="wrap_content"
-				  	  android:layout_marginLeft="6dip"
-				  	  android:layout_alignParentLeft="true"
-				  	  android:layout_centerVertical="true">
 				  	  
-			<ImageView android:id="@+id/main_unread_indicator"
-    			   	   android:layout_height="wrap_content" 
-				  	   android:layout_width="wrap_content"
-    			   	   android:src="@drawable/unread"/>
-    			   	   
-    	</LinearLayout>
+		<ImageView android:id="@+id/main_unread_indicator"
+   			   	   android:layout_height="wrap_content" 
+			  	   android:layout_width="wrap_content"
+			  	   android:layout_marginLeft="6dip"
+			  	   android:layout_alignParentLeft="true"
+			  	   android:layout_centerVertical="true"
+   			   	   android:src="@drawable/unread"/>
     	
     	<TextView android:id="@+id/main_unread_count"
     			  android:layout_width="wrap_content" 
               	  android:layout_height="wrap_content"
               	  android:layout_marginLeft="25dip"
               	  android:textColor="@android:color/black"/>
-    	
-    	<LinearLayout android:layout_height="wrap_content" 
-				  	  android:layout_width="wrap_content"
-              	  	  android:layout_centerInParent="true"
-				  	  android:layout_centerVertical="true">
 				  	  
-			<TextView android:id="@+id/main_title"
-              	  	  android:layout_width="wrap_content" 
-              	  	  android:layout_height="wrap_content"
-              	  	  android:textColor="#F6F6F7"
-              	  	  android:textAppearance="?android:attr/textAppearanceMedium"
-              	  	  android:text="@string/notification"/>
-              	  	  
-		</LinearLayout>	  		
-
-		<LinearLayout android:layout_height="wrap_content" 
-				  	  android:layout_width="wrap_content"
-				  	  android:layout_alignParentRight="true">
+		<TextView android:id="@+id/main_title"
+             	  	  android:layout_width="wrap_content" 
+             	  	  android:layout_height="wrap_content"
+             	  	  android:layout_centerInParent="true"
+			  	  	  android:layout_centerVertical="true"
+             	  	  android:textColor="#F6F6F7"
+             	  	  android:textAppearance="?android:attr/textAppearanceMedium"
+             	  	  android:text="@string/notification"/>
 				
-			<org.taptwo.android.widget.CircleFlowIndicator
-						android:id="@+id/viewflowindic"
-						android:layout_height="wrap_content"
-						android:layout_width="wrap_content"
-						android:padding="10dip"
-						android:background="#00000000"/>
-			
-		</LinearLayout>
+		<org.taptwo.android.widget.CircleFlowIndicator
+					android:id="@+id/viewflowindic"
+					android:layout_height="wrap_content"
+					android:layout_width="wrap_content"
+					android:layout_alignParentRight="true"
+					android:padding="10dip"
+					android:background="#00000000"/>
 
 	</RelativeLayout>
 						

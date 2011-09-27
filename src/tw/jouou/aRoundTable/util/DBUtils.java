@@ -75,13 +75,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public final static String FIELD_EVENT_UPDATED_AT = "updated_at";
 	public final static String FIELD_EVENT_TYPE = "type";
 
-	public final static String TABLE_NOTIFICATION = "notification";
-	public final static String FIELD_NOTIFICATION_ID = "_id";
-	public final static String FIELD_NOTIFICATION_MEMBERID = "user_id";
-	public final static String FIELD_NOTIFICATION_MESSAGE = "message";
-	public final static String FIELD_NOTIFICATION_SERVERID = "server_id";
-	public final static String FIELD_NOTIFICATION_READ = "read";
-
 	public final static String TABLE_GROUPDOC = "groupdoc";
 	public final static String FIELD_GROUPDOC_ID = "_id";
 	public final static String FIELD_GROUPDOC_CONTENT = "content";
@@ -95,6 +88,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	// This is for ORM Lite
 	private ConnectionSource connectionSource;
 	public Dao<User, Integer> userDao;
+	public Dao<Notification, Integer> notificationDao;
 
 	private static DBUtils instance;
 
@@ -104,6 +98,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		 db = getReadableDatabase();
 		try {
 			userDao = DaoManager.createDao(connectionSource, User.class);
+			notificationDao = DaoManager.createDao(connectionSource, Notification.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -149,13 +144,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 				+ FIELD_EVENT_UPDATED_AT + " DATETIME, " + FIELD_EVENT_TYPE
 				+ " INTEGER )");
 
-		db.execSQL("CREATE TABLE " + TABLE_NOTIFICATION + "( "
-				+ FIELD_NOTIFICATION_ID + " INTEGER PRIMARY KEY, "
-				+ FIELD_NOTIFICATION_MESSAGE + " TEXT, "
-				+ FIELD_NOTIFICATION_MEMBERID + " INTEGER, "
-				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
-				+ FIELD_NOTIFICATION_READ + " INTEGER )");
-
 		db.execSQL("CREATE VIEW IF NOT EXISTS taskevents AS "
 				+ "SELECT task.server_id AS server_id, "
 				+ "task.name AS name, " + "task.project_id AS project_id,"
@@ -169,11 +157,12 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		db.execSQL("CREATE TABLE " + TABLE_GROUPDOC + "( " + FIELD_GROUPDOC_ID
 				+ " INTEGER PRIMARY KEY, " + FIELD_GROUPDOC_CONTENT + " TEXT, "
 				+ FIELD_GROUPDOC_PROJECTID + " INTEGER, "
-				+ FIELD_NOTIFICATION_SERVERID + " INTEGER, "
+				+ FIELD_GROUPDOC_SERVERID + " INTEGER"
 				+ FIELD_GROUPDOC_UPDATED_AT + " DATETIME )");
 
 		try {
 			TableUtils.createTable(conn, User.class);
+			TableUtils.createTable(conn, Notification.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -190,7 +179,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	public TaskDelegate tasksDelegate = new TaskDelegate();
 	public EventDelegate eventsDelegate = new EventDelegate();
 	public TaskEventDelegate taskEventDelegate = new TaskEventDelegate();
-	public NotificationDelegate notificationDelegate = new NotificationDelegate();
 	public TasksUsersDelegate tasksUsersDelegate = new TasksUsersDelegate();
 	public GroupDocDelegate groupDocDelegate = new GroupDocDelegate();
 
@@ -630,7 +618,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 						queryBuilder.selectColumns("server_id");
 						members = userDao.query(queryBuilder.prepare());
 						if (members.size() > 0) {
-							usersId[c.getPosition()] = members.get(0).serverId;
+							usersId[c.getPosition()] = (long) members.get(0).serverId;
 						}
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -903,38 +891,6 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return formatter.parse(dateString);
 		} catch (ParseException e) {
 			return null;
-		}
-	}
-
-	public class NotificationDelegate {
-		public void insert(Notification notification) {
-			db.insert(TABLE_NOTIFICATION, null, notification.getValues());
-		}
-
-		public List<Notification> get() {
-			List<Notification> notifications = new LinkedList<Notification>();
-
-			SQLiteDatabase db = getReadableDatabase();
-			Cursor c = db.query(TABLE_NOTIFICATION, null, null, null, null,
-					null, FIELD_NOTIFICATION_ID + " DESC");
-
-			while (c.moveToNext()) {
-				Notification notification = new Notification(
-						c.getLong(c
-								.getColumnIndexOrThrow(FIELD_NOTIFICATION_ID)),
-						c.getLong(c
-								.getColumnIndexOrThrow(FIELD_NOTIFICATION_MEMBERID)),
-						c.getLong(c
-								.getColumnIndexOrThrow(FIELD_NOTIFICATION_SERVERID)),
-						c.getString(c
-								.getColumnIndexOrThrow(FIELD_NOTIFICATION_MESSAGE)),
-						(c.getInt(c
-								.getColumnIndexOrThrow(FIELD_NOTIFICATION_READ)) == 1) ? true
-								: false);
-				notifications.add(notification);
-			}
-			c.close();
-			return notifications;
 		}
 	}
 

@@ -25,6 +25,8 @@ import org.taptwo.android.widget.CircleFlowIndicator;
 import org.taptwo.android.widget.ViewFlow;
 import org.taptwo.android.widget.ViewFlow.ViewSwitchListener;
 
+import com.j256.ormlite.stmt.PreparedQuery;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -52,6 +54,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.webkit.WebView;
@@ -86,6 +89,7 @@ public class MainActivity extends Activity {
     private TextView txLastUpdate;
 	private ViewFlow viewFlow;
 	private DiffAdapter adapter;
+	private NotificationsAdapter notificationsAdapter;
 	private OwnedTaskEventAdapter ownedTaskEventAdapter;
 	private ProjectTaskEventAdapter[] projectTaskEventAdapters;
 	private int position = 1;  // screen position
@@ -190,26 +194,15 @@ public class MainActivity extends Activity {
     
 
     private void formNotification(View v) {
-    	ExpandableListView notificationView = (ExpandableListView) v.findViewById(R.id.dynamic_issue_list);
-    	List<Notification> notifications = dbUtils.notificationDelegate.get();
-    	mUnReadCount = 0;
-    	List<HashMap <String, String>> groups = new ArrayList<HashMap <String, String>>();
-    	List<List <HashMap<String, String>>> childs = new ArrayList<List <HashMap<String, String>>>();
-	    for (int i=0; i < notifications.size(); i++) {
-	    	HashMap<String, String> group = new HashMap<String, String>();
-	    	group.put("g", notifications.get(i).getMessage());
-	    	if(!notifications.get(i).getRead()) {
-	    		mUnReadCount+=1;
-	    	}
-	    	groups.add(group);
-	        List<HashMap <String, String>> child = new ArrayList<HashMap <String, String>>();
-	        HashMap<String, String> childdata = new HashMap<String, String>();
-	        childdata.put("c", "回應");
-	        child.add(childdata);
-	        childs.add(child);
-	    }
-        SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(this, groups, R.layout.notification_item, new String[] { "g" }, new int[] { R.id.notificaton_context }, childs, android.R.layout.simple_expandable_list_item_2, new String[] { "c" }, new int[] { android.R.id.text1});
-        notificationView.setAdapter(adapter);
+    	ListView notificationView = (ListView) v.findViewById(R.id.notifications);
+		try {
+			mUnReadCount = dbUtils.notificationDao.queryForEq(Notification.COLUMN_READ, true).size();
+			notificationsAdapter = new NotificationsAdapter(this);
+			notificationView.setAdapter(notificationsAdapter);
+			notificationView.setOnItemClickListener(notificationsAdapter);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
     }
     
     
@@ -226,15 +219,7 @@ public class MainActivity extends Activity {
 				new OwnedTaskEventAdapter(this, taskEventDelegate.getOwned(Integer.parseInt(prefs.getString("UID", "0"))), 
 				taskEventDelegate.getOwnedOverDue(Integer.parseInt(prefs.getString("UID", "0")))));
 
-    	allItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View v,
-					ContextMenuInfo menuInfo) {
-				menu.add(Menu.NONE,MENU_EditItem,0,getString(R.string.edit));
-				menu.add(Menu.NONE,MENU_DeleteItem,0,getString(R.string.delete));
-				menu.setHeaderTitle(getString(R.string.item_operations));
-			}
-    	});
+    	allItemListView.setOnCreateContextMenuListener(new ExpandableCreateContextMenuListener());
     	
     	btnRefresh.setOnClickListener(new OnClickListener() {
     		@Override
@@ -255,7 +240,7 @@ public class MainActivity extends Activity {
 					@Override
 					public void run() { 
 						try {
-							SyncService.sync(dbUtils, MainActivity.this, artApi);
+							//FIXME: NOT implemented
 						}
 						finally {
 							handler.sendEmptyMessage(0);
@@ -312,15 +297,7 @@ public class MainActivity extends Activity {
 		projectTaskEventAdapters[projectPos] = new ProjectTaskEventAdapter(this, taskEventDelegate.get(projectId), taskEventDelegate.getOverDue(projectId));
 		projItemListView.setAdapter(projectTaskEventAdapters[projectPos]);
 
-		projItemListView.setOnCreateContextMenuListener(new ListView.OnCreateContextMenuListener() {
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View v,
-					ContextMenuInfo menuInfo) {
-				menu.add(Menu.NONE,MENU_EditItem, 0, R.string.edit);
-				menu.add(Menu.NONE,MENU_DeleteItem, 0, R.string.delete);
-				menu.setHeaderTitle(getString(R.string.item_operations));
-			}
-    	});   	
+		projItemListView.setOnCreateContextMenuListener(new ExpandableCreateContextMenuListener());   	
 		btnDocs.setOnClickListener(new OnClickListener() {
     		@Override
     		public void onClick(View arg0) {
@@ -372,6 +349,7 @@ public class MainActivity extends Activity {
     		ExpandableListAdapter adapter = (position == 1)? ownedTaskEventAdapter : projectTaskEventAdapters[position - PROJECT_VIEWS_BORDER];
     		int group = ExpandableListView.getPackedPositionGroup(menuInfo.packedPosition), 
     			child = ExpandableListView.getPackedPositionChild(menuInfo.packedPosition);
+    		
     		TaskEvent taskEvent = (TaskEvent) ((child >= 0)? adapter.getChild(group, child): adapter.getGroup(group));
     		Intent additem_intent= new Intent();
             switch (item.getItemId()) {
@@ -447,7 +425,7 @@ public class MainActivity extends Activity {
 			}
 			for(Project project : localProjs) {
 				try {
-					for(User member: ArtApi.getInstance(MainActivity.this).getUsers(project.getServerId())) {
+					for(User member: ArtApi.getInstance(MainActivity.this).getUsers((int) project.getServerId())) {
 						dbUtils.userDao.create(member);
 					}
 				} catch (SQLException e) {
@@ -663,6 +641,23 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	};
+	
+	private class ExpandableCreateContextMenuListener implements OnCreateContextMenuListener{
+		@Override
+		public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+    		ExpandableListContextMenuInfo info = (ExpandableListContextMenuInfo) menuInfo;
+    		int group = ExpandableListView.getPackedPositionGroup(info.packedPosition), 
+    			child = ExpandableListView.getPackedPositionChild(info.packedPosition);
+    		
+    		// This item have no function
+    		if(group == 0 && child == -1)
+    			return;
+    		
+			menu.add(Menu.NONE,MENU_EditItem, 0, R.string.edit);
+			menu.add(Menu.NONE,MENU_DeleteItem, 0, R.string.delete);
+			menu.setHeaderTitle(getString(R.string.item_operations));
+		}
+	}
 	
     private class DataReceiver extends BroadcastReceiver {
         @Override  

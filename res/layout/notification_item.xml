@@ -5,55 +5,20 @@
 	android:layout_width="fill_parent" 
 	android:orientation="horizontal">
     
-	<LinearLayout android:id="@+id/notification_icon"
-				  android:layout_height="wrap_content"
-				  android:layout_width="wrap_content"
-				  android:layout_marginTop="10dip">
+	<ImageView android:id="@+id/avatar"
+   			   android:layout_width="48dip" 
+   			   android:layout_height="48dip"
+   			   android:gravity="left"
+			   android:layout_marginLeft="10dip"
+   			   android:src="@drawable/icon"/>
     
-		<ImageView android:id="@+id/picture"
-    			   android:layout_width="48dip" 
-    			   android:layout_height="48dip"
-    			   android:gravity="left"
-				   android:layout_marginLeft="10dip"
-    			   android:src="@drawable/icon"/>
-    
-    </LinearLayout>
-    
-    <LinearLayout android:id="@+id/notification_main"
-    			  android:layout_height="wrap_content"
-                  android:layout_width="fill_parent"
-                  android:layout_marginTop="10dip"
-                  android:layout_toRightOf="@id/notification_icon"
-                  android:orientation="vertical">
-    
-    	<TextView android:id="@+id/notificaton_context"
-    		  	  android:layout_width="wrap_content" 
-    		  	  android:layout_height="wrap_content"              	  
-   			  	  android:gravity="left"
-              	  android:layout_marginLeft="6dip"
-             	  android:textAppearance="?android:attr/textAppearanceMedium"/>
-  
-    	<LinearLayout android:orientation="horizontal"
-    			  	  android:layout_width="wrap_content"
-    			  	  android:layout_height="wrap_content"
-    			  	  android:layout_below="@id/notificaton_context"
-    			  	  android:layout_marginRight="10dip"
-    			  	  android:layout_gravity="right">
-    
-    		<Button android:id="@+id/reply"
-    				android:layout_width="wrap_content" 
-    				android:layout_height="35dip"
-    				android:focusable="false"
-    				android:text="Reply"/>
-    
-    		<Button android:id="@+id/like"
-    				android:layout_width="wrap_content" 
-    				android:layout_height="35dip"
-    				android:focusable="false"
-    				android:text="Like"/>
-    			
-    	</LinearLayout>
-    		
-    </LinearLayout>
+   	<TextView android:id="@+id/notificaton_context"
+   			  android:layout_toRightOf="@+id/avatar"
+   			  android:layout_centerVertical="true"
+   		  	  android:layout_width="wrap_content" 
+   		  	  android:layout_height="wrap_content"              	  
+  			  	  android:gravity="left"
+             	  android:layout_marginLeft="6dip"
+            	  android:textAppearance="?android:attr/textAppearanceMedium"/>
     
 </RelativeLayout>

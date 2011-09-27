@@ -453,12 +453,13 @@ public class AddBatchTaskActivity extends Activity {
 		return list.toArray(new String[list.size()]);
     }
     
+
     private Long[] getOwnersId(LinkedList<TaskField> taskField) {
 		List<Long> list = new LinkedList<Long>();
 		for (int i=0; i < taskField.size(); i++) {
 			User owner =  taskField.get(i).owner;
 			if(owner!=null) {
-				list.add(owner.serverId);
+				list.add((long) owner.serverId);
 			} else {
 				list.add((long)-1);
 			}

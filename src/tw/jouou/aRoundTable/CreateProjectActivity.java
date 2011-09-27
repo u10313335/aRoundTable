@@ -32,6 +32,7 @@ public class CreateProjectActivity extends Activity {
 	private DBUtils dbUtils;
 	private Project proj;
 	private RadioButtonManager radioButtonManagers = new RadioButtonManager();
+	private static final int REQUEST_INVITE_MEMBERS = 1;
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +62,12 @@ public class CreateProjectActivity extends Activity {
             }
         });  
     }
+	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if(requestCode == REQUEST_INVITE_MEMBERS)
+			finish();
+	}
+
 	
 	private class RadioButtonManager implements OnCheckedChangeListener{
 		private LinkedList<RadioButton> radioButtons = new LinkedList<RadioButton>();
@@ -140,7 +147,7 @@ public class CreateProjectActivity extends Activity {
 			dbUtils.close();
 			Intent intent = new Intent(CreateProjectActivity.this, InviteMemberActivity.class);
 			intent.putExtra("proj", proj);
-			startActivity(intent);
+			startActivityForResult(intent, REQUEST_INVITE_MEMBERS);
 		}
 	}
 }

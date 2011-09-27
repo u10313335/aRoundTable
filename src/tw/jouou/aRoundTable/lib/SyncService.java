@@ -11,6 +11,7 @@ import com.j256.ormlite.stmt.DeleteBuilder;
 import tw.jouou.aRoundTable.R;
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
+import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
@@ -28,6 +29,7 @@ import android.util.Log;
 public class SyncService extends Service {
 	
 	private ArtApi artApi;
+	private DBUtils dbUtils;
 	private static SyncService SYNC_SERVICE = null;
 	public static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 	public static final String PREF = "SYNC_PREF";
@@ -41,6 +43,7 @@ public class SyncService extends Service {
 		super.onCreate();
 		SYNC_SERVICE = this;
 		artApi = ArtApi.getInstance(this);
+		dbUtils = DBUtils.getInstance(this);
 	}
 
 	@Override
@@ -55,12 +58,11 @@ public class SyncService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
-		DBUtils dbUtils = DBUtils.getInstance(this);
-		sync(dbUtils, this, artApi);
+		sync();
 		return START_STICKY;
 	}
 	
-	public static void sync(DBUtils dbUtils, Context context, ArtApi artApi) {
+	public void sync() {
 		Intent intent = new Intent();
         intent.setAction("tw.jouou.aRoundTable.MainActivity");
 		try {
@@ -183,13 +185,14 @@ public class SyncService extends Service {
 					dbUtils.userDao.delete(del.prepare());
 					
 					// Add new version
-					for(User user: artApi.getUsers(project.getServerId())) {
+					for(User user: artApi.getUsers((int)project.getServerId())) {
 						dbUtils.userDao.create(user);
 					}
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
+
 			for(Project project : localProjs) {
 				// Delete all notpad of project
 				dbUtils.groupDocDelegate.delete(project.getServerId());
@@ -198,19 +201,33 @@ public class SyncService extends Service {
 				GroupDoc groupDoc = artApi.getNotepad(project.getServerId());
 				dbUtils.groupDocDelegate.insert(groupDoc);
 			}
-			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+			syncNotifications();
+			
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 			String now = formatter.format(new Date());
 			prefs.edit().putString(PREF_LAST_UPDATE, now).commit();
-			intent.putExtra("service_data", context.getString(R.string.last_update) + now);
-            context.sendBroadcast(intent);
+			intent.putExtra("service_data", getString(R.string.last_update) + now);
+            sendBroadcast(intent);
 		} catch (ServerException e) {
-            intent.putExtra("service_data", context.getString(R.string.remote_server_problem) + " " + e.getMessage());
-            context.sendBroadcast(intent);
+            intent.putExtra("service_data", getString(R.string.remote_server_problem) + " " + e.getMessage());
+            sendBroadcast(intent);
 		} catch (ConnectionFailException e) {
-            intent.putExtra("service_data", context.getString(R.string.internet_connection_problem));
-            context.sendBroadcast(intent);
+            intent.putExtra("service_data", getString(R.string.internet_connection_problem));
+            sendBroadcast(intent);
 		} catch (ParseException e) {
 			Log.v(TAG, "Parse Error");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void syncNotifications() throws ServerException, ConnectionFailException, SQLException {
+		// Assume notifications can't be deleted
+		for(Notification notification : artApi.getNotifications()) {
+			if(dbUtils.notificationDao.queryForId(notification.id) == null)
+				dbUtils.notificationDao.create(notification);
 		}
 	}
 }

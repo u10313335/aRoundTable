@@ -2,7 +2,7 @@
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
-	android:layout_height="?android:attr/listPreferredItemHeight" >
+	android:layout_height="55dp" >
 	<ImageView
 		android:layout_gravity="center_vertical"
 		android:id="@+id/group_indicator"
@@ -17,7 +17,7 @@
 		android:layout_gravity="center_vertical"
 		android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFF09"
+        android:textColor="#FFFFFF"
         android:textAppearance="?android:attr/textAppearanceLarge"
          />
 </LinearLayout>
