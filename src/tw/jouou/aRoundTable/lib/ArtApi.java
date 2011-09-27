@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -25,10 +24,10 @@ import org.json.JSONObject;
 
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
-import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
+import tw.jouou.aRoundTable.bean.User;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -49,7 +48,6 @@ public class ArtApi {
 	private static final String eventPath = "/events/%d";
 	private static final String addUserPath = "/projects/%d/users";
 	private static final String notificationsPath = "/notifications";
-	private static final String notificationResponsePath = "/notifications/%d/notification_responses";
 	private static final String notepadPath = "/projects/%d/notepad";
 	
 	private String token;
@@ -72,7 +70,7 @@ public class ArtApi {
 	}
 	
 	public Project[] getProjectList() throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 		Project r[];
 		try {
 			HttpResponse response = performGet(projectsPath, params);
@@ -96,7 +94,7 @@ public class ArtApi {
 	}
 	
 	public Project getProject(long projectId) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 		HttpResponse response = performGet(projectsPath + "/" + projectId, params);
 		
 		JSONObject projectJson = extractJsonObject(response);
@@ -116,7 +114,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public void updateProject(long projectId, String name, String color) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 		
 		params.put("project[name]", name);
 		params.put("project[color]", color);
@@ -125,8 +123,7 @@ public class ArtApi {
 	}
 	
 	public Task[] getTaskList(long projectId) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(projectsPath + "/" + projectId + "/tasks", params);
+		HttpResponse response = performGet(projectsPath + "/" + projectId + "/tasks", makeTokenParams());
 		Task[] tasks;
 
 		try {
@@ -143,8 +140,7 @@ public class ArtApi {
 	}
 	
 	public Task getTask(long taskId) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(tasksPath + "/" + taskId, params);
+		HttpResponse response = performGet(tasksPath + "/" + taskId, makeTokenParams());
 		
 		JSONObject taskJson = extractJsonObject(response);
 		try {
@@ -165,25 +161,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public int createTask(long projectId, String name, Long owner, Date due, String note) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-
-		params.put("task[name]", name);
-		if(!(due == null)) {
-			params.put("task[due]", due.toString());
-		} else {
-			params.put("task[due]", "");
-		}
-		if(owner!=-1) {
-			params.put("task[user_ids][]", owner.toString());
-		}
-		params.put("task[note]", note);
-		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
-		try{
-			JSONObject projectJson = extractJsonObject(response);
-			return projectJson.getInt("id");
-		}catch(JSONException je){
-			throw new ServerException("Server returned unexpected data");
-		}
+		return createTask(projectId, name, new Long[]{owner}, due, note);
 	}
 	
 	/**
@@ -197,20 +175,20 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public int createTask(long projectId, String name, Long[] owners, Date due, String note) throws  ServerException, ConnectionFailException{
-		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		TokenParamsBuilder params = makeTokenParams();
 		
-		params.add(new BasicNameValuePair("task[name]", name));
+		params.put("task[name]", name);
 		if(due != null) {
-			params.add(new BasicNameValuePair("task[due]", due.toString()));
+			params.put("task[due]", due.toString());
 		} else {
-			params.add(new BasicNameValuePair("task[due]", ""));
+			params.put("task[due]", "");
 		}
 		for(int i=0; i<owners.length; i++) {
 			if(owners[i]!=-1) {
-				params.add(new BasicNameValuePair("task[user_ids][]", owners[i].toString()));
+				params.put("task[user_ids][]", owners[i].toString());
 			}
 		}
-		params.add(new BasicNameValuePair("task[note]", note));
+		params.put("task[note]", note);
 		HttpResponse response =  performPost(projectsPath + "/" + projectId + "/tasks", params);
 		try{
 			JSONObject projectJson = extractJsonObject(response);
@@ -231,23 +209,23 @@ public class ArtApi {
 	 */
 	public void updateTask(long taskId, String name, Long[] owners, Date due, String note, boolean finished) throws  ServerException, ConnectionFailException{
 		
-		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		TokenParamsBuilder params = makeTokenParams();
 		
-		params.add(new BasicNameValuePair("task[name]", name));
+		params.put("task[name]", name);
 		if(!(due == null)) {
-			params.add(new BasicNameValuePair("task[due]", due.toString()));
+			params.put("task[due]", due.toString());
 		} else {
-			params.add(new BasicNameValuePair("task[due]", ""));
+			params.put("task[due]", "");
 		}
 		if(owners!=null) {
 			for(int i=0; i<owners.length; i++) {
 				if(owners[i]!=-1) {
-					params.add(new BasicNameValuePair("task[user_ids][]", owners[i].toString()));
+					params.put("task[user_ids][]", owners[i].toString());
 				}
 			}
 		}
-		params.add(new BasicNameValuePair("task[note]", note));
-		params.add(new BasicNameValuePair("task[finished]", (finished)? "1" : "0"));
+		params.put("task[note]", note);
+		params.put("task[finished]", (finished)? "1" : "0");
 		performPut(String.format(taskPath, taskId), params);
 	}
 	
@@ -259,13 +237,11 @@ public class ArtApi {
 	 * @throws ConnectionFailException 
 	 */
 	public void deleteTask(long taskId) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		performDelete(tasksPath + "/" + taskId, params);
+		performDelete(tasksPath + "/" + taskId, makeTokenParams());
 	}
 
 	public Event[] getEventList(long projectId) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(projectsPath + "/" + projectId + "/events", params);
+		HttpResponse response = performGet(projectsPath + "/" + projectId + "/events", makeTokenParams());
 		Event[] events;
 
 		try {
@@ -282,8 +258,7 @@ public class ArtApi {
 	}
 	
 	public Event getEvent(long eventId) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(eventsPath + "/" + eventId, params);
+		HttpResponse response = performGet(eventsPath + "/" + eventId, makeTokenParams());
 		
 		JSONObject eventsJson = extractJsonObject(response);
 		try {
@@ -306,7 +281,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public int createEvent(long projectId, String name, Date start_at, Date end_at, String location, String note) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 
 		params.put("event[name]", name);
 		if(!(start_at == null)) {
@@ -337,13 +312,13 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public void updateEvent(long eventId, String name, Date start_at, Date end_at, String location, String note) throws  ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 
-		params.put("event[name]", name);
-		params.put("event[start_at]", start_at.toString());
-		params.put("event[end_at]", end_at.toString());
-		params.put("event[location]", location);
-		params.put("event[note]", note);
+		params.put("event[name]", name)
+			  .put("event[start_at]", start_at.toString())
+			  .put("event[end_at]", end_at.toString())
+			  .put("event[location]", location)
+			  .put("event[note]", note);
 		
 		performPut(String.format(eventPath, eventId), params);
 	}
@@ -356,8 +331,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException 
 	 */
 	public void deleteEvent(long eventId) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		performDelete(eventsPath + "/" + eventId, params);
+		performDelete(eventsPath + "/" + eventId, makeTokenParams());
 	}
 	
 	/**
@@ -368,7 +342,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public void setDependencies(long taskeventId, Long dependencies[], int duration) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 		for(long id: dependencies){
 			params.put("task[dependency_ids][]", Long.toString(id));
 		}
@@ -386,9 +360,9 @@ public class ArtApi {
 	 * @throws ConnectionFailException 
 	 */
 	public int createProject(String name, String color) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		params.put("project[name]", name);
-		params.put("project[color]", color);
+		TokenParamsBuilder params = makeTokenParams()
+			.put("project[name]", name)
+			.put("project[color]", color);
 		
 		HttpResponse response =  performPost(projectsPath, params);
 		try{
@@ -407,8 +381,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException 
 	 */
 	public void quitProject(long projectId) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		performDelete(projectsPath + "/" + projectId, params);
+		performDelete(projectsPath + "/" + projectId, makeTokenParams());
 	}
 	
 	public enum JoinStatus{
@@ -424,7 +397,7 @@ public class ArtApi {
 	 * @throws ServerException 
 	 */
 	public JoinStatus[] addUser(long projectId, String emails[]) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash(); 
+		TokenParamsBuilder params = makeTokenParams(); 
 		
 		for(int i=0; i< emails.length; i++){
 			params.put("email["+i+"]", emails[i]);
@@ -459,7 +432,7 @@ public class ArtApi {
 	}
 	
 	public User[] getUsers(int projectId) throws ServerException, ConnectionFailException {
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 		HttpResponse response = performGet(String.format(addUserPath, projectId), params);
 		JSONArray respArr = extractJsonArray(response);
 		User[] result = new User[respArr.length()];
@@ -474,15 +447,14 @@ public class ArtApi {
 	}
 
 	public void updateNotepad(long projectId, String content) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
+		TokenParamsBuilder params = makeTokenParams();
 		params.put("notepad[content]", content);
 		
 		performPut(String.format(notepadPath, projectId), params);
 	}
 
 	public GroupDoc getNotepad(long projectId) throws ServerException, ConnectionFailException{
-		HashMap<String, String> params = makeTokenHash();
-		HttpResponse response = performGet(String.format(notepadPath, projectId), params);
+		HttpResponse response = performGet(String.format(notepadPath, projectId), makeTokenParams());
 		
 		JSONObject eventsJson = extractJsonObject(response);
 		try {
@@ -499,7 +471,7 @@ public class ArtApi {
 	 * @throws ConnectionFailException
 	 */
 	public Notification[] getNotifications() throws ServerException, ConnectionFailException{
-		HttpResponse response = performGet(notificationsPath, makeTokenHash());
+		HttpResponse response = performGet(notificationsPath, makeTokenParams());
 		
 		Notification[] notifications;
 			try {
@@ -549,16 +521,6 @@ public class ArtApi {
 			throw new ConnectionFailException();
 		}	
 	}
-
-	/**
-	 * Make a new hash with token in it.
-	 * @return params hash
-	 */
-	private HashMap<String, String> makeTokenHash(){
-		HashMap<String, String> hash =  new HashMap<String, String>();
-		hash.put("token", token);
-		return hash;
-	}
 	
 	/**
 	 * Perform HTTP POST Request
@@ -568,46 +530,11 @@ public class ArtApi {
 	 * @throws ClientProtocolException 
 	 * @throws IOException
 	 */
-	private HttpResponse performPost(String path, List<NameValuePair> params) throws ServerException, ConnectionFailException{
+	private HttpResponse performPost(String path,TokenParamsBuilder params) throws ServerException, ConnectionFailException{
 		HttpPost post = new HttpPost(baseURL + path);
 		
 		// Perform request
-		try {
-			post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		try {
-			HttpResponse response = httpClient.execute(post);
-			if(response.getStatusLine().getStatusCode() != 200)
-				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
-			else
-				return response;
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new ConnectionFailException();
-		}
-	}
-	
-	/**
-	 * Perform HTTP POST Request
-	 * @param path path to API endpoint
-	 * @param params HTTP Parameters
-	 * @return HttpResponse object
-	 * @throws ClientProtocolException 
-	 * @throws IOException
-	 */
-	private HttpResponse performPost(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
-		HttpPost post = new HttpPost(baseURL + path);
-		
-		// Perform request
-		try {
-			post.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
+		post.setEntity(params.toEntity());
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		try {
@@ -630,15 +557,11 @@ public class ArtApi {
 	 * @throws ClientProtocolException 
 	 * @throws IOException
 	 */
-	private HttpResponse performPut(String path, List<NameValuePair> params) throws ServerException, ConnectionFailException{
+	private HttpResponse performPut(String path, TokenParamsBuilder params) throws ServerException, ConnectionFailException{
 		HttpPut put = new HttpPut(baseURL + path);
 		
 		// Perform request
-		try {
-			put.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
+		put.setEntity(params.toEntity());
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		try {
@@ -653,39 +576,8 @@ public class ArtApi {
 		}
 	}
 	
-	/**
-	 * Perform HTTP PUT Request
-	 * @param path path to API endpoint
-	 * @param params HTTP Parameters
-	 * @return HttpResponse object
-	 * @throws ClientProtocolException 
-	 * @throws IOException
-	 */
-	private HttpResponse performPut(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
-		HttpPut put = new HttpPut(baseURL + path);
-		
-		// Perform request
-		try {
-			put.setEntity(new UrlEncodedFormEntity(prepareParams(params), "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		try {
-			HttpResponse response = httpClient.execute(put);
-			if(response.getStatusLine().getStatusCode() != 200)
-				throw new ServerException("Got code: "+response.getStatusLine().getStatusCode());
-			else
-				return response;
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new ConnectionFailException();
-		}
-	}
-	
-	private HttpResponse performGet(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
-		HttpGet get = new HttpGet(baseURL + path + "?" + URLEncodedUtils.format(prepareParams(params), "UTF-8"));
+	private HttpResponse performGet(String path, TokenParamsBuilder params) throws ServerException, ConnectionFailException{
+		HttpGet get = new HttpGet(baseURL + path + "?" + params.toString());
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		HttpResponse response;
 		try {
@@ -699,8 +591,8 @@ public class ArtApi {
 			return response;
 	}
 	
-	private HttpResponse performDelete(String path, HashMap<String, String> params) throws ServerException, ConnectionFailException{
-		HttpDelete delete = new HttpDelete(baseURL + path + "?" + URLEncodedUtils.format(prepareParams(params), "UTF-8"));
+	private HttpResponse performDelete(String path, TokenParamsBuilder params) throws ServerException, ConnectionFailException{
+		HttpDelete delete = new HttpDelete(baseURL + path + "?" + params.toString());
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		HttpResponse response;
 		
@@ -717,19 +609,44 @@ public class ArtApi {
 		}
 	}
 	
-	private List<NameValuePair> prepareParams(HashMap<String, String> params){		
-		// Prepare parameters
-		List<NameValuePair> httpParams = new ArrayList<NameValuePair>();
-		for(String key: params.keySet()){
-			httpParams.add(new BasicNameValuePair(key, params.get(key)));
-		}
-		
-		return httpParams;
-	}
 	public class ConnectionFailException extends Exception{
 		private static final long serialVersionUID = -5345016442518985501L;
 	}
 	public class InvalidTokenException extends Exception{
 		private static final long serialVersionUID = -5159078241509001724L;
+	}
+	
+	/**
+	 * Make a new TokenParamsBuilder with token in it.
+	 * @return TokenParamsBuilder
+	 */
+	private TokenParamsBuilder makeTokenParams(){
+		return new TokenParamsBuilder(token);
+	}
+	
+	private class TokenParamsBuilder{
+		List<NameValuePair> httpParams = new ArrayList<NameValuePair>();
+		
+		public TokenParamsBuilder(String token){
+			put("token", token);
+		}
+		
+		public TokenParamsBuilder put(String key, String value){
+			httpParams.add(new BasicNameValuePair(key, value));
+			return this;
+		}
+		
+		public String toString(){
+			return URLEncodedUtils.format(httpParams, "UTF-8");
+		}
+		
+		public UrlEncodedFormEntity toEntity(){
+			try {
+				return new UrlEncodedFormEntity(httpParams, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
 	}
 }
