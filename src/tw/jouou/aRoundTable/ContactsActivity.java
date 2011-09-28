@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -73,12 +74,19 @@ public class ContactsActivity extends Activity {
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			User member = members.get(position);
+			final User member = members.get(position);
 			if(convertView == null) {
 				convertView = ContactsActivity.this.getLayoutInflater().inflate(R.layout.contacts_item, parent, false);
 			}
 			((TextView) convertView.findViewById(R.id.username)).setText(member.name);
 			((TextView) convertView.findViewById(R.id.email)).setText(member.email);
+			final ImageView avatarImageView = (ImageView) convertView.findViewById(R.id.avatar);
+			new Thread(new Runnable() {	
+				@Override
+				public void run() {
+					avatarImageView.setImageBitmap(member.getGravatar());
+				}
+			}).run();
 			return convertView;
 		}
 	}

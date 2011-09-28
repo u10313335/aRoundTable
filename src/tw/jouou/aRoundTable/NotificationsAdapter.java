@@ -46,15 +46,12 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 		}
 		((TextView) convertView.findViewById(R.id.notificaton_context)).setText(message);
 		
-		if(user.email != null){
-			new Thread(new Runnable() {
-				
-				@Override
-				public void run() {
-					avatarImageView.setImageBitmap(user.getGravatar());
-				}
-			}).run();
-		}
+		new Thread(new Runnable() {	
+			@Override
+			public void run() {
+				avatarImageView.setImageBitmap(user.getGravatar());
+			}
+		}).run();
 		
 		return convertView;
 	}
