@@ -371,7 +371,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			List<Task> tasks = new LinkedList<Task>();
 			// c1:select normal tasks ; c2:select undetermined tasks
 			Cursor c1 = db.query(TABLE_TASK, null, "project_id=" + projId
-					+ " and finish=1", null, null, null, "due ASC", null);
+					+ " and finish=1 and due<>''", null, null, null, "due ASC", null);
 			Cursor c2 = db.query(TABLE_TASK, null, "project_id=" + projId
 					+ " and finish=1 and due=''", null, null, null, null, null);
 			while (c1.moveToNext()) {
