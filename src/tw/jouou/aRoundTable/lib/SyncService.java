@@ -37,13 +37,14 @@ public class SyncService extends Service {
 	private SharedPreferences sharedPreferences;
 	private static String TAG = "SyncService";
 	public static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-	public static final int RESULT_OK = -1;
-	public static final int RESULT_SERVER_FAILED = 1;
-	public static final int RESULT_CONNECTION_FAILED = 2;
+	public static final int STATUS_SYNCING = 0;
+	public static final int STATUS_FINISHED_OK = 1;
+	public static final int STATUS_FINISHED_SERVER_FAILED = 2;
+	public static final int STATUS_FINISHED_CONNECTION_FAILED = 3;
     public static final String PREF_LAST_UPDATE = "SYNC_LAST_UPDATE";
-    public static final String ACTION_SYNC_RESULT = "tw.jouou.aRoundTable.SYNC_RESULT";
-    public static final String EXTRA_SYNC_RESULT_CODE = "SYNCE_RESULT_CODE";
-    public static final String EXTRA_SYNC_RESULT_STRING = "SYNC_RESULT_STRING";
+    public static final String ACTION_SYNC_STATUS = "tw.jouou.aRoundTable.SYNC_STATUS";
+    public static final String EXTRA_SYNCSTATUS_CODE = "SYNCE_STATUS_CODE";
+    public static final String EXTRA_SYNC_STATUS_STRING = "SYNC_STATUS_STRING";
 	
 	@Override
 	public void onCreate() {
@@ -60,11 +61,11 @@ public class SyncService extends Service {
 					firstTime, 15*60*1000, pendingIntent);
 	}
 	
-	public void updateResult(int resultCode, String resultString){
-		sharedPreferences.edit().putString(PREF_LAST_UPDATE, resultString).commit();
-		Intent intent = new Intent(ACTION_SYNC_RESULT);
-		intent.putExtra(EXTRA_SYNC_RESULT_CODE, resultCode);
-		intent.putExtra(EXTRA_SYNC_RESULT_STRING, resultString);
+	public void updateStatus(int statusCode, String statusString){
+		sharedPreferences.edit().putString(PREF_LAST_UPDATE, statusString).commit();
+		Intent intent = new Intent(ACTION_SYNC_STATUS);
+		intent.putExtra(EXTRA_SYNCSTATUS_CODE, statusCode);
+		intent.putExtra(EXTRA_SYNC_STATUS_STRING, statusString);
 		sendBroadcast(intent);
 	}
 	
@@ -92,6 +93,8 @@ public class SyncService extends Service {
 		if(syncThread != null && syncThread.isAlive())
 			return;
 		
+		updateStatus(STATUS_SYNCING, getString(R.string.syncing));
+		
 		syncThread = new Thread(new Runnable() {
 			Project[] remoteProjs;
 			List<Project> localProjs;
@@ -112,11 +115,11 @@ public class SyncService extends Service {
 		
 					syncNotifications();
 					
-					updateResult(RESULT_OK, formatter.format(new Date()));
+					updateStatus(STATUS_FINISHED_OK, formatter.format(new Date()));
 				} catch (ServerException e) {
-					updateResult(RESULT_SERVER_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
+					updateStatus(STATUS_FINISHED_SERVER_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
 				} catch (ConnectionFailException e) {
-					updateResult(RESULT_CONNECTION_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
+					updateStatus(STATUS_FINISHED_CONNECTION_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
 				} catch (ParseException e) {
 					e.printStackTrace();
 				} catch (SQLException e) {

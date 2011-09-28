@@ -121,9 +121,16 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 		registerReceiver(syncResultReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				update();
+				switch(intent.getIntExtra(SyncService.EXTRA_SYNCSTATUS_CODE, -1)){
+				case SyncService.STATUS_FINISHED_OK:
+					update();
+					break;
+				default:
+					if(txLastUpdate != null)
+						txLastUpdate.setText(intent.getStringExtra(SyncService.EXTRA_SYNC_STATUS_STRING));
+				}
 			}
-		}, new IntentFilter(SyncService.ACTION_SYNC_RESULT));
+		}, new IntentFilter(SyncService.ACTION_SYNC_STATUS));
     	
     	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
     		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
