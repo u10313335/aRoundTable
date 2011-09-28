@@ -193,10 +193,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 		updateAllItemList();
 		updateProjectLists();
     	
-        String prefLastUpdate = mPrefs.getString(SyncService.PREF_LAST_UPDATE, "");
-        if(! "".equals(prefLastUpdate)) {
-        	txLastUpdate.setText(getString(R.string.last_update) + prefLastUpdate);
-        }
+		txLastUpdate.setText(mPrefs.getString(SyncService.PREF_LAST_UPDATE, ""));
     	
     	if(viewFlowAdapter == null){
     		viewFlowAdapter = new ViewFlowAdapter();

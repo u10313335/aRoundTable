@@ -115,7 +115,7 @@ public class SyncService extends Service {
 		
 					syncNotifications();
 					
-					updateStatus(STATUS_FINISHED_OK, formatter.format(new Date()));
+					updateStatus(STATUS_FINISHED_OK, getString(R.string.last_update, formatter.format(new Date())));
 				} catch (ServerException e) {
 					updateStatus(STATUS_FINISHED_SERVER_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
 				} catch (ConnectionFailException e) {
