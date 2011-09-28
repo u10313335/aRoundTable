@@ -30,7 +30,7 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 		this.context = context;
 		this.dbUtils = DBUtils.getInstance(context);
 		try {
-			this.notifications = dbUtils.notificationDao.queryForAll();
+			this.notifications = dbUtils.notificationDao.queryBuilder().orderBy("id", false).query();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
