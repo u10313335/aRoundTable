@@ -10,7 +10,7 @@
    			   android:layout_height="48dip"
    			   android:gravity="left"
 			   android:layout_marginLeft="10dip"
-   			   android:src="@drawable/icon"/>
+   			   android:src="@drawable/default_gravatar"/>
     
    	<TextView android:id="@+id/notificaton_context"
    			  android:layout_toRightOf="@+id/avatar"
