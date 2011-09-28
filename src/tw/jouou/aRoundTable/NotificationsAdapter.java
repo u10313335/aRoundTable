@@ -7,7 +7,8 @@ import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 	private List<Notification> notifications;
 	private LayoutInflater inflater;
 	private DBUtils dbUtils;
+	private Handler handler = new Handler();
 
 	public NotificationsAdapter(Context context){
 		this.context = context;
@@ -64,9 +66,15 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 				
 				@Override
 				public void run() {
-					avatarImageView.setImageBitmap(user.getGravatar());
+					final Bitmap avatar = user.getGravatar();
+					handler.post(new Runnable(){
+						@Override
+						public void run() {
+							avatarImageView.setImageBitmap(avatar);	
+						}
+					});
 				}
-			}).run();
+			}).start();
 		}
 		
 		return convertView;
