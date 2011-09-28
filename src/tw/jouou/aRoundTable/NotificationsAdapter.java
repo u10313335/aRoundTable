@@ -61,7 +61,7 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 		}
 		((TextView) convertView.findViewById(R.id.notificaton_context)).setText(message);
 		
-		if(user.email != null){
+		if(user != null && user.email != null){
 			new Thread(new Runnable() {
 				
 				@Override
