@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">aRound Table</string>
+    <string name="app_name">aRound Table Lite</string>
     <string name="welcome_message_title">歡迎使用 aRound Table！</string>
     <string name="welcome_message">第一次啟動本程式，請先完成 Google 帳號認證</string>
     <string name="create_project_message">資料庫中無專案，現在就新增一個？</string>
+    <string name="exceed_project_limit">您使用的為Lite版本，已超過專案上限！</string>
     <string name="register_finished">認證完成</string>
     <string name="retriving_existed_data">擷取已存於伺服器的專案...</string>
     <string name="processing">正在處理中</string>
