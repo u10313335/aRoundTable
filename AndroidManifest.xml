@@ -71,9 +71,9 @@
         		 android:exported="true">
         </service>
         
-        <service android:name=".SampleService"/>
+        <service android:name="tw.jouou.aRoundTable.lib.HamiService"/>
         
-        <receiver android:name=".Receiver">
+        <receiver android:name="tw.jouou.aRoundTable.lib.Receiver">
 			<intent-filter>
 				<action android:name="net.emome.hamiapps.sample01.ACTION_DOWNLOAD_AM" />
 				<action android:name="net.emome.hamiapps.sample01.ACTION_UPDATE_AM"/>
