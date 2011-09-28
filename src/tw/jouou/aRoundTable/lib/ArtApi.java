@@ -490,17 +490,6 @@ public class ArtApi {
 			}
 	}
 	
-	/**
-	 * Server fault
-	 */
-	public class ServerException extends Exception{
-		private static final long serialVersionUID = 9019747876485278413L;
-
-		public ServerException(String msg) {
-			super(msg);
-		}
-	};
-	
 	private JSONArray extractJsonArray(HttpResponse response) throws ServerException, ConnectionFailException{
 		try {
 			return new JSONArray(EntityUtils.toString(response.getEntity()));
@@ -611,6 +600,24 @@ public class ArtApi {
 			throw new ConnectionFailException();
 		}
 	}
+	
+	/**
+	 * Server fault
+	 */
+	public class ServerException extends Exception{
+		private static final long serialVersionUID = 9019747876485278413L;
+
+		public ServerException(String msg) {
+			super(msg);
+		}
+		
+		public ServerException(Throwable cause) {
+			super(
+				(cause instanceof JSONException)? "Server returned invalid json": 
+				(cause instanceof ParseException)? "Server return mis-formated date": "", 
+				cause);
+		}
+	};
 	
 	public class ConnectionFailException extends Exception{
 		private static final long serialVersionUID = -5345016442518985501L;
