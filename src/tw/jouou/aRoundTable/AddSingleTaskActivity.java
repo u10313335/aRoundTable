@@ -21,6 +21,7 @@ import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
@@ -585,6 +586,8 @@ public class AddSingleTaskActivity extends Activity {
 				exception = e;
 			} catch (ParseException e) {
 				exception = e;
+			} catch (NotLoggedInException e) {
+				e.printStackTrace();
 			}
 			return 0;
 		}

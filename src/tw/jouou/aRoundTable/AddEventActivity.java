@@ -3,6 +3,7 @@ package tw.jouou.aRoundTable;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.lib.ArtApi;
+import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
@@ -368,6 +369,8 @@ public class AddEventActivity extends Activity {
 				exception = e;
 			} catch (ParseException e) {
 				exception = e;
+			} catch (NotLoggedInException e) {
+				e.printStackTrace();
 			}
 			return 0;
 		}

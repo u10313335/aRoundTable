@@ -52,7 +52,10 @@ public class ArtApi {
 	
 	private String token;
 	
-	public ArtApi(String token){
+	private ArtApi(String token) throws NotLoggedInException{
+		if(token == null || token.length() == 0)
+			throw new NotLoggedInException();
+		
 		this.token = token;		
 	}
 	
@@ -60,7 +63,7 @@ public class ArtApi {
 		return baseURL + "/login";
 	}
 	
-	public static ArtApi getInstance(Context context){
+	public static ArtApi getInstance(Context context) throws NotLoggedInException{
 		if(instance != null)
 			return instance;
 		
@@ -612,8 +615,13 @@ public class ArtApi {
 	public class ConnectionFailException extends Exception{
 		private static final long serialVersionUID = -5345016442518985501L;
 	}
+	
 	public class InvalidTokenException extends Exception{
 		private static final long serialVersionUID = -5159078241509001724L;
+	}
+	
+	public class NotLoggedInException extends Exception{
+		private static final long serialVersionUID = -6945252863217404974L;
 	}
 	
 	/**

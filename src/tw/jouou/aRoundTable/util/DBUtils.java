@@ -93,7 +93,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 	private static DBUtils instance;
 
 	private DBUtils(Context context) {
-		super(context, DB_NAME, null, DB_VERSION);
+		super(context.getApplicationContext(), DB_NAME, null, DB_VERSION);
 		connectionSource = new AndroidConnectionSource(this);
 		 db = getReadableDatabase();
 		try {
