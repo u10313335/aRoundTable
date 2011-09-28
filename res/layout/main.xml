@@ -8,7 +8,7 @@
 	<RelativeLayout android:layout_height="wrap_content"
 				  	android:layout_width="fill_parent"
 				  	android:orientation="horizontal"
-				  	android:background="#000">
+				  	android:background="@android:color/transparent">
 				  	  
 		<ImageView android:id="@+id/main_unread_indicator"
    			   	   android:layout_height="wrap_content" 

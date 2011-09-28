@@ -34,7 +34,7 @@
     <string name="add_batch">Batch of Tasks</string>
     <string name="add_event">Event</string>
     <string name="owned_task_event">My Items</string>
-    <string name="project_task_event">Items of 「%1$s」</string>
+    <string name="project_task_event">Items of %1$s</string>
     <string name="notification">Notifications</string>
     <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">Contacts</string>

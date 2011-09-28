@@ -34,7 +34,7 @@
     <string name="add_batch">多個工作</string>
     <string name="add_event">事件</string>
     <string name="owned_task_event">我的項目</string>
-    <string name="project_task_event">「%1$s」的項目</string>
+    <string name="project_task_event">%1$s 的項目</string>
     <string name="notification">所有動態</string>
     <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">成員列表</string>
