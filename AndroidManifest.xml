@@ -9,15 +9,22 @@
     
     <application android:icon="@drawable/icon" android:label="@string/app_name"
     			 android:theme="@android:style/Theme.NoTitleBar">
+    	
+    	<activity android:name=".CheckLicenseActivity"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>		 
+    	
         <activity android:name="MainActivity"
                   android:label="@string/app_name"
                   android:launchMode="singleTask">
                   
             <!-- Main entrance -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
@@ -63,6 +70,16 @@
         <service android:name="tw.jouou.aRoundTable.lib.SyncService"
         		 android:exported="true">
         </service>
+        
+        <service android:name=".SampleService"/>
+        
+        <receiver android:name=".Receiver">
+			<intent-filter>
+				<action android:name="net.emome.hamiapps.sample01.ACTION_DOWNLOAD_AM" />
+				<action android:name="net.emome.hamiapps.sample01.ACTION_UPDATE_AM"/>
+				<action android:name="net.emome.hamiapps.sample01.ACTION_REMOTE_LICENSE_CHECK"/>
+			</intent-filter>
+		</receiver>
 
     </application>
 </manifest>
