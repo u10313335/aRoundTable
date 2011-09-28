@@ -2,6 +2,7 @@ package tw.jouou.aRoundTable.lib;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tw.jouou.aRoundTable.bean.Comment;
 import tw.jouou.aRoundTable.bean.Event;
 import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.bean.Notification;
@@ -46,6 +48,8 @@ public class ArtApi {
 	private static final String projectPath = "/projects/%d";
 	private static final String taskPath = "/tasks/%d";
 	private static final String eventPath = "/events/%d";
+	private static final String taskCommentsPath = "/tasks/%d/comments";
+	private static final String eventCommentsPath = "/events/%d/comments";
 	private static final String addUserPath = "/projects/%d/users";
 	private static final String notificationsPath = "/notifications";
 	private static final String notepadPath = "/projects/%d/notepad";
@@ -447,6 +451,30 @@ public class ArtApi {
 			e.printStackTrace();
 		}
 		return result;
+	}
+	
+	public Comment[] getTaskComments(long taskId) throws ServerException, ConnectionFailException{
+		return getComments(taskCommentsPath, taskId);
+	}
+	
+	public Comment[] getEventComments(long taskId) throws ServerException, ConnectionFailException{
+		return getComments(eventCommentsPath, taskId);
+	}
+	
+	private Comment[] getComments(String path, long id) throws ServerException, ConnectionFailException{
+		HttpResponse response = performGet(String.format(path, id), makeTokenParams());
+		JSONArray respArr = extractJsonArray(response);
+		Comment[] comments = new Comment[respArr.length()];
+		for(int i=0; i<respArr.length(); i++){
+			try {
+				comments[i] = new Comment(respArr.getJSONObject(i));
+			} catch (JSONException e) {
+				throw new ServerException(e);
+			} catch (ParseException e) {
+				throw new ServerException(e);
+			}
+		}
+		return comments;
 	}
 
 	public void updateNotepad(long projectId, String content) throws ServerException, ConnectionFailException{
