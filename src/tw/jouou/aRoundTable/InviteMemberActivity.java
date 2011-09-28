@@ -7,6 +7,7 @@ import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
 import tw.jouou.aRoundTable.lib.ArtApi.JoinStatus;
+import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 
 import android.app.Activity;
@@ -172,6 +173,8 @@ public class InviteMemberActivity extends Activity implements OnClickListener {
 				exception = e;
 			} catch (ConnectionFailException e) {
 				exception = e;
+			} catch (NotLoggedInException e) {
+				e.printStackTrace();
 			}
 			return null;
 		}

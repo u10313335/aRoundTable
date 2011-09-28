@@ -17,6 +17,7 @@ import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
+import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
@@ -479,6 +480,8 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 							Toast.makeText(MainActivity.this, getString(R.string.cannot_quit_project_server_problem) + e.getMessage(), Toast.LENGTH_LONG).show();
 						} catch (ConnectionFailException e) {
 							Toast.makeText(MainActivity.this, getString(R.string.cannot_quit_project_connection_problem), Toast.LENGTH_LONG).show();
+						} catch (NotLoggedInException e) {
+							e.printStackTrace();
 						}
     				}
                 });

@@ -14,6 +14,7 @@ import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
+import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.AlarmManager;
@@ -41,6 +42,7 @@ public class SyncService extends Service {
 	public static final int STATUS_FINISHED_OK = 1;
 	public static final int STATUS_FINISHED_SERVER_FAILED = 2;
 	public static final int STATUS_FINISHED_CONNECTION_FAILED = 3;
+	public static final int STATUS_CANCEL_NOT_LOGGED_IN = 4;
     public static final String PREF_LAST_UPDATE = "SYNC_LAST_UPDATE";
     public static final String ACTION_SYNC_STATUS = "tw.jouou.aRoundTable.SYNC_STATUS";
     public static final String EXTRA_SYNCSTATUS_CODE = "SYNCE_STATUS_CODE";
@@ -49,7 +51,6 @@ public class SyncService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		artApi = ArtApi.getInstance(this);
 		dbUtils = DBUtils.getInstance(this);
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
@@ -85,11 +86,19 @@ public class SyncService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
 		
-		sync();
+		try {
+			sync();
+		} catch (NotLoggedInException e) {
+			stopSelf();
+			return START_NOT_STICKY;
+		}
+		
 		return START_STICKY;
 	}
 	
-	public void sync() {
+	public void sync() throws NotLoggedInException {
+		artApi = ArtApi.getInstance(this);
+		
 		if(syncThread != null && syncThread.isAlive())
 			return;
 		

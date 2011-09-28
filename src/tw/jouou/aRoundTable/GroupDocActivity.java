@@ -5,6 +5,7 @@ import java.util.Date;
 import tw.jouou.aRoundTable.bean.GroupDoc;
 import tw.jouou.aRoundTable.lib.ArtApi;
 import tw.jouou.aRoundTable.lib.ArtApi.ConnectionFailException;
+import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
@@ -86,6 +87,8 @@ public class GroupDocActivity extends Activity {
 				exception = e;
 			} catch (ConnectionFailException e) {
 				exception = e;
+			} catch (NotLoggedInException e) {
+				e.printStackTrace();
 			}
 			return 0;
 		}
