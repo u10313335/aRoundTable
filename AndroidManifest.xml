@@ -67,13 +67,13 @@
         <activity android:name="GroupDocActivity">
         </activity>
         
-        <service android:name="tw.jouou.aRoundTable.lib.SyncService"
+        <service android:name="tw.jouou.aRoundTable.lite.lib.SyncService"
         		 android:exported="true">
         </service>
         
-        <service android:name="tw.jouou.aRoundTable.lib.HamiService"/>
+        <service android:name="tw.jouou.aRoundTable.lite.lib.HamiService"/>
         
-        <receiver android:name="tw.jouou.aRoundTable.lib.Receiver">
+        <receiver android:name="tw.jouou.aRoundTable.lite.lib.Receiver">
 			<intent-filter>
 				<action android:name="net.emome.hamiapps.sample01.ACTION_DOWNLOAD_AM" />
 				<action android:name="net.emome.hamiapps.sample01.ACTION_UPDATE_AM"/>
