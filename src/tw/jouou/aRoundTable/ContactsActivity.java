@@ -86,7 +86,7 @@ public class ContactsActivity extends Activity {
 				public void run() {
 					avatarImageView.setImageBitmap(member.getGravatar());
 				}
-			}).run();
+			}).start();
 			return convertView;
 		}
 	}
