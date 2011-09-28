@@ -149,7 +149,7 @@ public class AddSingleTaskActivity extends Activity {
         	mEdRemarks.setText(mTask.getNote());
         	mTaskDue = mTask.getDueDate();
         	if(mTaskDue == null) {
-        		if(!mTask.getDependOn().equals("")) {
+        		if((!mTask.getDependOn().equals("[]"))) {
                 	dependOnIds = getDependedTaskFromJSON(mTask.getDependOn());
             		findDependencyView(dependOnIds);
         		} else {
@@ -352,9 +352,9 @@ public class AddSingleTaskActivity extends Activity {
 					.findViewById(R.id.single_depend_on_view);
 			ImageButton single_depend_add_task = (ImageButton) mTaskDependency
 					.findViewById(R.id.single_depend_add_task);
-			((EditText) mTaskDependency.findViewById(R.id.single_dependency_day_context)).setText(""+mTask.getDuration());
 			if(dependOnIds != null) {
 				for(j = 0; j < dependOnIds.length; j++) {
+					((EditText) mTaskDependency.findViewById(R.id.single_dependency_day_context)).setText(""+mTask.getDuration());
 					final TableRow tr = new TableRow(AddSingleTaskActivity.this);
 					mDependableTasks.add(tr);
 					tr.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
