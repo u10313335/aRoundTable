@@ -67,6 +67,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements ViewSwitchListener {
 	
 	private int mUnReadCount;
+	private boolean afterPause = false;
 	private DBUtils dbUtils;
 	private List<Project> projs;
 	private LayoutInflater mInflater;
@@ -105,11 +106,16 @@ public class MainActivity extends Activity implements ViewSwitchListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+    	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
+    		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
+        }
+        
     	dbUtils = DBUtils.getInstance(this);
         
         colors = getResources().obtainTypedArray(R.array.project_colors);
     	mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    	mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
     	
     	setContentView(R.layout.main);
     	txTitle = (TextView) findViewById(R.id.main_title);
@@ -117,6 +123,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
     	txUnread = (TextView) findViewById(R.id.main_unread_count);
     	viewFlow = (ViewFlow) findViewById(R.id.viewflow);
 		viewFlow.setFlowIndicator((CircleFlowIndicator) findViewById(R.id.viewflowindic));
+		update();
 		viewFlow.setOnViewSwitchListener(this);
 		
 		registerReceiver(syncResultReceiver = new BroadcastReceiver() {
@@ -132,10 +139,6 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 				}
 			}
 		}, new IntentFilter(SyncService.ACTION_SYNC_STATUS));
-    	
-    	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
-    		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
-        }
     }
     
     @Override
@@ -378,23 +381,28 @@ public class MainActivity extends Activity implements ViewSwitchListener {
     	}
     	return true;
     }
+    
+    @Override
+    public void onPause(){
+    	super.onPause();
+    	afterPause = true;
+    }
 
     @Override
 	public void onResume() {
 		super.onResume();
-    	
-		//FIXME: doing sync every resume...?
 		
     	if(!(mPrefs.getBoolean("INITIALIZED", false))) {
     		//TODO: blocking loading screen
     	}
-
+    	
+    	//FIXME: doing sync every resume...?
     	startService(new Intent(this, SyncService.class));
 
-		update();
-    	if(viewFlow != null) {
-    		viewFlow.setSelection(position); //XXX: This is UNSAFE!!! project list is sorted by create time
-    	}
+		// Only run if once been paused, to prevent duplicate in onCreate
+		if(afterPause){
+			update();
+		}
     }
     
 	@Override
