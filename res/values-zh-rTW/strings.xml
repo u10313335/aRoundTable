@@ -28,9 +28,8 @@
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
     <string name="select_project">您要建立於何專案下？</string>
-    <string name="create_project_is_easy">建立專案十分容易！</string>
-    <string name="only_enter_name_and_color">輸入名稱並決定代表色即可：</string>
-    <string name="enter_project_name_here">在此輸入專案名稱</string>
+    <string name="enter_name_and_color">請決定專案名稱及代表色</string>
+    <string name="enter_project_name_here">專案名稱</string>
     <string name="create_project">建立專案</string>
     <string name="add_task">單一工作</string>
     <string name="add_batch">多個工作</string>

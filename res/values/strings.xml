@@ -28,8 +28,7 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="select_project">Select a project</string>
-    <string name="create_project_is_easy">Creating a project is pretty easy!</string>
-    <string name="only_enter_name_and_color">Simply choose a name and a color: </string>
+    <string name="enter_name_and_color">Choose a name and a color</string>
     <string name="enter_project_name_here">Enter project name here</string>
     <string name="create_project">Create</string>
     <string name="add_task">Single Task</string>
