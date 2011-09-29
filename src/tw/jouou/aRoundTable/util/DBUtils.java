@@ -109,6 +109,10 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return instance;
 		return new DBUtils(context);
 	}
+	
+	public static void resetInstance(Context context) {
+		instance = new DBUtils(context);
+	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db, ConnectionSource conn) {
