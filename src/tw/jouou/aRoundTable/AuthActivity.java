@@ -33,7 +33,6 @@ public class AuthActivity extends Activity {
 				        mPrefs.edit()
 				        	.putString("TOKEN", uri.getQueryParameter("token"))
 				        	.putInt("UID", Integer.parseInt(uri.getQueryParameter("uid")))
-				        	.putBoolean("AUTHORIZED", true)
 				        	.commit();
 				        
 						setResult(RESULT_OK);

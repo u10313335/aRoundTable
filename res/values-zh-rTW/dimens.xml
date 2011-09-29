@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-	<dimen name="text_size_medium">18sp</dimen>
-	<dimen name="actionbar_compat_height">45dp</dimen>
-</resources>

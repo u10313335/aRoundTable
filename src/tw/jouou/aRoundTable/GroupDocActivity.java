@@ -9,23 +9,25 @@ import tw.jouou.aRoundTable.lib.ArtApi.NotLoggedInException;
 import tw.jouou.aRoundTable.lib.ArtApi.ServerException;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 public class GroupDocActivity extends Activity {
-	
+	//TODO: Simple conflict detect
 	private DBUtils dbUtils;
 	private Bundle mBundle;
 	private GroupDoc mGroupDoc;
-	private Button Groupdocs_finish;
-	private Button Groupdocs_cancel;
-	private EditText Groupdocs_text;
+	private ImageButton groupdocs_finish;
+	private ImageButton groupdocs_cancel;
+	private EditText groupdocs_text;
 
 
 	@Override
@@ -33,24 +35,25 @@ public class GroupDocActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.group_doc);
 		
-		if(dbUtils == null) {
-			dbUtils = DBUtils.getInstance(this);
-    	}
+		dbUtils = DBUtils.getInstance(this);
 		
         mBundle = this.getIntent().getExtras();
-        mGroupDoc = (GroupDoc)mBundle.get("groupdoc");
-        findViews();
-		Groupdocs_text.setText(mGroupDoc.getContent());
-
-		Groupdocs_finish.setOnClickListener(new OnClickListener() {
+        mGroupDoc = (GroupDoc) mBundle.get("groupdoc");
+        
+		groupdocs_finish = (ImageButton)findViewById(R.id.groupdocs_finish);
+		groupdocs_cancel = (ImageButton)findViewById(R.id.groupdocs_cancel);
+		groupdocs_text = (EditText) findViewById(R.id.groupdocs_linetextview);
+		groupdocs_text.setText(mGroupDoc.getContent());
+		
+		groupdocs_finish.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				String content = Groupdocs_text.getText().toString();
+				String content = groupdocs_text.getText().toString();
 				(new UpdateGroupDocTask()).execute(content);
 			}
 		});
 				
-		Groupdocs_cancel.setOnClickListener(new OnClickListener() {
+		groupdocs_cancel.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				GroupDocActivity.this.finish();
@@ -58,12 +61,31 @@ public class GroupDocActivity extends Activity {
 		});
 	}
 	
-    private void findViews() {
-		Groupdocs_finish = (Button)findViewById(R.id.groupdocs_finish);
-		Groupdocs_cancel = (Button)findViewById(R.id.groupdocs_cancel);
-		Groupdocs_text = (EditText)findViewById(R.id.groupdocs_text);
-    }
-    
+	@Override
+	public void onBackPressed() {
+		final String content = groupdocs_text.getText().toString();
+		
+		if(content.equals(mGroupDoc.getContent()))
+			super.onBackPressed();
+		else{
+			new AlertDialog.Builder(this)
+				.setTitle(R.string.gorup_docs_confirm_title)
+				.setMessage(R.string.gorup_docs_confirm_message)
+				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						(new UpdateGroupDocTask()).execute(content);
+					}
+				})
+				.setNeutralButton(android.R.string.no, new DialogInterface.OnClickListener(){
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				}).show();
+		}
+	}
+
     
 	private class UpdateGroupDocTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;

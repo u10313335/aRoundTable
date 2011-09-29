@@ -10,7 +10,9 @@ import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
@@ -21,6 +23,7 @@ import android.widget.TextView;
 
 public class ContactsActivity extends Activity {
 	private Project project;
+	private Handler handler = new Handler();
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -84,7 +87,13 @@ public class ContactsActivity extends Activity {
 			new Thread(new Runnable() {	
 				@Override
 				public void run() {
-					avatarImageView.setImageBitmap(member.getGravatar());
+					final Bitmap avatar = member.getGravatar();
+					handler.post(new Runnable(){
+						@Override
+						public void run() {
+							avatarImageView.setImageBitmap(avatar);	
+						}
+					});
 				}
 			}).start();
 			return convertView;

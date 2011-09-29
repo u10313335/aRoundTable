@@ -47,6 +47,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -91,7 +93,8 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 	protected static final int MENU_EditProj = Menu.FIRST;
 	protected static final int MENU_QuitProj = Menu.FIRST+1;
 	protected static final int MENU_ViewFinished = Menu.FIRST+2;
-    protected static final int MENU_About = Menu.FIRST+3;
+    protected static final int MENU_Logout = Menu.FIRST+3;
+    protected static final int MENU_About = Menu.FIRST+4;
     protected static final int MENU_EditItem = Menu.FIRST;
     protected static final int MENU_DeleteItem = Menu.FIRST+1;
     private static final int TASK = 0;
@@ -108,7 +111,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
         super.onCreate(savedInstanceState);
         
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-    	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
+    	if(mPrefs.getString("TOKEN", "").length() == 0) {
     		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
         }
         
@@ -291,7 +294,10 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 						Intent groupdoc_intent = new Intent();
 						try {
 							GroupDoc groupDoc = dbUtils.groupDocDelegate.get(project.getServerId());
-							groupdoc_intent.putExtra("groupdoc", groupDoc);
+							if(groupDoc == null)
+								Toast.makeText(MainActivity.this, getString(R.string.gorup_docs_not_ready), Toast.LENGTH_LONG).show();
+							else
+								groupdoc_intent.putExtra("groupdoc", groupDoc);
 						} catch (ParseException e) {
 							e.printStackTrace();
 						}
@@ -421,9 +427,9 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 		menu.add(0, MENU_EditProj, 0, R.string.edit_project).setIcon(android.R.drawable.ic_menu_edit);
 		menu.add(0, MENU_QuitProj, 0, R.string.quit_project).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
 		menu.add(0, MENU_ViewFinished, 0, R.string.view_finished_items).setIcon(android.R.drawable.ic_menu_agenda);
+		menu.add(0, MENU_Logout, 0, R.string.logout).setIcon(android.R.drawable.ic_menu_set_as);
 		menu.add(0, MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
-		this.openOptionsMenu();
-		return super.onCreateOptionsMenu(menu);
+		return true;
 	}
 	
 	@Override
@@ -437,7 +443,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 			menu.findItem(MENU_QuitProj).setVisible(true);
 			menu.findItem(MENU_ViewFinished).setVisible(true);
 		}
-        return super.onPrepareOptionsMenu(menu);
+        return true;
 	}
 	
 	@Override
@@ -506,6 +512,39 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 				viewFinished.setClass(MainActivity.this, ViewFinishedItemsActivity.class);
 				viewFinished.putExtra("proj", projs.get(position-2));
     			startActivity(viewFinished);
+				break;
+			case MENU_Logout:
+				AlertDialog.Builder logoutDialog = new AlertDialog.Builder(this);
+				logoutDialog.setTitle(R.string.logout);
+				logoutDialog.setMessage(R.string.confirm_logout);
+				logoutDialog.setIcon(android.R.drawable.ic_menu_set_as);
+				logoutDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					CookieSyncManager.createInstance(MainActivity.this);
+    					CookieManager.getInstance().removeAllCookie();
+    					mPrefs.edit()
+    						.remove("TOKEN")
+    						.commit();
+    					ArtApi.dropInstance();
+    					stopService(new Intent(MainActivity.this, SyncService.class));
+    					DBUtils.dropInstance();
+    					deleteDatabase(DBUtils.DB_NAME);
+    					
+    					Intent intent = getIntent();
+    					overridePendingTransition(0, 0);
+    					intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+    					finish();
+    					startActivity(intent);
+    				}
+                });
+				logoutDialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dialog.dismiss();
+    				}
+                });
+				logoutDialog.show();
 				break;
 			case MENU_About:
 				AlertDialog.Builder aboutDialog = new AlertDialog.Builder(this);
