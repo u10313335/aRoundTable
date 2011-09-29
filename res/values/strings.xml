@@ -38,6 +38,10 @@
     <string name="notification">Notifications</string>
     <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">Contacts</string>
+    <string name="gorup_docs">Shared Notes</string>
+    <string name="gorup_docs_not_ready">Shared notes is not ready yet,\n please retry after sync completed</string>
+    <string name="gorup_docs_confirm_title">Save changes?</string>
+    <string name="gorup_docs_confirm_message">The content of shared notes has been changed, do you wish to save it?</string>
     <string name="email_to_invite">Email Address</string>
     <string name="invite_member">Invite Members</string>
     <string name="invite">Invite</string>

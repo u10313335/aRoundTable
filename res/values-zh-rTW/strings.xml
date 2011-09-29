@@ -38,6 +38,10 @@
     <string name="notification">所有動態</string>
     <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">成員列表</string>
+    <string name="gorup_docs">群組共筆</string>
+    <string name="gorup_docs_not_ready">群組共筆尚未下載完成\n請等待同步完成後再試一次</string>
+    <string name="gorup_docs_confirm_title">是否儲存?</string>
+    <string name="gorup_docs_confirm_message">請問您是否要儲存您的變更?</string>
     <string name="email_to_invite">電子郵件地址</string>
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>
