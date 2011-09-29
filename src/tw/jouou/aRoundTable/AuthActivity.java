@@ -34,9 +34,8 @@ public class AuthActivity extends Activity {
 				        mPrefs.edit()
 				        	.putString("TOKEN", uri.getQueryParameter("token"))
 				        	.putInt("UID", Integer.parseInt(uri.getQueryParameter("uid")))
-				        	.putBoolean("AUTHORIZED", true)
 				        	.commit();
-				        CookieManager.getInstance().removeAllCookie();
+				        
 						setResult(RESULT_OK);
 						finish();
 			        }else

@@ -111,7 +111,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
         super.onCreate(savedInstanceState);
         
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-    	if(!mPrefs.getBoolean("AUTHORIZED", false)) {
+    	if(mPrefs.getString("TOKEN", "").length() == 0) {
     		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
         }
         
@@ -426,8 +426,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 		menu.add(0, MENU_ViewFinished, 0, R.string.view_finished_items).setIcon(android.R.drawable.ic_menu_agenda);
 		menu.add(0, MENU_Logout, 0, R.string.logout).setIcon(android.R.drawable.ic_menu_set_as);
 		menu.add(0, MENU_About, 0, R.string.about).setIcon(android.R.drawable.ic_menu_help);
-		this.openOptionsMenu();
-		return super.onCreateOptionsMenu(menu);
+		return true;
 	}
 	
 	@Override
@@ -441,7 +440,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 			menu.findItem(MENU_QuitProj).setVisible(true);
 			menu.findItem(MENU_ViewFinished).setVisible(true);
 		}
-        return super.onPrepareOptionsMenu(menu);
+        return true;
 	}
 	
 	@Override
@@ -519,16 +518,20 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 				logoutDialog.setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
-    					if(MainActivity.this.deleteDatabase(DBUtils.DB_NAME)) {
-    						Log.v(TAG, "delete db successfully");
-    					}
-    					DBUtils.resetInstance(MainActivity.this);
-    					mPrefs.edit().clear().commit();
+    					CookieSyncManager.createInstance(MainActivity.this);
+    					CookieManager.getInstance().removeAllCookie();
+    					mPrefs.edit()
+    						.remove("TOKEN")
+    						.commit();
+    					ArtApi.dropInstance();
+    					stopService(new Intent(MainActivity.this, SyncService.class));
+    					DBUtils.dropInstance();
+    					deleteDatabase(DBUtils.DB_NAME);
+    					
     					Intent intent = getIntent();
     					overridePendingTransition(0, 0);
     					intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
     					finish();
-    					overridePendingTransition(0, 0);
     					startActivity(intent);
     				}
                 });
