@@ -291,7 +291,10 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 						Intent groupdoc_intent = new Intent();
 						try {
 							GroupDoc groupDoc = dbUtils.groupDocDelegate.get(project.getServerId());
-							groupdoc_intent.putExtra("groupdoc", groupDoc);
+							if(groupDoc == null)
+								Toast.makeText(MainActivity.this, getString(R.string.gorup_docs_not_ready), Toast.LENGTH_LONG).show();
+							else
+								groupdoc_intent.putExtra("groupdoc", groupDoc);
 						} catch (ParseException e) {
 							e.printStackTrace();
 						}
