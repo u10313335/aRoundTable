@@ -14,6 +14,8 @@
     <string name="quit_project_prompt">Quitting would delete every task and event under this project. Are you sure you want to proceed?</string>
     <string name="view_finished_items">Finished Items</string>
     <string name="about">About</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_logout">Logout would delete every project, task and event on your phone. Are you sure you want to proceed?</string>
     <string name="done">Finish</string>
     <string name="okay">OK</string>
     <string name="cancel">Cancel</string>

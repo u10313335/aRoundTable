@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -33,7 +34,6 @@ public class AuthActivity extends Activity {
 				        mPrefs.edit()
 				        	.putString("TOKEN", uri.getQueryParameter("token"))
 				        	.putInt("UID", Integer.parseInt(uri.getQueryParameter("uid")))
-				        	.putBoolean("AUTHORIZED", true)
 				        	.commit();
 				        
 						setResult(RESULT_OK);

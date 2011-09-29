@@ -76,6 +76,10 @@ public class ArtApi {
         return instance = new ArtApi(prefs.getString("TOKEN", ""));
 	}
 	
+	public static void dropInstance(){
+		instance = null;
+	}
+	
 	public Project[] getProjectList() throws ServerException, ConnectionFailException{
 		TokenParamsBuilder params = makeTokenParams();
 		Project r[];
