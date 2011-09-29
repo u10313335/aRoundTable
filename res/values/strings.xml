@@ -15,6 +15,8 @@
     <string name="quit_project_prompt">Quitting would delete every task and event under this project. Are you sure you want to proceed?</string>
     <string name="view_finished_items">Finished Items</string>
     <string name="about">About</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_logout">Logout would delete every project, task and event on your phone. Are you sure you want to proceed?</string>
     <string name="done">Finish</string>
     <string name="okay">OK</string>
     <string name="cancel">Cancel</string>
@@ -27,8 +29,7 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="select_project">Select a project</string>
-    <string name="create_project_is_easy">Creating a project is pretty easy!</string>
-    <string name="only_enter_name_and_color">Simply choose a name and a color: </string>
+    <string name="enter_name_and_color">Choose a name and a color</string>
     <string name="enter_project_name_here">Enter project name here</string>
     <string name="create_project">Create</string>
     <string name="add_task">Single Task</string>
@@ -39,6 +40,10 @@
     <string name="notification">Notifications</string>
     <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">Contacts</string>
+    <string name="gorup_docs">Shared Notes</string>
+    <string name="gorup_docs_not_ready">Shared notes is not ready yet,\n please retry after sync completed</string>
+    <string name="gorup_docs_confirm_title">Save changes?</string>
+    <string name="gorup_docs_confirm_message">The content of shared notes has been changed, do you wish to save it?</string>
     <string name="email_to_invite">Email Address</string>
     <string name="invite_member">Invite Members</string>
     <string name="invite">Invite</string>
