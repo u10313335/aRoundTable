@@ -110,8 +110,8 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 		return new DBUtils(context);
 	}
 	
-	public static void resetInstance(Context context) {
-		instance = new DBUtils(context);
+	public static void dropInstance() {
+		instance = null;
 	}
 
 	@Override

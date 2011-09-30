@@ -1,55 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent">
-
- <TextView 
-	android:id="@+id/groupdocs_context"
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:text="內容："
-    android:layout_weight="0"
-    android:textSize="18sp"
-    />
-  
- 
-  <EditText  
-	android:id="@+id/groupdocs_text"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:gravity="top|left"
-    android:layout_weight="1"
-
-    />
-    
- <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:stretchColumns="0,1"
-    android:layout_weight="0"
-    android:background="#808080FF"
-    >
-    
-    <TableRow>
-    
-    <Button  
-	android:id="@+id/groupdocs_finish"
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:text="完成"
-    />
-    
-     <Button  
-	android:id="@+id/groupdocs_cancel"
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:text="取消"
-    />
-    
-    </TableRow>
-    
-   </TableLayout>
-    
-    </LinearLayout>
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+  	<LinearLayout 	style="@style/ActionBarCompat">
+		<TextView	
+			style="@style/ActionBarCompatText"
+			android:text="@string/gorup_docs" />
+		<View 		style="@style/ActionBarCompatSeparator" />
+	    <ImageButton  
+			android:id="@+id/groupdocs_finish"
+	    	android:src="@android:drawable/ic_menu_save"
+	    	style="@style/ActionBarCompatButton"
+	    />
+    	<View  style="@style/ActionBarCompatSeparator" />
+	    <ImageButton  
+			android:id="@+id/groupdocs_cancel"
+		    android:src="@android:drawable/ic_menu_close_clear_cancel"
+		    style="@style/ActionBarCompatButton"
+	    />
+	</LinearLayout>
+	 	
+	<tw.jouou.aRoundTable.LineEditText 
+		android:id="@+id/groupdocs_linetextview"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:textSize="25sp"
+		android:background="#fffb9c" />
+</LinearLayout>

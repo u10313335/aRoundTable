@@ -28,6 +28,7 @@ public class ProjectTaskEventAdapter extends BaseTaskEventAdapter {
 			metaCheckBox.setVisibility(View.INVISIBLE);
 		}else{
 			metaTextView.setText(genUserNames(taskEvent.getServerId()));
+			metaCheckBox.setVisibility(View.VISIBLE);
 		}
 	}
 
