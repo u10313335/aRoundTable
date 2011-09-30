@@ -1,12 +1,15 @@
 package tw.jouou.aRoundTable;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.List;
 
 import tw.jouou.aRoundTable.bean.Notification;
+import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
 import tw.jouou.aRoundTable.util.DBUtils;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -99,13 +102,25 @@ public class NotificationsAdapter extends BaseAdapter implements OnItemClickList
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		Notification notification = notifications.get(position);
-		if(notification.notifiableType == "Task"){
+		if(notification.notifiableType.equals("Task")){
+			Task task = null;
+			try {
+				task = dbUtils.tasksDelegate.findTaskByServerId(notification.notifiableId);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			if(task == null){
+				// TODO: show error message
+				return;
+			}
+			Intent intent = new Intent(context, DisplayTaskActivity.class);
+			intent.putExtra("task", task);
+			context.startActivity(intent);
+		}else if(notification.notifiableType.equals("Event")){
 			
-		}else if(notification.notifiableType == "Event"){
+		}else if(notification.notifiableType.equals("Project")){
 			
-		}else if(notification.notifiableType == "Project"){
-			
-		}else if(notification.notifiableType == "Notepad"){
+		}else if(notification.notifiableType.equals("Notepad")){
 			 
 		}
 			
