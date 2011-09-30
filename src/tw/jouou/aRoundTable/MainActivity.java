@@ -278,6 +278,8 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 						this, 
 						taskEventDelegate.getOwned(uid), 
 						taskEventDelegate.getOwnedOverDue(uid)));
+		allItemListView.setOnGroupClickListener(ownedTaskEventAdapter);
+		allItemListView.setOnChildClickListener(ownedTaskEventAdapter);
     }
     
     // form task/event list belongs to specific project
@@ -330,6 +332,8 @@ public class MainActivity extends Activity implements ViewSwitchListener {
 			TaskEventDelegate taskEventDelegate = dbUtils.taskEventDelegate;
 			projectTaskEventAdapters[i] = new ProjectTaskEventAdapter(this, taskEventDelegate.get(projectId), taskEventDelegate.getOverDue(projectId));
 			projItemListView.setAdapter(projectTaskEventAdapters[i]);
+			projItemListView.setOnGroupClickListener(projectTaskEventAdapters[i]);
+			projItemListView.setOnChildClickListener(projectTaskEventAdapters[i]);
 			projItemListView.setOnCreateContextMenuListener(new ExpandableCreateContextMenuListener());
 		}
 	}

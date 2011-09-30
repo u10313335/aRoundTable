@@ -11,6 +11,7 @@ import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.lib.SyncService;
 import tw.jouou.aRoundTable.util.DBUtils;
+import tw.jouou.aRoundTable.util.DBUtils.TaskEventDelegate;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
@@ -21,11 +22,14 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.ExpandableListView.OnGroupClickListener;
 
-public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
+public class BaseTaskEventAdapter extends BaseExpandableListAdapter implements OnGroupClickListener, OnChildClickListener{
 	protected DBUtils dbUtils;
 	private List<TaskEvent> taskevents;
 	private List<TaskEvent> overDue;
@@ -136,25 +140,30 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 		
 		// Finish checkbox
 		CheckBox done = (CheckBox) view.findViewById(R.id.item_done);
-		done.setChecked(taskEvent.getDone() == 1);
-		done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			  @Override
-			  public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
-				  try {
-					  	Task task;
-      					task = dbUtils.tasksDelegate.findTaskByServerId(taskEvent.getServerId());
-      					task.setDone(true);
-      					task.setUpdateAt(new Date());
-      					dbUtils.tasksDelegate.update(task);
-      					//TODO: This should not be here
-      					((MainActivity)context).update();
-    		    		Intent syncIntent = new Intent(context, SyncService.class);
-    		    		context.startService(syncIntent);
-				  } catch (ParseException e) {
-      					e.printStackTrace();
+		if(taskEvent.getType() == TaskEventDelegate.TYPE_EVENT){
+			done.setVisibility(View.INVISIBLE);
+		} else {
+			done.setVisibility(View.VISIBLE);
+			done.setChecked(taskEvent.getDone() == 1);
+			done.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+				  @Override
+				  public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
+					  try {
+						  	Task task;
+	      					task = dbUtils.tasksDelegate.findTaskByServerId(taskEvent.getServerId());
+	      					task.setDone(true);
+	      					task.setUpdateAt(new Date());
+	      					dbUtils.tasksDelegate.update(task);
+	      					//TODO: This should not be here
+	      					((MainActivity)context).update();
+	    		    		Intent syncIntent = new Intent(context, SyncService.class);
+	    		    		context.startService(syncIntent);
+					  } catch (ParseException e) {
+	      					e.printStackTrace();
+					  }
 				  }
-			  }
-		  });
+			  });
+		}
 		
 		((TextView) view.findViewById(R.id.item_name)).setText(taskEvent.getName());
 		
@@ -197,4 +206,34 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 		
 		return Math.round((dueCal.getTime().getTime()-todayCal.getTime().getTime()) /DAY);
 	}
+
+	@Override
+	public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+		return handleClick((TaskEvent) getGroup(groupPosition));
+	}
+
+	@Override
+	public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+		return handleClick((TaskEvent) getChild(groupPosition, childPosition));
+	}
+	
+	private boolean handleClick(TaskEvent taskEvent) {
+		if(taskEvent == null)
+			return false;
+		
+		if(taskEvent.getType() == DBUtils.TaskEventDelegate.TYPE_TASK) {
+			try {
+				Intent intent = new Intent(context, DisplayTaskActivity.class);
+				Task task = dbUtils.tasksDelegate.findTaskByServerId(taskEvent.getServerId());
+				intent.putExtra("task", task);
+				context.startActivity(intent);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}else {
+			/* ... */
+		}
+		return true;
+	}
+
 }

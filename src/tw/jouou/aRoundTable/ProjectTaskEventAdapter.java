@@ -6,7 +6,6 @@ import tw.jouou.aRoundTable.bean.TaskEvent;
 import tw.jouou.aRoundTable.util.DBUtils.TaskEventDelegate;
 import android.content.Context;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.TextView;
 
 public class ProjectTaskEventAdapter extends BaseTaskEventAdapter {
@@ -20,15 +19,11 @@ public class ProjectTaskEventAdapter extends BaseTaskEventAdapter {
 	@Override
 	protected void fillEntry(View view, TaskEvent taskEvent){
 		super.fillEntry(view, taskEvent);
-		
 		TextView metaTextView = (TextView) view.findViewById(R.id.item_meta);
-		CheckBox metaCheckBox = (CheckBox) view.findViewById(R.id.item_done);
 		if(taskEvent.getType() == TaskEventDelegate.TYPE_EVENT){
 			metaTextView.setText("");
-			metaCheckBox.setVisibility(View.INVISIBLE);
 		}else{
 			metaTextView.setText(genUserNames(taskEvent.getServerId()));
-			metaCheckBox.setVisibility(View.VISIBLE);
 		}
 	}
 
