@@ -422,7 +422,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			return tasks;
 		}
 
-		public Task getTask(long id) throws ParseException {
+		public Task findTaskByServerId(long id) throws ParseException {
 			Task task = null;
 			Date dueDate = null;
 			SQLiteDatabase db = getReadableDatabase();

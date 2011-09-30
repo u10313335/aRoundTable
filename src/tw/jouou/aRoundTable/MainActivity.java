@@ -352,7 +352,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
         			case 0:
         				Task task;
         				try {
-        					task = dbUtils.tasksDelegate.getTask(taskEvent.getServerId());
+        					task = dbUtils.tasksDelegate.findTaskByServerId(taskEvent.getServerId());
             				additem_intent.putExtra("item", task);
             				additem_intent.putExtra("type", TASK);
         				} catch (ParseException e) {

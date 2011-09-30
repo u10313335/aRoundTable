@@ -142,7 +142,7 @@ public class BaseTaskEventAdapter extends BaseExpandableListAdapter {
 			  public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
 				  try {
 					  	Task task;
-      					task = dbUtils.tasksDelegate.getTask(taskEvent.getServerId());
+      					task = dbUtils.tasksDelegate.findTaskByServerId(taskEvent.getServerId());
       					task.setDone(true);
       					task.setUpdateAt(new Date());
       					dbUtils.tasksDelegate.update(task);

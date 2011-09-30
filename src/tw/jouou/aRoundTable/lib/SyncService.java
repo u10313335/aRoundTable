@@ -174,7 +174,7 @@ public class SyncService extends Service {
 				int taskDiff = remoteTasks.length - dbUtils.tasksDelegate.count(projectServerId);
 				if(taskDiff == 0) {
 					for (int j=0 ; j<remoteTasks.length ; j++) {
-						Task task = dbUtils.tasksDelegate.getTask(remoteTasks[j].getServerId());
+						Task task = dbUtils.tasksDelegate.findTaskByServerId(remoteTasks[j].getServerId());
 						Long[] usersId = dbUtils.tasksUsersDelegate.getUsersId(remoteTasks[j].getServerId());
 						Log.v(TAG, "[task] local: " + task.getServerId() + " remote: " + remoteTasks[j].getServerId());
 						if (!(task.getUpdateAt().compareTo(remoteTasks[j].getUpdateAt())==0)) {
