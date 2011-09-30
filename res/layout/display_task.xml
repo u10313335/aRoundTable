@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:background="@drawable/background">
+				
+	<LinearLayout style="@style/ActionBarCompat"
+				  android:paddingTop="10dp">
+		<TextView android:id="@+id/view_task_title"
+				  style="@style/ActionBarCompatText"/>
+	</LinearLayout>
+			
+	<ScrollView android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_weight="1">
+	  
+		<TableLayout android:layout_width="fill_parent" 
+			 	 	 android:layout_height="fill_parent"
+			 		 android:stretchColumns="1">
+		
+			<TableRow>
+				<TextView android:layout_width="wrap_content"
+				  	  	  android:layout_height="wrap_content"
+				  	  	  android:text="@string/create_under"
+				  	  	  android:textStyle="bold"  
+				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+				<TextView android:id="@+id/view_task_create_under" 
+				 	 	  android:layout_width="wrap_content"
+				  	  	  android:layout_height="wrap_content"
+				  	  	  android:text=""
+				  	  	  android:textStyle="bold"
+				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+			</TableRow>
+	
+			
+			<TableRow>
+				<TextView android:layout_width="wrap_content" 
+				  	  	  android:layout_height="wrap_content"
+				 	  	  android:text="@string/due"
+				 	  	  android:textStyle="bold"
+				 	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+				<TextView android:id="@+id/view_task_due"
+						  android:layout_height="wrap_content"
+				  		  android:layout_width="wrap_content"/>
+			</TableRow>
+	
+			<TableRow>
+				<TextView android:layout_width="wrap_content"
+				 	  	  android:layout_height="wrap_content"
+				  	  	  android:text="@string/owner"
+				  	  	  android:textStyle="bold"
+				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+				<TextView android:id="@+id/view_task_owner"
+						  android:layout_height="wrap_content"
+				  		  android:layout_width="wrap_content"/>
+				 
+			</TableRow>
+
+			<TableRow>
+				<TextView android:layout_width="wrap_content"
+				  	  	  android:layout_height="wrap_content"
+				  	  	  android:text="@string/note"
+				  	  	  android:textStyle="bold"
+				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+		
+				<TextView android:id="@+id/view_task_remarks"
+				  	  	  android:layout_width="wrap_content" 
+				 	  	  android:layout_height="wrap_content"
+				  	  	  android:text=""/>
+			</TableRow>	
+	
+		</TableLayout>
+	
+	</ScrollView>
+
+	<TableLayout android:id="@+id/single_additem_button"
+        			 android:layout_width="fill_parent" 
+        			 android:layout_height="wrap_content"
+					 android:stretchColumns="0">
+	
+		<TableRow android:background="@android:color/darker_gray">
+			<EditText android:id="@+id/view_task_comment_context"
+					  android:layout_width="wrap_content" 
+				 	  android:layout_height="wrap_content"
+					  android:layout_marginLeft="5dip"
+					  android:layout_marginRight="5dip"
+				 	  android:layout_gravity="center_vertical"
+				 	  android:hint="新增留言"/>
+
+			<Button android:id="@+id/view_task_send_comment"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="5dip"
+					android:layout_marginRight="5dip"
+					android:layout_gravity="center_vertical"
+					android:text="張貼"
+					android:textStyle="bold"/>
+		</TableRow>
+
+	</TableLayout>
+
+</LinearLayout>

@@ -35,10 +35,6 @@
         <activity android:name="ViewFinishedItemsActivity">
         </activity>
         
-        <activity android:name="tw.jouou.aRoundTable.util.AccManagerActivity"
-        			android:launchMode="singleInstance">
-        </activity>
-        
         <activity android:name="AddItemActivity">
         </activity>
         
@@ -51,13 +47,13 @@
         <activity android:name="AddSingleTaskActivity">
         </activity>
         
-        <activity android:name="DynamicIssueActivity">
-        </activity>
-        
         <activity android:name="ContactsActivity">
         </activity>
         
         <activity android:name="GroupDocActivity">
+        </activity>
+        
+        <activity android:name="DisplayTaskActivity">
         </activity>
         
         <service android:name="tw.jouou.aRoundTable.lib.SyncService"
