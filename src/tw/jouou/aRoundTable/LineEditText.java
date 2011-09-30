@@ -4,18 +4,19 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.EditText;
 
 public class LineEditText extends EditText {
-	
-	 private Paint mPaint;  
+	private int lineColor = Color.parseColor("#bd9642");
+	 public LineEditText(Context context, AttributeSet attrs) {
+		super(context, attrs);
+	}
+
+
+	private Paint mPaint;  
     
-	    public LineEditText(Context context) {  
-	        super(context);  
-	        // TODO Auto-generated constructor stub  
-	       
-	    }  
 	      
 	    @Override  
 	    public void onDraw(Canvas canvas)  
@@ -23,7 +24,7 @@ public class LineEditText extends EditText {
 	          
 	        int lineHeight=this.getLineHeight();
 	        Paint mPaint=getPaint();
-	        mPaint.setColor(Color.LTGRAY);
+	        mPaint.setColor(lineColor);
 	        int topPadding=this.getPaddingTop();
 	        int leftPadding=this.getPaddingLeft();
 	        float textSize=getTextSize();

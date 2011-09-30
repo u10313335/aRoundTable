@@ -24,6 +24,8 @@ public class OwnedTaskEventAdapter extends BaseTaskEventAdapter {
 		CheckBox metaCheckBox = (CheckBox) view.findViewById(R.id.item_done);
 		if(taskEvent.getType() == TaskEventDelegate.TYPE_EVENT){
 			metaCheckBox.setVisibility(View.INVISIBLE);
+		} else {
+			metaCheckBox.setVisibility(View.VISIBLE);
 		}
 		((TextView) view.findViewById(R.id.item_meta)).setText(project.getName());
 	}

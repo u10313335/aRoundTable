@@ -14,6 +14,8 @@
     <string name="quit_project_prompt">退出專案會刪除所有此專案下的工作與事件。確定要這麼做？</string>
     <string name="view_finished_items">查看完成項目</string>
     <string name="about">關於</string>
+    <string name="logout">登出</string>
+    <string name="confirm_logout">登出會刪除手機上所有專案、工作及事件。確定要這麼做？（伺服器端不受影響）</string>
     <string name="done">完成</string>
     <string name="okay">確定</string>
     <string name="cancel">取消</string>
@@ -26,9 +28,8 @@
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
     <string name="select_project">您要建立於何專案下？</string>
-    <string name="create_project_is_easy">建立專案十分容易！</string>
-    <string name="only_enter_name_and_color">輸入名稱並決定代表色即可：</string>
-    <string name="enter_project_name_here">在此輸入專案名稱</string>
+    <string name="enter_name_and_color">請決定專案名稱及代表色</string>
+    <string name="enter_project_name_here">專案名稱</string>
     <string name="create_project">建立專案</string>
     <string name="add_task">單一工作</string>
     <string name="add_batch">多個工作</string>
@@ -38,6 +39,10 @@
     <string name="notification">所有動態</string>
     <string name="feedback_mail_title">[aRound Table] Feedback</string>
     <string name="contacts">成員列表</string>
+    <string name="gorup_docs">群組共筆</string>
+    <string name="gorup_docs_not_ready">群組共筆尚未下載完成\n請等待同步完成後再試一次</string>
+    <string name="gorup_docs_confirm_title">是否儲存?</string>
+    <string name="gorup_docs_confirm_message">請問您是否要儲存您的變更?</string>
     <string name="email_to_invite">電子郵件地址</string>
     <string name="invite_member">邀請成員</string>
     <string name="invite">邀請</string>

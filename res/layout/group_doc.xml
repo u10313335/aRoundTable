@@ -1,44 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:id="@+id/linear1"
-  android:orientation="vertical"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent">
-     
-       
- <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    >
-    
-    <TableRow>
-    
-    <View 		style="@style/ActionBarCompatSeparator" />
-    <ImageButton  
-	android:id="@+id/groupdocs_finish"
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:src="@android:drawable/ic_menu_save"
-    android:background="@null"
-    android:padding="5dip"
-    style="@style/ActionBarCompatButton"
-    />
-    
-    <View 		style="@style/ActionBarCompatSeparator" />
-    <ImageButton  
-	android:id="@+id/groupdocs_cancel"
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:src="@android:drawable/ic_menu_close_clear_cancel"
-    android:background="@null"
-    android:padding="5dip"
-    style="@style/ActionBarCompatButton"
-    />
-    
-    
-    </TableRow>
-    
-   </TableLayout>
-    
-    </LinearLayout>
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+  	<LinearLayout 	style="@style/ActionBarCompat">
+		<TextView	
+			style="@style/ActionBarCompatText"
+			android:text="@string/gorup_docs" />
+		<View 		style="@style/ActionBarCompatSeparator" />
+	    <ImageButton  
+			android:id="@+id/groupdocs_finish"
+	    	android:src="@android:drawable/ic_menu_save"
+	    	style="@style/ActionBarCompatButton"
+	    />
+    	<View  style="@style/ActionBarCompatSeparator" />
+	    <ImageButton  
+			android:id="@+id/groupdocs_cancel"
+		    android:src="@android:drawable/ic_menu_close_clear_cancel"
+		    style="@style/ActionBarCompatButton"
+	    />
+	</LinearLayout>
+	 	
+	<tw.jouou.aRoundTable.LineEditText 
+		android:id="@+id/groupdocs_linetextview"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:textSize="25sp"
+		android:background="#fffb9c" />
+</LinearLayout>
