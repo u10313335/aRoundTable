@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">aRound Table</string>
+    <string name="app_name">aRound Table Lite</string>
     <string name="welcome_message_title">Welcome to use aRound Table！</string>
     <string name="welcome_message">To get started, you need to finish Google account authentication.</string>
     <string name="create_project_message">You have no project now. Create a new one?</string>
+    <string name="exceed_project_limit">You are using Lite version. Exceed project limit!</string>
     <string name="register_finished">Authentication Finished</string>
     <string name="retriving_existed_data">Retrieving existing projects...</string>
     <string name="processing">Processing</string>
