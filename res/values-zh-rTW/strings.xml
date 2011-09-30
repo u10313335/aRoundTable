@@ -81,4 +81,5 @@
     <string name="add_owner">新增負責人</string>
     <string name="note">備註：</string>
     <string name="last_update">上次更新時間： %s</string>
+    <string name="project">專案:</string>
 </resources>

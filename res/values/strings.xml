@@ -81,4 +81,5 @@
     <string name="add_owner">Add Owner</string>
     <string name="note">Note:</string>
     <string name="last_update">Last updated at: %s</string>
+    <string name="project">Project:</string>
 </resources>
