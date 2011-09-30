@@ -26,6 +26,7 @@ import tw.jouou.aRoundTable.util.Utils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -102,6 +103,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
     private static final int ADD_ITEM = 0;
     private static final int EDIT_ITEM = 1;
     private static final int REQUEST_AUTH = 1;
+    private static final int REQUEST_GUIDE = 2;
     private static final int PROJECT_VIEWS_BORDER = 2;
 	private static String TAG = "MainActivity";
 
@@ -111,8 +113,16 @@ public class MainActivity extends Activity implements ViewSwitchListener {
         super.onCreate(savedInstanceState);
         
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        
     	if(mPrefs.getString("TOKEN", "").length() == 0) {
-    		startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
+    		if(!mPrefs.getBoolean("INSTALLED", false)) {
+        		Intent intent = new Intent(MainActivity.this, GuideActivity.class);
+        		PendingIntent pendingIntent = PendingIntent.getActivity(this, REQUEST_AUTH, new Intent(MainActivity.this, AuthActivity.class), 0);
+        		intent.putExtra("pending", pendingIntent);
+            	startActivity(intent);
+        	} else {
+            	startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_AUTH);
+        	}
         }
         
     	dbUtils = DBUtils.getInstance(this);
@@ -148,6 +158,10 @@ public class MainActivity extends Activity implements ViewSwitchListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) { 
     	switch (requestCode) {
 		case REQUEST_AUTH:
+			if(resultCode == RESULT_CANCELED)
+				finish();
+			break;
+		case REQUEST_GUIDE:
 			if(resultCode == RESULT_CANCELED)
 				finish();
 			break;

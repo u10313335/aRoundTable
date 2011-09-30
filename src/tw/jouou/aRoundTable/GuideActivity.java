@@ -1,8 +1,12 @@
 package tw.jouou.aRoundTable;
 
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.app.PendingIntent.CanceledException;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -12,17 +16,25 @@ import android.widget.ViewFlipper;
 public class GuideActivity extends Activity{
 	
 	  private ViewFlipper wizardViewFlipper;
-	    private RelativeLayout Buttons;
-	    private Button prev;
-	    private Button next;
-	    private int currentPage = 0;
-	    private int pageBound;
+	  private RelativeLayout Buttons;
+	  private Button prev;
+	  private Button next;
+	  private int currentPage = 0;
+	  private int pageBound;
+	  private Bundle mBundle;
+	  private SharedPreferences mPrefs;
 	    
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
 	        setContentView(R.layout.guide);
 	        
+	        mBundle = this.getIntent().getExtras();
+	        
+	        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+    		mPrefs.edit()
+        	.putBoolean("INSTALLED", true)
+        	.commit();
 	        
 	       wizardViewFlipper = (ViewFlipper)findViewById(R.id.wizard_flipper);
 	       Buttons = (RelativeLayout)findViewById(R.id.Buttons);
@@ -32,29 +44,6 @@ public class GuideActivity extends Activity{
 	       Buttons.setBackgroundColor(Color.DKGRAY);
 	       
 	       pageBound = wizardViewFlipper.getChildCount() - 1;
-	       
-//	       if(isFirstDisplayed()) {
-//	           // user walked past beginning of wizard, so return that they cancelled
-//			 
-//			 Back.setText("Quit");
-//			 Back.setOnClickListener(new OnClickListener(){
-	//
-//				@Override
-//				public void onClick(View v) {
-//					
-//					GuideActivity.this.finish();
-//				}
-//				 
-//				
-//				 
-//			 });
-//			 	
-//	       }
-//	       
-//	       else
-//			 {
-//				 Back.setText("Back");
-//			 }
 	        
 	       next.setOnClickListener(new OnClickListener(){
 
@@ -62,38 +51,34 @@ public class GuideActivity extends Activity{
 				public void onClick(View v) {
 					if(currentPage != pageBound){
 						if(currentPage == 0){ 
-							
 							prev.setText("Back");
-							prev.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_btn_back, 0, 0, 0);// Todo : set drawable
-							
+							prev.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_btn_back, 0, 0, 0);// Todo : set drawable							
 						}
 						currentPage++;
 						wizardViewFlipper.showNext();
 					}else{
-						
 						next.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-						next.setText("Finish");  /* finish */
-						
+						next.setText("Finish");
+						next.setOnClickListener(new OnClickListener(){
+							@Override
+							public void onClick(View v) {
+								PendingIntent pending = (PendingIntent)mBundle.get("pending");
+								try {
+									pending.send();
+								} catch (CanceledException e) {
+									e.printStackTrace();
+								}
+							}
+						});
 					}
-
-					
-
-					
 				}
-	        	
-	        	
-	        	
 	        });
 	        
 	        prev.setOnClickListener(new OnClickListener(){
-	        	
-	        	
-
 				@Override
 				public void onClick(View v) {
 					if(currentPage != 0){
 						if(currentPage == 1){
-							
 							prev.setText("Quit");
 							prev.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 							/* TODO: set button to quit */
@@ -105,26 +90,18 @@ public class GuideActivity extends Activity{
 					}else{
 						prev.setText("Quit");
 						prev.setOnClickListener(new OnClickListener(){
-
 							@Override
 							public void onClick(View v) {
-							
-								GuideActivity.this.finish();
+								PendingIntent pending = (PendingIntent)mBundle.get("pending");
+								try {
+									pending.send();
+								} catch (CanceledException e) {
+									e.printStackTrace();
+								}
 							}
-							
-						});/* TODO: quit */
+						});
 					}
 				}
-	        	
-	        	
-	        	
-	        });
-	        
-	      
-	        
-	        
+	        }); 
 	    }
-	    
-	  
-
 }

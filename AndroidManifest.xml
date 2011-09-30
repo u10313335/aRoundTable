@@ -60,6 +60,9 @@
         <activity android:name="GroupDocActivity">
         </activity>
         
+        <activity android:name="GuideActivity">
+        </activity>
+        
         <service android:name="tw.jouou.aRoundTable.lib.SyncService"
         		 android:exported="true">
         </service>
