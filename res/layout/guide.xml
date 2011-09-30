@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent" android:gravity="right">
+
+	<ViewFlipper android:id="@+id/wizard_flipper"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:persistentDrawingCache="animation"
+		android:layout_weight="1" 
+		android:inAnimation="@anim/left_in"  
+        android:outAnimation="@anim/left_out">
+        
+        <LinearLayout   
+           android:orientation="vertical"  
+           android:layout_width="fill_parent"    
+           android:layout_height="fill_parent"> 
+           
+           <TextView   
+              android:id="@+id/invite_member_explain"    
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:textSize="10pt"
+              android:textStyle="bold"
+              android:padding="5dip"
+              android:text="新增聯絡人" >
+           </TextView>
+           
+            <TextView   
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:padding="5dip"
+              android:text="簡單幾步驟，輕鬆新增專案成員" >
+            </TextView>
+             
+          
+           <ImageView   
+              android:id="@+id/image1"    
+              android:src="@drawable/invite_member"  
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content">   
+           </ImageView>
+              
+       </LinearLayout>    
+        
+        <LinearLayout   
+           android:orientation="vertical"  
+           android:layout_width="fill_parent"    
+           android:layout_height="fill_parent">  
+           
+            <TextView   
+              android:id="@+id/add_item_explain"    
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:textSize="10pt"
+              android:textStyle="bold"
+              android:padding="5dip"
+              android:text="新增項目" >
+           </TextView> 
+           
+           <TextView   
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:padding="5dip"
+              android:text="提供多種到期時間選項，設定更為簡便" >
+            </TextView>
+          
+           <ImageView   
+              android:id="@+id/image1"    
+              android:src="@drawable/add_item"  
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content">   
+           </ImageView>
+              
+       </LinearLayout>    
+       
+       <LinearLayout   
+           android:orientation="vertical"  
+           android:layout_width="fill_parent"    
+           android:layout_height="fill_parent">   
+           
+            <TextView   
+              android:id="@+id/project_explain"    
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:textSize="10pt"
+              android:textStyle="bold"
+              android:padding="5dip"
+              android:text="專案頁面" >
+           </TextView> 
+           
+           <TextView   
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:padding="5dip"
+              android:text="顯示所有專案項目，隨時隨地掌握所有成員的進度" >
+            </TextView>
+          
+           <ImageView   
+              android:id="@+id/image1"    
+              android:src="@drawable/project"  
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content">   
+           </ImageView>
+              
+       </LinearLayout>    
+       
+       <LinearLayout   
+           android:orientation="vertical"  
+           android:layout_width="fill_parent"    
+           android:layout_height="fill_parent">   
+           
+             <TextView   
+              android:id="@+id/main_explain"    
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:textSize="10pt"
+              android:textStyle="bold"
+              android:padding="5dip"
+              android:text="我的項目" >
+           </TextView> 
+           
+           <TextView   
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:padding="5dip"
+              android:text="列出所有關於您的項目，讓您不再顧此失彼" >
+            </TextView>
+          
+          
+           <ImageView   
+              android:id="@+id/image1"    
+              android:src="@drawable/main"  
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content">   
+           </ImageView>
+              
+       </LinearLayout>    
+       
+       <LinearLayout   
+           android:orientation="vertical"  
+           android:layout_width="fill_parent"    
+           android:layout_height="fill_parent"> 
+           
+             <TextView   
+              android:id="@+id/dynamic_issue_explain"    
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:textSize="10pt"
+              android:textStyle="bold"
+              android:padding="5dip"
+              android:text="所有動態" >
+           </TextView>
+           
+           <TextView   
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:padding="5dip"
+              android:text="顯示項目的最新動態，隨時監控所有狀況" >
+            </TextView>   
+          
+           <ImageView   
+              android:id="@+id/image1"    
+              android:src="@drawable/dynamic_issue"  
+              android:layout_width="fill_parent"  
+              android:layout_height="wrap_content">   
+           </ImageView>
+              
+       </LinearLayout>    
+        
+        
+        
+        </ViewFlipper>
+
+
+	<RelativeLayout 
+		android:id="@+id/Buttons"
+		android:orientation="horizontal"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:padding="5dip">
+		
+
+		
+		<Button 
+		android:id="@+id/action_back"
+		android:gravity="center" 
+		android:text="Quit"
+		android:layout_alignParentLeft="true"
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content">
+		</Button>
+		
+		
+		
+		<Button 
+		android:id="@+id/action_next" 
+		android:gravity="center"
+		android:text="Next"
+		android:layout_alignParentRight="true"
+		android:drawableRight="@drawable/ic_btn_forward" 
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content">
+		</Button>
+		
+
+		
+	</RelativeLayout>
+	
+
+</LinearLayout>
+
+
