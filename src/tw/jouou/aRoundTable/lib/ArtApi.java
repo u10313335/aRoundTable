@@ -41,7 +41,7 @@ import android.preference.PreferenceManager;
  */
 public class ArtApi {
 	private static ArtApi instance;
-	private static final String baseURL = "http://api.hime.loli.tw";
+	private static final String baseURL = "http://api.hime.loli.tw:3000";
 	private static final String projectsPath = "/projects";	
 	private static final String tasksPath = "/tasks";
 	private static final String eventsPath = "/events";
@@ -326,10 +326,16 @@ public class ArtApi {
 		TokenParamsBuilder params = makeTokenParams();
 
 		params.put("event[name]", name)
-			  .put("event[start_at]", start_at.toString())
-			  .put("event[end_at]", end_at.toString())
 			  .put("event[location]", location)
 			  .put("event[note]", note);
+		
+		if(!(start_at == null)) {
+			params.put("event[start_at]", start_at.toString());
+			params.put("event[end_at]", end_at.toString());
+		} else {
+			params.put("event[start_at]", "");
+			params.put("event[end_at]", "");
+		}
 		
 		performPut(String.format(eventPath, eventId), params);
 	}
