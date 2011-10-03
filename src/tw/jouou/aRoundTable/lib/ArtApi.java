@@ -41,7 +41,7 @@ import android.preference.PreferenceManager;
  */
 public class ArtApi {
 	private static ArtApi instance;
-	private static final String baseURL = "http://api.hime.loli.tw:3000";
+	private static final String baseURL = "http://api.hime.loli.tw";
 	private static final String projectsPath = "/projects";	
 	private static final String tasksPath = "/tasks";
 	private static final String eventsPath = "/events";
