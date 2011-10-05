@@ -326,10 +326,16 @@ public class ArtApi {
 		TokenParamsBuilder params = makeTokenParams();
 
 		params.put("event[name]", name)
-			  .put("event[start_at]", start_at.toString())
-			  .put("event[end_at]", end_at.toString())
 			  .put("event[location]", location)
 			  .put("event[note]", note);
+		
+		if(!(start_at == null)) {
+			params.put("event[start_at]", start_at.toString());
+			params.put("event[end_at]", end_at.toString());
+		} else {
+			params.put("event[start_at]", "");
+			params.put("event[end_at]", "");
+		}
 		
 		performPut(String.format(eventPath, eventId), params);
 	}

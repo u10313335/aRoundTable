@@ -262,7 +262,7 @@ public class MainActivity extends Activity implements ViewSwitchListener {
     	v.findViewById(R.id.all_item_add_project).setOnClickListener(new OnClickListener() {
     	    @Override
     	    public void onClick(View arg0) {
-    	    	if(projs.size() <= 5) {
+    	    	if(projs.size() < 5) {
     	    		Intent addgroup_intent= new Intent();
     	    		addgroup_intent.setClass(MainActivity.this, CreateProjectActivity.class);
     	    		startActivity(addgroup_intent);
