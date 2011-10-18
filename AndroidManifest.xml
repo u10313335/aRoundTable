@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="tw.jouou.aRoundTable"
-      android:versionCode="24"
+      android:versionCode="-65536"
       android:versionName="1.2.0">
     <uses-sdk android:minSdkVersion="4" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -9,15 +9,20 @@
     
     <application android:icon="@drawable/icon" android:label="@string/app_name"
     			 android:theme="@style/Theme.AroundTable">
+    	<activity android:name="LicenseVerifyActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+		</activity>
         <activity android:name="MainActivity"
                   android:label="@string/app_name"
-                  android:launchMode="singleTask">
+                  android:launchMode="singleTask"
+                  android:exported="false">
                   
             <!-- Main entrance -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
