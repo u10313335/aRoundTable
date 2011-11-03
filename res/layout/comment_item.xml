@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent" 
+	android:orientation="horizontal">
+    
+	<ImageView android:id="@+id/avatar"
+   			   android:layout_width="48dip" 
+   			   android:layout_height="48dip"
+   			   android:gravity="left"
+			   android:layout_marginLeft="10dip"
+   			   android:src="@drawable/default_gravatar"/>
+    
+   	<TextView android:id="@+id/comment_text"
+   			  android:layout_toRightOf="@+id/avatar"
+   			  android:layout_centerVertical="true"
+   		  	  android:layout_width="wrap_content" 
+   		  	  android:layout_height="wrap_content"              	  
+  			  	  android:gravity="left"
+             	  android:layout_marginLeft="6dip"
+            	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+    
+</RelativeLayout>

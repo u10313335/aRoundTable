@@ -10,56 +10,56 @@
 		<TextView android:id="@+id/view_task_title"
 				  style="@style/ActionBarCompatText"/>
 	</LinearLayout>
-			
-	<ScrollView android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:layout_weight="1">
 	  
-		<TableLayout android:layout_width="fill_parent" 
-			 	 	 android:layout_height="fill_parent"
-			 		 android:stretchColumns="1">
-		
-			<TableRow>
-				<TextView style="@style/DisplayTaskEventLabel"
-				  	  	  android:text="@string/project"/>
+	<TableLayout android:layout_width="fill_parent" 
+		 	 	 android:layout_height="wrap_content"
+		 		 android:stretchColumns="1">
+	
+		<TableRow>
+			<TextView style="@style/DisplayTaskEventLabel"
+			  	  	  android:text="@string/project"/>
 
-				<TextView android:id="@+id/tx_project" 
-				 	 	  android:layout_width="wrap_content"
-				  	  	  android:layout_height="wrap_content"
-				  	  	  android:textStyle="bold"
-				  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
-			</TableRow>
-			
-			<TableRow>
-				<TextView style="@style/DisplayTaskEventLabel"
-				 	  	  android:text="@string/due" />
-				<TextView android:id="@+id/view_task_due"
-						  android:layout_height="wrap_content"
-				  		  android:layout_width="wrap_content"/>
-			</TableRow>
-	
-			<TableRow>
-				<TextView style="@style/DisplayTaskEventLabel"
-				  	  	  android:text="@string/owner" />
-				<TextView android:id="@+id/view_task_owner"
-						  android:layout_height="wrap_content"
-				  		  android:layout_width="wrap_content"/>
-				 
-			</TableRow>
-
-			<TableRow>
-				<TextView style="@style/DisplayTaskEventLabel"
-				  	  	  android:text="@string/note" />
+			<TextView android:id="@+id/tx_project" 
+			 	 	  android:layout_width="wrap_content"
+			  	  	  android:layout_height="wrap_content"
+			  	  	  android:textStyle="bold"
+			  	  	  android:textAppearance="?android:attr/textAppearanceMedium"/>
+		</TableRow>
 		
-				<TextView android:id="@+id/view_task_remarks"
-				  	  	  android:layout_width="wrap_content" 
-				 	  	  android:layout_height="wrap_content"
-				  	  	  android:text=""/>
-			</TableRow>	
+		<TableRow>
+			<TextView style="@style/DisplayTaskEventLabel"
+			 	  	  android:text="@string/due" />
+			<TextView android:id="@+id/view_task_due"
+					  android:layout_height="wrap_content"
+			  		  android:layout_width="wrap_content"/>
+		</TableRow>
+
+		<TableRow>
+			<TextView style="@style/DisplayTaskEventLabel"
+			  	  	  android:text="@string/owner" />
+			<TextView android:id="@+id/view_task_owner"
+					  android:layout_height="wrap_content"
+			  		  android:layout_width="wrap_content"/>
+			 
+		</TableRow>
+
+		<TableRow>
+			<TextView style="@style/DisplayTaskEventLabel"
+			  	  	  android:text="@string/note" />
 	
-		</TableLayout>
-	
-	</ScrollView>
+			<TextView android:id="@+id/view_task_remarks"
+			  	  	  android:layout_width="wrap_content" 
+			 	  	  android:layout_height="wrap_content"
+			  	  	  android:text=""/>
+		</TableRow>	
+
+	</TableLayout>
+
+	<ListView	android:id="@+id/comments"
+				android:background="#000"
+				android:layout_width="fill_parent" 
+			  	android:layout_height="wrap_content"
+			  	android:layout_weight="1" />
 
 	<LinearLayout android:layout_width="fill_parent" 
 				  android:layout_height="wrap_content"
