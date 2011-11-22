@@ -21,7 +21,7 @@
     android:layout_height="wrap_content"
     android:padding="10dip">
     
-    <tw.jouou.aRoundTable.widget.NumberPicker
+    <tw.jouou.aRoundTable.lite.widget.NumberPicker
         android:id="@+id/pref_num_picker"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
