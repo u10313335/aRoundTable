@@ -138,11 +138,25 @@ public class SyncService extends Service {
 			}
 			
 			private void syncProjects() throws ServerException, ConnectionFailException, ParseException{
-				if(remoteProjs.length == localProjs.size()) {
+				//FIXME: ugly sync logic
+				boolean projectListChanged = false;
+				if(remoteProjs.length != localProjs.size())
+					projectListChanged = true;
+				else{
+					for(int i=0; i < remoteProjs.length; i++){
+						if(remoteProjs[i].getServerId() != localProjs.get(i).getServerId()){
+							projectListChanged = true;
+							break;
+						}
+					}
+				}
+				
+				if(!projectListChanged) {
 					for (int i=0 ; i<localProjs.size() ; i++) {
 						Project proj = dbUtils.projectsDelegate.get(remoteProjs[i].getServerId());
 						Log.v(TAG, "[project] local: " + proj.getServerId() + " remote: " + remoteProjs[i].getServerId());
-						if (!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
+						if (
+								!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
 							if(proj.getUpdateAt().after(remoteProjs[i].getUpdateAt())) {
 								Log.v(TAG, "project: " + proj.getServerId() + " local update to server (push)");
 								artApi.updateProject(proj.getServerId(), proj.getName(), Integer.toString(proj.getColor()));
