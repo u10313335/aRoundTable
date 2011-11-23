@@ -243,15 +243,22 @@ public class AddBatchTaskActivity extends Activity {
 		addOwner.setOnClickListener(new OnClickListener() {
 	        	@Override
 	      	  	public void onClick(View v) {
-	        		final String[] usersMail = getUsersMail(mProj.getServerId());
+	        		final List<User> users = getUsers(mProj.getServerId());
+	        		if(users == null)
+	        			return;
+	        		final String[] usersName = new String[users.size()];
+	        		for(int i = 0; i < users.size(); i++) {
+	        			usersName[i] = users.get(i).name;
+	        		}
+	        		//final String[] usersMail = getUsersMail(mProj.getServerId());
 	        		Builder dialog = new Builder(AddBatchTaskActivity.this);
 	    			dialog.setTitle(R.string.add_owner);
-	    			dialog.setSingleChoiceItems(usersMail, -1, new DialogInterface.OnClickListener() {
+	    			dialog.setSingleChoiceItems(usersName, -1, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.dismiss();
 							addBatchField.removeView(ownerSelectRow);
-							final User member = getUser(usersMail[which]);
+							final User member = users.get(which);
 							taskField.setOwner(member);
 							final TableRow ownerDisplayRow = (TableRow) mInflater.inflate(R.layout.add_batch_display, null);
 							TextView tx = (TextView) ownerDisplayRow.findViewById(R.id.batch_task_owner_context);
@@ -429,7 +436,7 @@ public class AddBatchTaskActivity extends Activity {
     	return jsonArray.toString();
     }
     
-    private String[] getUsersMail(long projId) {
+    private List<User> getUsers(long projId) {
     	List<User> members = null;
 		try {
 			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
@@ -438,11 +445,7 @@ public class AddBatchTaskActivity extends Activity {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		String[] emails = new String[members.size()];
-		for(int i = 0; i < members.size(); i++) {
-			emails[i] = members.get(i).email;
-		}
-		return emails;
+		return members;
     }
     
     private String[] getTasksTitle(LinkedList<TaskField> taskField) {
@@ -454,7 +457,6 @@ public class AddBatchTaskActivity extends Activity {
 		return list.toArray(new String[list.size()]);
     }
     
-
     private Long[] getOwnersId(LinkedList<TaskField> taskField) {
 		List<Long> list = new LinkedList<Long>();
 		for (int i=0; i < taskField.size(); i++) {
@@ -497,19 +499,7 @@ public class AddBatchTaskActivity extends Activity {
     		this.owner = owner;
     	}
     }
-    
-    private User getUser(String email) {
-    	List<User> members = null;
-		try {
-			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
-			queryBuilder.where().eq("email", email);
-			members = dbUtils.userDao.query(queryBuilder.prepare());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return members.get(0);
-    }
-    
+
     
   	private class CreateTaskTask extends AsyncTask<Tasks, Void, Integer> {
 		private ProgressDialog dialog;

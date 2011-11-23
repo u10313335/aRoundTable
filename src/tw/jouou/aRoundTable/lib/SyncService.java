@@ -128,7 +128,7 @@ public class SyncService extends Service {
 				} catch (ServerException e) {
 					updateStatus(STATUS_FINISHED_SERVER_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
 				} catch (ConnectionFailException e) {
-					updateStatus(STATUS_FINISHED_CONNECTION_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
+					updateStatus(STATUS_FINISHED_CONNECTION_FAILED, getString(R.string.internet_connection_problem));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				} catch (SQLException e) {

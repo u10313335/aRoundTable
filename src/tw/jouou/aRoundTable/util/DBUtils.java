@@ -214,7 +214,7 @@ public class DBUtils extends OrmLiteSqliteOpenHelper {
 			List<Project> projs = new LinkedList<Project>();
 			SQLiteDatabase db = getReadableDatabase();
 			Cursor c = db.query(TABLE_PROJECT, null, null, null, null, null,
-					FIELD_PROJECT_ID + " DESC");
+					FIELD_PROJECT_ID + " ASC");
 			while (c.moveToNext()) {
 				Project proj = new Project(
 						c.getLong(c.getColumnIndexOrThrow(FIELD_PROJECT_ID)),

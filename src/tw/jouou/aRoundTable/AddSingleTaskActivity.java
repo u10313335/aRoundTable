@@ -225,14 +225,20 @@ public class AddSingleTaskActivity extends Activity {
         mBtnAddOwner.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		final String[] usersMail = getUsersMail(mProj.getServerId());
+        		final List<User> users = getUsers(mProj.getServerId());
+        		if(users == null)
+        			return;
+        		final String[] usersName = new String[users.size()];
+        		for(int i = 0; i < users.size(); i++) {
+        			usersName[i] = users.get(i).name;
+        		}
         		Builder dialog = new Builder(AddSingleTaskActivity.this);
     			dialog.setTitle(R.string.add_owner);
-    			dialog.setSingleChoiceItems(usersMail, -1, new DialogInterface.OnClickListener() {
+    			dialog.setSingleChoiceItems(usersName, -1, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
-						findAddOwnerView(getUser(usersMail[which]));
+						findAddOwnerView(users.get(which));
 					}
     			});
     			dialog.show();
@@ -501,7 +507,7 @@ public class AddSingleTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
-    private String[] getUsersMail(long projId) {
+    private List<User> getUsers(long projId) {
     	List<User> members = null;
 		try {
 			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
@@ -510,24 +516,9 @@ public class AddSingleTaskActivity extends Activity {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		String[] emails = new String[members.size()];
-		for(int i = 0; i < members.size(); i++) {
-			emails[i] = members.get(i).email;
-		}
-		return emails;
+		return members;
     }
     
-    private User getUser(String email) {
-    	List<User> members = null;
-		try {
-			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
-			queryBuilder.where().eq("email", email);
-			members = dbUtils.userDao.query(queryBuilder.prepare());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return members.get(0);
-    }
   
   	private class CreateTaskTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;
