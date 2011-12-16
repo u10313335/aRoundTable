@@ -69,17 +69,8 @@ public class AddEventActivity extends Activity {
     private EditText mEdLocation;
     private EditText mEdRemarks;
     private SimpleDateFormat mDateToStr, mStrToDate, mTimeToStr, mStrToTime;
-    private Calendar mCalendar = Calendar.getInstance();
-    private int mStartAtYear;
-    private int mStartAtMonth;
-    private int mStartAtDay;
-    private int mStartAtHour;
-    private int mStartAtMinute;
-    private int mEndAtYear;
-    private int mEndAtMonth;
-    private int mEndAtDay;
-    private int mEndAtHour;
-    private int mEndAtMinute;
+    private Calendar mCalStartAt = Calendar.getInstance();
+    private Calendar mCalEndAt = Calendar.getInstance();
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -90,21 +81,13 @@ public class AddEventActivity extends Activity {
     	}
         findViews();  //find basic views
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mCalStartAt.set(Calendar.MINUTE, 0);
+        mCalEndAt.set(Calendar.MINUTE, 0);
+        mCalEndAt.add(Calendar.HOUR_OF_DAY, 1);
         mDateToStr = new SimpleDateFormat("yyyy/MM/dd");
         mStrToDate = new SimpleDateFormat("yyyy MM dd");
         mTimeToStr = new SimpleDateFormat("HH:mm");
         mStrToTime = new SimpleDateFormat("HH mm");
-        //get today
-        mStartAtYear = mCalendar.get(Calendar.YEAR);
-        mStartAtMonth = mCalendar.get(Calendar.MONTH);
-        mStartAtDay = mCalendar.get(Calendar.DAY_OF_MONTH);
-        mStartAtHour = mCalendar.get(Calendar.HOUR_OF_DAY);
-        mStartAtMinute = mCalendar.get(Calendar.MINUTE);
-        mEndAtYear = mCalendar.get(Calendar.YEAR);
-        mEndAtMonth = mCalendar.get(Calendar.MONTH);
-        mEndAtDay = mCalendar.get(Calendar.DAY_OF_MONTH);
-        mEndAtHour = mCalendar.get(Calendar.HOUR_OF_DAY);
-        mEndAtMinute = mCalendar.get(Calendar.MINUTE);
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");      
         if (mBundle.getInt("addOrEdit") == 0) {
@@ -112,8 +95,6 @@ public class AddEventActivity extends Activity {
             mProjId = mProj.getServerId();
             mTxCreateUnder.setText(mProjName);
             findAssignTimeView();
-            updateDate(FROM_DATE_CHOOSER, mStartAtYear, mStartAtMonth, mStartAtDay);
-            updateDate(TO_DATE_CHOOSER, mStartAtYear, mStartAtMonth, mStartAtDay);
         } else {
         	mEvent = (Event)mBundle.get("event");
         	mEdTitle.setText(mEvent.getName());
@@ -125,18 +106,8 @@ public class AddEventActivity extends Activity {
         	if(mEventStartAt == null) {
         		findUndeterminedView();
         	} else {
-        		mCalendar.setTime(mEventStartAt);
-        		mStartAtYear = mCalendar.get(Calendar.YEAR);
-        		mStartAtMonth = mCalendar.get(Calendar.MONTH); // Month is 0 based so add 1
-        		mStartAtDay = mCalendar.get(Calendar.DATE);
-        		mStartAtHour = mCalendar.get(Calendar.HOUR_OF_DAY);
-        		mStartAtMinute = mCalendar.get(Calendar.MINUTE);
-        		mCalendar.setTime(mEventEndAt);
-        		mEndAtYear = mCalendar.get(Calendar.YEAR);
-        		mEndAtMonth = mCalendar.get(Calendar.MONTH); // Month is 0 based so add 1
-        		mEndAtDay = mCalendar.get(Calendar.DATE);
-        		mEndAtHour = mCalendar.get(Calendar.HOUR_OF_DAY);
-        		mEndAtMinute = mCalendar.get(Calendar.MINUTE);
+        		mCalStartAt.setTime(mEventStartAt);
+        		mCalEndAt.setTime(mEventEndAt);
         		findAssignTimeView();
         	}
         }
@@ -164,6 +135,7 @@ public class AddEventActivity extends Activity {
       	  	public void onClick(View v) {
         		switch(mDueType) {       		
         			case ASSIGN_TIME_PANEL:
+        				Log.v("Sol", "time: " + mBtnFromTimePicker.getText().toString());
         				(new CreateEventTask()).execute(mEdTitle.getText().toString(),
         						mBtnFromDatePicker.getText().toString() + " " +
         						mBtnFromTimePicker.getText().toString(),
@@ -204,24 +176,52 @@ public class AddEventActivity extends Activity {
         		return new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
         				public void onDateSet(DatePicker view, int year, int monthOfYear,
         						int dayOfMonth) {
-        							updateDate(FROM_DATE_CHOOSER, year, monthOfYear, dayOfMonth);}},
-        									mStartAtYear, mStartAtMonth, mStartAtDay);
+        							mCalStartAt.set(year, monthOfYear, dayOfMonth);
+        							mCalEndAt.set(year, monthOfYear, dayOfMonth);
+        							if(mCalEndAt.before(mCalStartAt)) {
+            							mCalEndAt.add(Calendar.DAY_OF_MONTH, 1);
+            						}
+        							updateDate(FROM_DATE_CHOOSER, mCalStartAt);
+        							updateDate(TO_DATE_CHOOSER, mCalEndAt);}},
+        								mCalStartAt.get(Calendar.YEAR), mCalStartAt.get(Calendar.MONTH), mCalStartAt.get(Calendar.DAY_OF_MONTH));
+
         	case TO_DATE_CHOOSER:
         		return new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-        				public void onDateSet(DatePicker view, int year, int monthOfYear,
-        						int dayOfMonth) {
-        							updateDate(TO_DATE_CHOOSER, year, monthOfYear, dayOfMonth);}},
-        									mEndAtYear, mEndAtMonth, mEndAtDay);
+    				public void onDateSet(DatePicker view, int year, int monthOfYear,
+    						int dayOfMonth) {
+								mCalEndAt.set(year, monthOfYear, dayOfMonth);
+    							if(mCalEndAt.before(mCalStartAt)) {
+    								mCalEndAt.set(mCalStartAt.get(Calendar.YEAR), mCalStartAt.get(Calendar.MONTH), mCalStartAt.get(Calendar.DAY_OF_MONTH));
+    								mCalEndAt.set(Calendar.HOUR_OF_DAY, mCalStartAt.get(Calendar.HOUR_OF_DAY));   					
+    	        					mCalEndAt.set(Calendar.MINUTE, mCalStartAt.get(Calendar.MINUTE));
+    								updateTime(TO_TIME_CHOOSER, mCalEndAt);
+    								updateDate(TO_DATE_CHOOSER, mCalEndAt);
+    							}
+    							updateDate(TO_DATE_CHOOSER, mCalEndAt);}},
+    								mCalEndAt.get(Calendar.YEAR), mCalEndAt.get(Calendar.MONTH), mCalEndAt.get(Calendar.DAY_OF_MONTH));
+        		
         	case FROM_TIME_CHOOSER:
         		return new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
         				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        							updateTime(FROM_TIME_CHOOSER, hourOfDay, minute);}},
-        									mStartAtHour, mStartAtMinute,false);
+        					mCalEndAt.set(Calendar.HOUR_OF_DAY, hourOfDay + (mCalEndAt.get(Calendar.HOUR_OF_DAY) - mCalStartAt.get(Calendar.HOUR_OF_DAY)));
+        					mCalStartAt.set(Calendar.HOUR_OF_DAY, hourOfDay);   					
+        					mCalStartAt.set(Calendar.MINUTE, minute);
+        					mCalEndAt.set(Calendar.MINUTE, minute);
+        					updateTime(FROM_TIME_CHOOSER, mCalStartAt);
+        					updateTime(TO_TIME_CHOOSER, mCalEndAt);}},
+        						mCalStartAt.get(Calendar.HOUR_OF_DAY), mCalStartAt.get(Calendar.MINUTE), false);
+        		
         	case TO_TIME_CHOOSER:
         		return new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-        				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        							updateTime(TO_TIME_CHOOSER, hourOfDay, minute);}},
-        									mEndAtHour, mEndAtMinute,false);
+    					public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+    						mCalEndAt.set(Calendar.HOUR_OF_DAY, hourOfDay);
+    						mCalEndAt.set(Calendar.MINUTE, minute);
+    						if(mCalEndAt.before(mCalStartAt)) {
+    							mCalEndAt.add(Calendar.DAY_OF_MONTH, 1);
+    							updateDate(TO_DATE_CHOOSER, mCalEndAt);
+    						}
+    						updateTime(TO_TIME_CHOOSER, mCalEndAt);}},
+    							mCalEndAt.get(Calendar.HOUR_OF_DAY), mCalEndAt.get(Calendar.MINUTE), false);
     	}
 		return null;
     }
@@ -236,31 +236,35 @@ public class AddEventActivity extends Activity {
         mBtnFromDatePicker.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		removeDialog(FROM_DATE_CHOOSER);
         		showDialog(FROM_DATE_CHOOSER);
       	  	}
     	});
         mBtnToDatePicker.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		removeDialog(TO_DATE_CHOOSER);
         		showDialog(TO_DATE_CHOOSER);
       	  	}
-    	}); 
+    	});
         mBtnFromTimePicker.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		removeDialog(FROM_TIME_CHOOSER);
         		showDialog(FROM_TIME_CHOOSER);
       	  	}
     	});
         mBtnToTimePicker.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		removeDialog(TO_TIME_CHOOSER);
         		showDialog(TO_TIME_CHOOSER);
       	  	}
     	}); 
-        updateDate(FROM_DATE_CHOOSER, mStartAtYear, mStartAtMonth, mStartAtDay);
-        updateDate(TO_DATE_CHOOSER, mEndAtYear, mEndAtMonth, mEndAtDay);
-        updateTime(FROM_TIME_CHOOSER, mStartAtHour, mStartAtMinute);
-        updateTime(TO_TIME_CHOOSER, mEndAtHour, mEndAtMinute);
+        updateDate(FROM_DATE_CHOOSER, mCalStartAt);
+        updateDate(TO_DATE_CHOOSER, mCalEndAt);
+        updateTime(FROM_TIME_CHOOSER, mCalStartAt);
+        updateTime(TO_TIME_CHOOSER, mCalEndAt);
         mTimeChooser.addView(add_event_assign_time);
 	}
 	
@@ -269,13 +273,19 @@ public class AddEventActivity extends Activity {
         mTimeChooser.addView(add_single_task_undetermined);
 	}
            
-	private void updateDate(int addOrEdit, int year, int month, int day){
+	private void updateDate(int type, Calendar cal){
+		
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        
 		// Month is 0 based so add 1
 		String fromStr = year+" "+(month+1)+" "+day;
+		
 		try {
 			Date date = mStrToDate.parse(fromStr);
 			String toStr = mDateToStr.format(date);
-			switch(addOrEdit) {
+			switch(type) {
 				case FROM_DATE_CHOOSER:
 					mBtnFromDatePicker.setText(toStr);
 					break;
@@ -288,12 +298,17 @@ public class AddEventActivity extends Activity {
 		}
     }
 	
-	private void updateTime(int addOrEdit, int hour, int minute){
+	private void updateTime(int type, Calendar cal){
+		
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+		
 		String fromStr = hour+" "+minute;
+		
 		try {
 			Date date = mStrToTime.parse(fromStr);
 			String toStr = mTimeToStr.format(date);
-			switch(addOrEdit) {
+			switch(type) {
 				case FROM_TIME_CHOOSER:
 					mBtnFromTimePicker.setText(toStr);
 					break;

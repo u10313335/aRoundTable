@@ -192,7 +192,7 @@ public class SyncService extends Service {
 						Long[] usersId = dbUtils.tasksUsersDelegate.getUsersId(remoteTasks[j].getServerId());
 						Log.v(TAG, "[task] local: " + task.getServerId() + " remote: " + remoteTasks[j].getServerId());
 						if (!(task.getUpdateAt().compareTo(remoteTasks[j].getUpdateAt())==0)) {
-							if(task.getUpdateAt().after(remoteTasks[j].getUpdateAt())) {
+							if(task.getUpdateAt().getTime() - remoteTasks[j].getUpdateAt().getTime() >= -60000000) {
 								artApi.updateTask(task.getServerId(), task.getName(), usersId, task.getDueDate(), task.getNote(), task.getDone());
 								task.setUpdateAt(artApi.getTask(task.getServerId()).getUpdateAt());
 								dbUtils.tasksDelegate.update(task);
@@ -235,7 +235,7 @@ public class SyncService extends Service {
 						Event event = dbUtils.eventsDelegate.getEvent(remoteEvents[j].getServerId());
 						Log.v(TAG, "[event] local: " + event.getServerId() + " remote: " + remoteEvents[j].getServerId());
 						if (!(event.getUpdateAt().compareTo(remoteEvents[j].getUpdateAt())==0)) {
-							if(event.getUpdateAt().after(remoteEvents[j].getUpdateAt())) {
+							if(event.getUpdateAt().getTime() - remoteEvents[j].getUpdateAt().getTime() >= -60000000) {
 								Log.v(TAG, "event: " + event.getServerId() + " local update to server (push)");
 								artApi.updateEvent(event.getServerId(), event.getName(), event.getStartAt(), event.getEndAt(), event.getLocation(), event.getNote());
 								event.setUpdateAt(artApi.getEvent(event.getServerId()).getUpdateAt());
