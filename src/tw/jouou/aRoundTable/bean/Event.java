@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,7 +51,6 @@ public class Event implements Serializable {
 	public Event(JSONObject eventJson) throws JSONException {
 		try {
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 			this.name = eventJson.getString("name");
 			this.serverId = eventJson.getLong("id");
 			this.projId = eventJson.getLong("project_id");

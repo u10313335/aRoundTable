@@ -93,10 +93,7 @@ public class AddSingleTaskActivity extends Activity {
     private Button mBtnCancel;
     private EditText mEdRemarks;
     private SimpleDateFormat mDateToStr, mStrToDate;
-    private Calendar mCalendar = Calendar.getInstance();
-    private int mYear;
-    private int mMonth;
-    private int mDay;
+    private Calendar mCal = Calendar.getInstance();
 
 	
 	public void onCreate(Bundle savedInstanceState) {
@@ -110,10 +107,6 @@ public class AddSingleTaskActivity extends Activity {
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mDateToStr = new SimpleDateFormat("yyyy/MM/ddE");
         mStrToDate = new SimpleDateFormat("yyyy MM dd");
-        //get today
-        mYear = mCalendar.get(Calendar.YEAR);
-        mMonth = mCalendar.get(Calendar.MONTH);
-        mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
         mBundle = this.getIntent().getExtras();
         mProj = (Project)mBundle.get("proj");
         try {
@@ -128,7 +121,6 @@ public class AddSingleTaskActivity extends Activity {
             mProjId = mProj.getServerId();
             mTxCreateUnder.setText(mProjName);
             findAssignDateView();
-            updateDisplay(mYear, mMonth, mDay);
         } else {
         	// remove itself from dependable mTasks when edit
         	mTask = (Task)mBundle.get("task");
@@ -157,10 +149,7 @@ public class AddSingleTaskActivity extends Activity {
         			findUndeterminedView();
         		}
         	} else {
-        		mCalendar.setTime(mTaskDue);
-        		mYear = mCalendar.get(Calendar.YEAR);
-        		mMonth = mCalendar.get(Calendar.MONTH); // Month is 0 based so add 1
-        		mDay = mCalendar.get(Calendar.DATE);
+        		mCal.setTime(mTaskDue);
         		findAssignDateView();
         	}
         }
@@ -225,14 +214,20 @@ public class AddSingleTaskActivity extends Activity {
         mBtnAddOwner.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		final String[] usersMail = getUsersMail(mProj.getServerId());
+        		final List<User> users = getUsers(mProj.getServerId());
+        		if(users == null)
+        			return;
+        		final String[] usersName = new String[users.size()];
+        		for(int i = 0; i < users.size(); i++) {
+        			usersName[i] = users.get(i).name;
+        		}
         		Builder dialog = new Builder(AddSingleTaskActivity.this);
     			dialog.setTitle(R.string.add_owner);
-    			dialog.setSingleChoiceItems(usersMail, -1, new DialogInterface.OnClickListener() {
+    			dialog.setSingleChoiceItems(usersName, -1, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
-						findAddOwnerView(getUser(usersMail[which]));
+						findAddOwnerView(users.get(which));
 					}
     			});
     			dialog.show();
@@ -256,14 +251,19 @@ public class AddSingleTaskActivity extends Activity {
         		return new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
         				public void onDateSet(DatePicker view, int year, int monthOfYear,
         						int dayOfMonth) {
-        							updateDisplay(year, monthOfYear, dayOfMonth);}},
-        									mYear, mMonth, mDay);
+        							mCal.set(year, monthOfYear, dayOfMonth);
+        							updateDisplay(mCal);}},
+        								mCal.get(Calendar.YEAR), mCal.get(Calendar.MONTH), mCal.get(Calendar.DAY_OF_MONTH));
     	}
 		return null;
     }
 
-	private void updateDisplay(int year, int month, int day){
+	private void updateDisplay(Calendar cal){
 
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        
 		// Month is 0 based so add 1
 		String fromStr = year+" "+(month+1)+" "+day;
 		Date date;
@@ -288,19 +288,22 @@ public class AddSingleTaskActivity extends Activity {
         mBtnDatePicker.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
+        		removeDialog(DATE_DIALOG_ID);
         		showDialog(DATE_DIALOG_ID);
       	  	}
     	});
         mBtnOneDay.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		updateDisplay(mYear, mMonth, mDay+1);
+        		mCal.add(Calendar.DAY_OF_MONTH, 1);
+        		updateDisplay(mCal);
       	  	}
     	});
         mBtnsSevenDay.setOnClickListener(new OnClickListener() {
         	@Override
       	  	public void onClick(View v) {
-        		updateDisplay(mYear, mMonth, mDay+7);
+        		mCal.add(Calendar.DAY_OF_MONTH, 7);
+        		updateDisplay(mCal);
       	  	}
     	});
         mBtnNDay.setOnClickListener(new OnClickListener() {
@@ -316,7 +319,8 @@ public class AddSingleTaskActivity extends Activity {
                 dialog.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
-    					updateDisplay(mYear, mMonth, mDay+mNumberPicker.getCurrent());
+    					mCal.add(Calendar.DAY_OF_MONTH, mNumberPicker.getCurrent());
+    					updateDisplay(mCal);
     				}
                 });
                 dialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -329,7 +333,7 @@ public class AddSingleTaskActivity extends Activity {
         	}
     	});
         
-        updateDisplay(mYear, mMonth, mDay);
+        updateDisplay(mCal);
         mDateChooser.addView(add_single_task_assign_date);
 	}
 	
@@ -501,7 +505,7 @@ public class AddSingleTaskActivity extends Activity {
 		return set.toArray(new Long[set.size()]);
     }
     
-    private String[] getUsersMail(long projId) {
+    private List<User> getUsers(long projId) {
     	List<User> members = null;
 		try {
 			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
@@ -510,24 +514,9 @@ public class AddSingleTaskActivity extends Activity {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		String[] emails = new String[members.size()];
-		for(int i = 0; i < members.size(); i++) {
-			emails[i] = members.get(i).email;
-		}
-		return emails;
+		return members;
     }
     
-    private User getUser(String email) {
-    	List<User> members = null;
-		try {
-			QueryBuilder<User, Integer> queryBuilder = dbUtils.userDao.queryBuilder();
-			queryBuilder.where().eq("email", email);
-			members = dbUtils.userDao.query(queryBuilder.prepare());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return members.get(0);
-    }
   
   	private class CreateTaskTask extends AsyncTask<String, Void, Integer> {
 		private ProgressDialog dialog;

@@ -128,7 +128,7 @@ public class SyncService extends Service {
 				} catch (ServerException e) {
 					updateStatus(STATUS_FINISHED_SERVER_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
 				} catch (ConnectionFailException e) {
-					updateStatus(STATUS_FINISHED_CONNECTION_FAILED, getString(R.string.remote_server_problem) + " " + e.getMessage());
+					updateStatus(STATUS_FINISHED_CONNECTION_FAILED, getString(R.string.internet_connection_problem));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				} catch (SQLException e) {
@@ -138,11 +138,25 @@ public class SyncService extends Service {
 			}
 			
 			private void syncProjects() throws ServerException, ConnectionFailException, ParseException{
-				if(remoteProjs.length == localProjs.size()) {
+				//FIXME: ugly sync logic
+				boolean projectListChanged = false;
+				if(remoteProjs.length != localProjs.size())
+					projectListChanged = true;
+				else{
+					for(int i=0; i < remoteProjs.length; i++){
+						if(remoteProjs[i].getServerId() != localProjs.get(i).getServerId()){
+							projectListChanged = true;
+							break;
+						}
+					}
+				}
+				
+				if(!projectListChanged) {
 					for (int i=0 ; i<localProjs.size() ; i++) {
 						Project proj = dbUtils.projectsDelegate.get(remoteProjs[i].getServerId());
 						Log.v(TAG, "[project] local: " + proj.getServerId() + " remote: " + remoteProjs[i].getServerId());
-						if (!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
+						if (
+								!(proj.getUpdateAt().compareTo(remoteProjs[i].getUpdateAt())==0)) {
 							if(proj.getUpdateAt().after(remoteProjs[i].getUpdateAt())) {
 								Log.v(TAG, "project: " + proj.getServerId() + " local update to server (push)");
 								artApi.updateProject(proj.getServerId(), proj.getName(), Integer.toString(proj.getColor()));
@@ -178,7 +192,7 @@ public class SyncService extends Service {
 						Long[] usersId = dbUtils.tasksUsersDelegate.getUsersId(remoteTasks[j].getServerId());
 						Log.v(TAG, "[task] local: " + task.getServerId() + " remote: " + remoteTasks[j].getServerId());
 						if (!(task.getUpdateAt().compareTo(remoteTasks[j].getUpdateAt())==0)) {
-							if(task.getUpdateAt().after(remoteTasks[j].getUpdateAt())) {
+							if(task.getUpdateAt().getTime() - remoteTasks[j].getUpdateAt().getTime() >= -60000000) {
 								artApi.updateTask(task.getServerId(), task.getName(), usersId, task.getDueDate(), task.getNote(), task.getDone());
 								task.setUpdateAt(artApi.getTask(task.getServerId()).getUpdateAt());
 								dbUtils.tasksDelegate.update(task);
@@ -221,7 +235,7 @@ public class SyncService extends Service {
 						Event event = dbUtils.eventsDelegate.getEvent(remoteEvents[j].getServerId());
 						Log.v(TAG, "[event] local: " + event.getServerId() + " remote: " + remoteEvents[j].getServerId());
 						if (!(event.getUpdateAt().compareTo(remoteEvents[j].getUpdateAt())==0)) {
-							if(event.getUpdateAt().after(remoteEvents[j].getUpdateAt())) {
+							if(event.getUpdateAt().getTime() - remoteEvents[j].getUpdateAt().getTime() >= -60000000) {
 								Log.v(TAG, "event: " + event.getServerId() + " local update to server (push)");
 								artApi.updateEvent(event.getServerId(), event.getName(), event.getStartAt(), event.getEndAt(), event.getLocation(), event.getNote());
 								event.setUpdateAt(artApi.getEvent(event.getServerId()).getUpdateAt());
