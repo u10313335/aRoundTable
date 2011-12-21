@@ -1,10 +1,11 @@
 package tw.jouou.aRoundTable;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import tw.jouou.aRoundTable.bean.Comment;
-import tw.jouou.aRoundTable.bean.Notification;
 import tw.jouou.aRoundTable.bean.Project;
 import tw.jouou.aRoundTable.bean.Task;
 import tw.jouou.aRoundTable.bean.User;
@@ -32,7 +33,9 @@ public class DisplayTaskActivity extends Activity {
 	private Bundle mBundle;
 	private Task mTask;
 	private Project mProject;
+	private Date mTaskDue;
 	private Comment[] comments;
+	public static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,16 +45,35 @@ public class DisplayTaskActivity extends Activity {
 		mBundle = this.getIntent().getExtras();
         mTask = (Task)mBundle.get("task");
         mProject = dbUtils.projectsDelegate.get(mTask.getProjId());
+        mTaskDue = mTask.getDueDate();
         
-		((TextView) findViewById(R.id.view_task_title)).setText("工作: "+mTask.getName());
+		((TextView) findViewById(R.id.view_task_title)).setText(getString(R.string.task) + mTask.getName());
 		((TextView) findViewById(R.id.tx_project)).setText(mProject.getName());
+    	if(mTaskDue != null) {
+    		((TextView) findViewById(R.id.tx_task_due)).setText(formatter.format(mTaskDue));
+    	}
+    	((TextView) findViewById(R.id.tx_task_owner)).setText(genUserNames(mTask.getServerId()));
+    	((TextView) findViewById(R.id.tx_task_remarks)).setText(mTask.getNote());
 		commentList = (ListView) findViewById(R.id.comments);
 		
 		// Load comments
 		new LoadCommentsTask().execute(mTask);
 	}
-
 	
+	private String genUserNames(long taskId){
+	     String nameList = "";
+	     String[] names = dbUtils.tasksUsersDelegate.getUsersName(taskId);
+	     if(names != null) {
+	    	 nameList = names[0];
+	    	 int i = 1;
+	    	 while(i < names.length) {
+	    		 nameList = names[i] + ", " + nameList;
+	    		 i++;
+	    	 }
+	     }
+	     return nameList;
+	}
+
 	class LoadCommentsTask extends AsyncTask<Task, Void, Void>{
 		private ProgressDialog dialog;
 		
