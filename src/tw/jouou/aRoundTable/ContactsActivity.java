@@ -16,6 +16,8 @@ import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -31,8 +33,9 @@ public class ContactsActivity extends Activity {
 		project = (Project) getIntent().getExtras().get("proj");
 		
 		setContentView(R.layout.contacts);
-		
-		((ListView) findViewById(R.id.members_list)).setAdapter(new ContactsAdapter());
+		ContactsAdapter adapter = new ContactsAdapter();
+		((ListView) findViewById(R.id.members_list)).setAdapter(adapter);
+		((ListView) findViewById(R.id.members_list)).setOnItemClickListener(adapter);
 		findViewById(R.id.actbtn_add_member).setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -44,7 +47,7 @@ public class ContactsActivity extends Activity {
 		});
 	}
 	
-	private class ContactsAdapter extends BaseAdapter{
+	private class ContactsAdapter extends BaseAdapter implements OnItemClickListener{
 		private List<User> members;
 		
 		public ContactsAdapter() {
@@ -97,6 +100,16 @@ public class ContactsActivity extends Activity {
 				}
 			}).start();
 			return convertView;
+		}
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View v, int position,
+				long id) {
+			Intent mailIntent = new Intent(android.content.Intent.ACTION_SEND);
+            mailIntent.setType("plain/text");
+            mailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{((User) getItem(position)).email});
+            mailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, String.format("[%s]", project.getName()));
+            startActivity(mailIntent);
 		}
 	}
 }
